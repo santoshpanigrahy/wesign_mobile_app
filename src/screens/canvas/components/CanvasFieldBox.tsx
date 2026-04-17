@@ -8,6 +8,10 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { FIELD_CONFIG, FIELD_ICONS, FIELD_NAMES } from '@utils/fieldConstants';
+import RenderFieldContent from './RenderFieldContent';
+
+
+
 
 const CanvasFieldBox = ({
   field,
@@ -23,12 +27,11 @@ const CanvasFieldBox = ({
 }) => {
 
 
-  
-  const config = FIELD_CONFIG[field.field_name] || {};
-const Icon = config.icon;
-const name = config.label;
-  
-  
+
+
+
+
+
 
   const dragRef = useRef();
 
@@ -53,12 +56,12 @@ const name = config.label;
       ctx.startY = translateY.value;
 
       // runOnJS(setShowToolbar)(false);
-      
+
     },
 
     onActive: (event, ctx) => {
-     const newX = ctx.startX + event.translationX / zoomScale;
-const newY = ctx.startY + event.translationY / zoomScale;
+      const newX = ctx.startX + event.translationX / zoomScale;
+      const newY = ctx.startY + event.translationY / zoomScale;
 
       const maxX = (pageWidth * scale) - width.value;
       const maxY = (pageHeight * scale) - height.value;
@@ -90,7 +93,7 @@ const newY = ctx.startY + event.translationY / zoomScale;
     height: height.value,
   }));
 
-  
+
 
   return (
     <PanGestureHandler ref={dragRef} onGestureEvent={dragHandler}>
@@ -104,78 +107,22 @@ const newY = ctx.startY + event.translationY / zoomScale;
             e.stopPropagation();
             // ✅ VERY IMPORTANT
             setShowToolbar(true);
-    onSelect(field);
-  }}
+            onSelect(field);
+          }}
           pointerEvents="auto"
           style={{
             flex: 1,
-            borderWidth: 1,
-            borderStyle: isSelected ? 'dashed' : 'solid',
-            borderColor: field?.recipient_color || '#000',
-            backgroundColor: isSelected
-              ? field?.recipient_color + '40'
-              : field?.recipient_color,
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'row',
-            gap: 5,
+
+            // justifyContent: 'center',
+            // alignItems: 'center',
+            // flexDirection: 'row',
+            // gap: 5,
           }}
         >
-          {Icon && (
-            <Icon
-              size={10}
-              color={isSelected ? field?.recipient_color : '#fff'}
-            />
-          )}
-          {
-            name &&  <Text
-            style={{
-              fontSize: 10,
-              color: isSelected ? field?.recipient_color : '#fff',
-            }}
-          >
-            {name}
-          </Text>
-          }
+          <RenderFieldContent isSelected={isSelected} field={field} onUpdate={onUpdate} />
 
 
-           {
-            field?.field_data &&  <Text
-            style={{
-              fontSize: 10,
-              color: isSelected ? field?.recipient_color : '#fff',
-            }}
-          >
-            {field?.field_data}
-          </Text>
-          }
-         
 
-          {field.is_prefilled_field && field.image_base_64 &&
-  <Image source={{ uri: field.image_base_64 }} style={{ width: '100%', height: '100%' }}  onLoad={(e) => {
-    const { width, height } = e.nativeEvent.source;
-
-    const imgAR = width / height;
-    const boxW = field.width;
-    const boxH = field.height;
-    const boxAR = boxW / boxH;
-
-    let finalW, finalH;
-
-    if (imgAR > boxAR) {
-      finalH = boxH;
-      finalW = boxH * imgAR;
-    } else {
-      finalW = boxW;
-      finalH = boxW / imgAR;
-    }
-
-    onUpdate(field.id, {
-      width: finalW,
-      height: finalH,
-    });
-  }} />
-}
         </Pressable>
 
         {/* ACTION TOOLBAR */}
@@ -193,7 +140,7 @@ const newY = ctx.startY + event.translationY / zoomScale;
               paddingVertical: 4,
               zIndex: 1000,
               width: 200,
-              justifyContent:'space-evenly'
+              justifyContent: 'space-evenly'
             }}
           >
             <Pressable onPress={(e) => {
@@ -207,7 +154,7 @@ const newY = ctx.startY + event.translationY / zoomScale;
 
             <Pressable onPress={(e) => {
               e.stopPropagation();
-             onUpdate('edit', field);
+              onUpdate('edit', field);
               setShowToolbar(false);
             }} >
               <Text style={{ color: '#fff', fontSize: 10, marginHorizontal: 5 }}>
@@ -226,7 +173,7 @@ const newY = ctx.startY + event.translationY / zoomScale;
               </Text>
             </Pressable>
 
-             <Pressable onPress={(e) => {
+            <Pressable onPress={(e) => {
               e.stopPropagation()
               onUpdate('resize', field);
               setShowToolbar(false);

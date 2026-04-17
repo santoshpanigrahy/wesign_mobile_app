@@ -1,12 +1,16 @@
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
-import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
+import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import {
 
   ChevronRight,
   House,
+  Inbox,
+  Send,
   Settings,
   SquareChartGantt,
+  SquarePen,
+  Trash,
   X,
 
 } from 'lucide-react-native';
@@ -22,7 +26,7 @@ const CustomDrawer = (props: any) => {
   if (!state) return null;
   const activeRoute = state.routeNames[state.index];
 
-  const DrawerItem = ({ label, Icon, route }: any) => {
+  const DrawerItem = ({ label, Icon, route, count }: any) => {
     const isActive = activeRoute === route;
 
     return (
@@ -36,27 +40,45 @@ const CustomDrawer = (props: any) => {
         {/* Left Indicator */}
         {/* {isActive && <View style={styles.activeIndicator} />} */}
 
-        <Icon
-          size={fp(2.4)}
-          strokeWidth={2}
-          color={isActive ? Colors.primary : Colors.text_secondary}
-        />
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: wp(3),
+        }}>
+          <Icon
+            size={fp(2.4)}
+            strokeWidth={2}
+            color={isActive ? Colors.primary : Colors.text_secondary}
+          />
 
-        <Text
-          style={[
-            styles.drawerText,
-            { color: isActive ? Colors.primary : Colors.text_primary },
-          ]}
-        >
-          {label}
-        </Text>
+          <Text
+            style={[
+              styles.drawerText,
+              { color: isActive ? Colors.primary : Colors.text_primary },
+            ]}
+          >
+            {label}
+          </Text>
+        </View>
+
+        {
+          count && <Text
+            style={[
+              styles.count,
+            ]}
+          >
+            {count}
+          </Text>
+        }
+
+
       </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.drawerWrapper}>
-      
+
       {/* Header */}
       <View style={styles.drawerTop}>
         <Image
@@ -73,9 +95,12 @@ const CustomDrawer = (props: any) => {
       {/* <View style={styles.hr} /> */}
 
       {/* Menu */}
-      <View style={{ gap: wp(2),marginTop:wp(6) }}>
+      <View style={{ gap: wp(2), marginTop: wp(6) }}>
         <DrawerItem label="Home" Icon={House} route="Home" />
-        <DrawerItem label="Manage" Icon={SquareChartGantt} route="Manage" />
+        <DrawerItem label="Inbox" Icon={Inbox} route="Inbox" count={20} />
+        <DrawerItem label="Sent" Icon={Send} route="Sent" />
+        <DrawerItem label="Draft" Icon={SquarePen} route="Draft" />
+        <DrawerItem label="Deleted" Icon={Trash} route="Deleted" />
         <DrawerItem label="Settings" Icon={Settings} route="Settings" />
       </View>
     </View>
@@ -91,13 +116,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: wp(6),
   },
-  
+
   drawerTop: {
     backgroundColor: Colors.white,
-  height:hp(7),
+    height: hp(7),
     flexDirection: 'row',
-    justifyContent:'space-between',
-   alignItems:'center'
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  count: {
+    // width: wp(7),
+    paddingHorizontal: wp(1.3),
+    paddingVertical: wp(0.4),
+    backgroundColor: Colors.error,
+    color: Colors.white,
+    fontSize: fp(1),
+    borderRadius: wp(4),
+    fontFamily: Fonts.Regular
   },
   hr: {
     borderBottomColor: Colors.border,
@@ -118,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
- 
+
 
   benifitBox: {
     flexDirection: 'row',
@@ -134,7 +169,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium,
   },
   drawerLogo: {
-    width:wp(40)
+    width: wp(40)
   },
   drawerTabBtn: {
     height: hp(5.5),
@@ -143,43 +178,44 @@ const styles = StyleSheet.create({
     gap: wp(3),
     paddingHorizontal: wp(4),
     // backgroundColor: Colors.primary_light,
-    borderRadius:wp(1)
-    
+    borderRadius: wp(1)
+
   },
-   drawerTabText: {
+  drawerTabText: {
     fontSize: fp(2),
     fontFamily: Fonts.Regular,
     color: Colors.text_primary,
   },
   activeTab: {
     backgroundColor: Colors.background_light,
-     
+
   },
   drawerItem: {
-  height: hp(5.5),
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: wp(3),
-  paddingHorizontal: wp(4),
-  // borderRadius: wp(2),
-  position: 'relative',
-},
+    height: hp(5.5),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    paddingHorizontal: wp(4),
+    // borderRadius: wp(2),
+    position: 'relative',
+    justifyContent: 'space-between'
+  },
 
-activeItem: {
-  backgroundColor: Colors.background_light,
-},
+  activeItem: {
+    backgroundColor: Colors.background_light,
+  },
 
-activeIndicator: {
-  position: 'absolute',
-  left: 0,
-  height: '100%',
-  width: 2.5,
-  backgroundColor: Colors.primary,
-  // borderRadius: 2,
-},
+  activeIndicator: {
+    position: 'absolute',
+    left: 0,
+    height: '100%',
+    width: 2.5,
+    backgroundColor: Colors.primary,
+    // borderRadius: 2,
+  },
 
-drawerText: {
-  fontSize: fp(2),
-  fontFamily: Fonts.Medium,
-},
+  drawerText: {
+    fontSize: fp(2),
+    fontFamily: Fonts.Medium,
+  },
 });

@@ -21,15 +21,16 @@ const AppInput = ({
   secureTextEntry,
   leftIcon: LeftIcon,
   rightIcon: RightIcon,
+
   required = true,
   ...props
-}:any) => {
+}: any) => {
   const [isFocused, setIsFocused] = useState(false);
   const [hidePassword, setHidePassword] = useState(secureTextEntry);
 
   return (
     <View style={styles.container}>
-      
+
       {label && <Text style={styles.label}>{label}{required && <Text style={{ color: Colors.error }}>*</Text>}</Text>}
 
       <View
@@ -39,9 +40,9 @@ const AppInput = ({
             borderColor: error
               ? Colors.error
               : isFocused
-              ? Colors.primary_dark
+                ? Colors.primary_dark
                 : Colors.text_secondary,
-            
+
           },
         ]}
       >
@@ -52,8 +53,8 @@ const AppInput = ({
             color={error
               ? Colors.error
               : isFocused
-              ? Colors.primary_dark
-              : Colors.text_secondary}
+                ? Colors.primary_dark
+                : Colors.text_secondary}
             style={styles.leftIcon}
           />
         )}
@@ -65,6 +66,7 @@ const AppInput = ({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={hidePassword}
+
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...props}
@@ -102,8 +104,8 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 14,
-      color: Colors.text_primary,
-    fontFamily:Fonts.Medium,
+    color: Colors.text_primary,
+    fontFamily: Fonts.Medium,
     marginBottom: 6,
   },
 
@@ -113,16 +115,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 3,
     paddingHorizontal: 12,
-    backgroundColor:Colors.background,
+    backgroundColor: Colors.background,
   },
 
   input: {
     flex: 1,
     height: 48,
     fontSize: 16,
-      color: Colors.text_primary,
+    color: Colors.text_primary,
     fontFamily: Fonts.Regular,
-      
+
   },
 
   leftIcon: {

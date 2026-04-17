@@ -3,7 +3,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { StyleSheet, TouchableOpacity, View ,Text} from "react-native";
+import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
@@ -16,10 +16,10 @@ import { Colors, Fonts, fp, wp } from "@utils/Constants";
 type Props = {
   children: React.ReactNode;
   snapPoints?: (string | number)[];
-    enableScroll?: boolean;
-    title?: String,
+  enableScroll?: boolean;
+  title?: String,
   withCloseBtn?: boolean,
-  
+
 };
 
 const AppBottomSheet = forwardRef<any, Props>(
@@ -27,9 +27,10 @@ const AppBottomSheet = forwardRef<any, Props>(
     {
       children,
       snapPoints = ["25%", "50%", "90%"],
-          enableScroll = false,
-          title = null,
-      withCloseBtn=true
+      enableScroll = false,
+      title = null,
+      withCloseBtn = true,
+      containerStyle = {}
     },
     ref
   ) => {
@@ -58,8 +59,8 @@ const AppBottomSheet = forwardRef<any, Props>(
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
         keyboardBehavior="interactive"
-            keyboardBlurBehavior="restore"
-    // enableContentPanningGesture={false}
+        keyboardBlurBehavior="restore"
+        // enableContentPanningGesture={false}
         handleIndicatorStyle={styles.handle}
         backgroundStyle={styles.sheetBg}
         style={{ zIndex: 9999 }}
@@ -81,29 +82,29 @@ const AppBottomSheet = forwardRef<any, Props>(
             {children}
           </BottomSheetScrollView>
         ) : ( */}
-                    {/* <BottomSheetView style={styles.content}> */}
-                        
-        <View style={styles.content}>
-          
-          {
-           ( title || withCloseBtn ) &&  <View style={styles.bottomSheetHeader}>
-                                <Text style={styles.bottomSheetHeaderText}>{title}</Text>
+        {/* <BottomSheetView style={styles.content}> */}
 
-                               {withCloseBtn &&  <TouchableOpacity onPress={() => ref?.current?.close()}>
-          <X color={Colors.text_primary} strokeWidth={1.4} />
-        </TouchableOpacity>} 
-                            </View>
-          }
-                           
-                            
-          <View style={{ flex: 1 }}>
-      {children}
-    </View>
-            
+        <View style={[styles.content, containerStyle]}>
+
+          {
+            (title || withCloseBtn) && <View style={styles.bottomSheetHeader}>
+              <Text style={styles.bottomSheetHeaderText}>{title}</Text>
+
+              {withCloseBtn && <TouchableOpacity onPress={() => ref?.current?.close()}>
+                <X color={Colors.text_primary} strokeWidth={1.4} />
+              </TouchableOpacity>}
             </View>
-                        
-           
-          {/* </BottomSheetView> */}
+          }
+
+
+          <View style={{ flex: 1 }}>
+            {children}
+          </View>
+
+        </View>
+
+
+        {/* </BottomSheetView> */}
         {/* )} */}
       </BottomSheet>
     );
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     // borderTopRightRadius: 20,
   },
   content: {
-    flex:1,
+    flex: 1,
     paddingHorizontal: wp(5),
     paddingBottom: 40,
   },
@@ -128,17 +129,17 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: "#ccc",
     alignSelf: "center",
-      borderRadius: 2,
-    display:'none'
-    },
-    bottomSheetHeader: {
-        flexDirection: 'row',
-        justifyContent:'space-between',
-    },
-    bottomSheetHeaderText: {
-        fontFamily: Fonts.Regular,
-        fontSize: fp(2),
-        color:Colors.text_primary
-        
-    }
+    borderRadius: 2,
+    display: 'none'
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  bottomSheetHeaderText: {
+    fontFamily: Fonts.Regular,
+    fontSize: fp(2),
+    color: Colors.text_primary
+
+  }
 });

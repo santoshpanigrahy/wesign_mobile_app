@@ -54,19 +54,71 @@ const envelopeSlice = createSlice({
         },
 
         setRecipients: (state, action) => {
-            state.addRecipientsBox = action.payload;
+            state.addRecipientsBox = [
+        ...state.addRecipientsBox,
+        action.payload
+    ];
         },
 
-        setDocuments: (state, action) => {
-            state.envelopeDocuments = action.payload;
+        updateRecipientById: (state, action) => {
+    const { id, data } = action.payload;
+
+    state.addRecipientsBox = state.addRecipientsBox.map((recipient) =>
+        recipient.id === id
+            ? { ...recipient, ...data }
+            : recipient
+    );
         },
+        
+        deleteRecipientById: (state, action) => {
+    const id = action.payload;
+
+    state.addRecipientsBox = state.addRecipientsBox.filter(
+        (recipient) => recipient.id !== id
+    );
+},
+
+        setDocuments: (state, action) => {
+           state.envelopeDocuments = [
+        ...state.envelopeDocuments,
+        ...action.payload
+    ];
+        },
+          deleteDocumentByIndex: (state, action) => {
+    const index = action.payload;
+
+                 state.envelopeDocuments.splice(index, 1);
+
+        
+        },
+          removeErrorDocuments: (state) => {
+  state.envelopeDocuments = state.envelopeDocuments.filter(
+    doc => !doc.error
+  );
+},
+        updateDocumentByIndex: (state, action) => {
+    const { index, data } = action.payload;
+
+    if (state.envelopeDocuments[index]) {
+        state.envelopeDocuments[index] = {
+            ...state.envelopeDocuments[index],
+            ...data,
+        };
+    }
+},
 
         setDocumentsData: (state, action) => {
             state.envelopeDocumentsData = action.payload;
         },
 
+         setRecipientsBulk: (state, action) => {
+            state.addRecipientsBox = action.payload;
+        },
         setLanguage: (state, action) => {
             state.envelope_language = action.payload;
+        },
+        setEnableWritingID: (state, action) => {
+             state.enable_writing_id = action.payload;
         },
 
         setExpiryDate: (state, action) => {
@@ -141,6 +193,13 @@ export const {
     setDetectedFields,
     resetEnvelope,
     loadEnvelope,
+    setEnableWritingID,
+    updateDocumentByIndex,
+    updateRecipientById,
+    deleteRecipientById,
+    setRecipientsBulk,
+    deleteDocumentByIndex,
+    removeErrorDocuments
 } = envelopeSlice.actions;
 
 export default envelopeSlice.reducer;

@@ -26,17 +26,17 @@ import Animated, {
 const SplashScreen = () => {
 
   const dispatch = useAppDispatch();
-   const checkLogin = async () => {
-      const res: any = await dispatch(loadUser() as any);
+  const checkLogin = async () => {
+    const res: any = await dispatch(loadUser() as any);
 
-      if (res.payload && res.payload.user) {
-        resetAndNavigate('Canvas');
-      } else {
-        resetAndNavigate("Login")
-      }
-    };
-  
-const [animationFinished, setAnimationFinished] = React.useState(false);
+    if (res.payload && res.payload.user) {
+      resetAndNavigate('Drawer');
+    } else {
+      resetAndNavigate("Login")
+    }
+  };
+
+  const [animationFinished, setAnimationFinished] = React.useState(false);
 
   const logoScale = useSharedValue(0);
   // const bgScale = useSharedValue(0);
@@ -48,61 +48,61 @@ const [animationFinished, setAnimationFinished] = React.useState(false);
     setAnimationFinished(true)
   }
 
-  
 
- useEffect(() => {
-  // Background expand (faster + smoother)
-  // bgScale.value = withTiming(MAX_SCALE, {
-  //   duration: 900,
-  //   easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-  // });
 
-  // Logo entrance
-  logoScale.value = withSequence(
-    withTiming(1.2, {
+  useEffect(() => {
+    // Background expand (faster + smoother)
+    // bgScale.value = withTiming(MAX_SCALE, {
+    //   duration: 900,
+    //   easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+    // });
+
+    // Logo entrance
+    logoScale.value = withSequence(
+      withTiming(1.2, {
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+      }),
+      withTiming(1, {
+        duration: 400,
+        easing: Easing.out(Easing.exp),
+      })
+    );
+
+    logoTranslateY.value = withTiming(-8, {
       duration: 800,
       easing: Easing.out(Easing.cubic),
-    }),
-    withTiming(1, {
-      duration: 400,
-      easing: Easing.out(Easing.exp),
-    })
-  );
+    });
 
-  logoTranslateY.value = withTiming(-8, {
-    duration: 800,
-    easing: Easing.out(Easing.cubic),
-  });
+    // Title fade + rise (earlier start, smoother)
+    textOpacity.value = withDelay(
+      900,
+      withTiming(1, {
+        duration: 600,
+        easing: Easing.out(Easing.ease),
+      }, (finished) => {
+        if (finished) {
+          runOnJS(next)();
+        }
+      })
+    );
 
-  // Title fade + rise (earlier start, smoother)
-  textOpacity.value = withDelay(
-    900,
-    withTiming(1, {
-      duration: 600,
-      easing: Easing.out(Easing.ease),
-    }, (finished) => {
-      if (finished) {
-        runOnJS(next)();
-      }
-    })
-  );
+    textTranslateY.value = withDelay(
+      900,
+      withTiming(0, {
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
 
-  textTranslateY.value = withDelay(
-    900,
-    withTiming(0, {
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-    })
-  );
-
-}, []);
+  }, []);
 
 
   const logoStyle = useAnimatedStyle(() => ({
     transform: [
-    { translateY: logoTranslateY.value },
-    { scale: logoScale.value },
-  ],
+      { translateY: logoTranslateY.value },
+      { scale: logoScale.value },
+    ],
   }));
 
 
@@ -114,29 +114,29 @@ const [animationFinished, setAnimationFinished] = React.useState(false);
 
   const hasNavigated = useRef(false);
 
- 
 
 
-   useEffect(() => {
-  if (!animationFinished) return;
- 
-  if (hasNavigated.current) return;
 
-  hasNavigated.current = true;
+  useEffect(() => {
+    if (!animationFinished) return;
 
-  const timeout = setTimeout(async() => {
-    await checkLogin();
-  }, 300); 
+    if (hasNavigated.current) return;
 
-  return () => clearTimeout(timeout);
-}, [animationFinished]);
+    hasNavigated.current = true;
+
+    const timeout = setTimeout(async () => {
+      await checkLogin();
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [animationFinished]);
   return (
     <View style={styles.container}>
-     
 
-     
+
+
       <Animated.View style={[styles.gradientCircle,
-      
+
       ]}>
         <LinearGradient
           colors={["#1C7ED6", "#1C7ED6"]}
@@ -146,7 +146,7 @@ const [animationFinished, setAnimationFinished] = React.useState(false);
         />
       </Animated.View>
 
-     
+
       <Animated.View style={[styles.logoContainer, logoStyle]}>
         <Image
           source={require("@assets/images/new-logo.png")}
@@ -154,10 +154,10 @@ const [animationFinished, setAnimationFinished] = React.useState(false);
           resizeMode="contain"
         />
 
-       
+
       </Animated.View>
 
-   
+
       <Animated.Text style={[styles.title, textStyle]}>
         WESIGNDOC
       </Animated.Text>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     zIndex: 10,
     // marginTop:-wp(6)
-    
+
   },
 
   logo: {
@@ -207,14 +207,14 @@ const styles = StyleSheet.create({
   },
 
   title: {
-   
+
     fontSize: fp(3),
-   
-    marginTop:wp(3),
+
+    marginTop: wp(3),
     color: "#fff",
     letterSpacing: 1,
-    fontFamily:Fonts.Bold
+    fontFamily: Fonts.Bold
   },
 
-  
+
 });

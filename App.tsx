@@ -13,32 +13,36 @@ import { PortalProvider } from '@gorhom/portal';
 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['CountryModal: Support for defaultProps']);
-
+import { MenuProvider } from 'react-native-popup-menu';
 
 const App = () => {
 
-  
 
- 
+
+
 
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PortalProvider>
 
-     
-    <Provider store={store}>
-       <SafeAreaProvider>
-        <AppLoader/>
-        <Navigation />
 
-      </SafeAreaProvider>
-      </Provider>
-      
-      
-      
+        <Provider store={store}>
+          <SafeAreaProvider>
+            <MenuProvider>
+
+
+              <AppLoader />
+              <Navigation />
+            </MenuProvider>
+
+          </SafeAreaProvider>
+        </Provider>
+
+
+
         <Toast />
-         </PortalProvider>
+      </PortalProvider>
     </GestureHandlerRootView>
   );
 };

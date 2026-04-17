@@ -50,7 +50,7 @@ export const FIELD_CONFIG = {
     width: 200,
     height: 60,
   },
-  name: {
+  full_name: {
     label: "Name",
     icon: User,
     width: 200,
@@ -69,22 +69,23 @@ export const FIELD_CONFIG = {
     height: 60,
   },
   title: {
-    label: "Title",
+    label: "Only For Recipient",
     icon: Type,
     width: 200,
     height: 60,
   },
   comment_text: {
-    label: "Text",
+    label: "Only For Recipient",
+
     icon: FileText,
     width: 200,
     height: 60,
   },
   plain_text: {
-    label: "Note",
+    label: "Write Here",
     icon: FileText,
-    width: 300,
-    height: 100,
+    width: 400,
+    height: 200,
   },
   checkbox: {
     label: "Checkbox",
@@ -139,10 +140,10 @@ export const FIELD_META_COMPONENTS = {
   initial: InitialMeta,
   date_signed: DateMeta,
   comment_text: TextMeta,
-  plain_text:NoteMeta,
+  plain_text: NoteMeta,
   checkbox: CheckboxMeta,
   dropdown: DropdownMeta,
-  attachment:AttachmentMeta
+  attachment: AttachmentMeta
 };
 
 

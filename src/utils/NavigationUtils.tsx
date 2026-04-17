@@ -21,13 +21,14 @@ export async function replace(routeName: string, params?: object) {
 }
 
 export async function resetAndNavigate(routeName: string, params: object = {}) {
+    if (!navigationRef.isReady()) return;
     if (navigationRef.isReady()) {
         navigationRef.dispatch(
             CommonActions.reset({
                 index: 0,
                 // CRITICAL: v7 requires 'params' to be an object {} 
                 // if it's missing or a string, you get the 'in' error.
-                routes: [{ name: routeName, params: params }], 
+                routes: [{ name: routeName, params: params }],
             }),
         );
     }

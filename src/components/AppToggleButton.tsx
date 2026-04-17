@@ -13,6 +13,7 @@ const AppToggleButton = ({
   onToggle,
   label,
   size = 50,
+  containerStyle = {}
 }) => {
   const progress = useSharedValue(value ? 1 : 0);
 
@@ -45,7 +46,7 @@ const AppToggleButton = ({
   });
 
   return (
-    <Pressable onPress={() => onToggle(!value)} style={styles.container}>
+    <Pressable onPress={() => onToggle(!value)} style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
 
       <Animated.View
@@ -80,15 +81,15 @@ export default AppToggleButton;
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-        alignItems: "center",
-    justifyContent:'space-between',
+    alignItems: "center",
+    justifyContent: 'space-between',
     gap: 10,
   },
   label: {
     fontSize: fp(1.9),
-      color: "#333",
-      fontFamily:Fonts.Medium
-    
+    color: "#333",
+    fontFamily: Fonts.Medium
+
   },
   track: {
     justifyContent: "center",
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   },
   thumb: {
     backgroundColor: "#fff",
-      elevation: 3,
-    
+    elevation: 3,
+
   },
 });

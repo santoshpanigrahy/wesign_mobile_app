@@ -38,6 +38,10 @@ export const Colors = {
   // 🧩 Extras
   white: '#FFFFFF',
   black: '#000000',
+
+  grey: '#666',
+  blue: '#1c2b47',
+
 };
 
 export enum Fonts {

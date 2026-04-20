@@ -14,7 +14,7 @@ import Animated, { Easing, FadeIn, FadeOut } from 'react-native-reanimated'
 import AddressBook from '@components/AddressBook'
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useAppDispatch, useAppSelector } from '@redux/hooks'
-import { deleteRecipientById, resetEnvelope, setRecipients, setSigningOrder, updateRecipientById } from '@redux/slices/envelopeSlice'
+import { deleteRecipientById, resetEnvelope, setRecipients, setRecipientsBulk, setSigningOrder, updateRecipientById } from '@redux/slices/envelopeSlice'
 import AppButton from '@components/AppButton'
 import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils'
 import AppToggleButton from '@components/AppToggleButton'
@@ -499,7 +499,7 @@ const AddRecipientScreen = () => {
           data={recipients}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
-          onDragEnd={({ data }) => dispatch(setRecipients(data))} // 👈 update order
+          onDragEnd={({ data }) => dispatch(setRecipientsBulk(data))} // 👈 update order
         />
 
 

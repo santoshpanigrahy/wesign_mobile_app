@@ -142,13 +142,17 @@ const SentScreen = ({ navigation }) => {
         fetchData(1);
     }, [userId]);
 
+    const handleDetails = useCallback(() => {
+        navigate('EnvelopeDetails');
+    }, [])
+
     const renderItem = ({ item }) => {
 
         const status = getStatus(item.signed_status);
         const Icon = status.icon;
         return (
 
-            <TouchableOpacity style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={handleDetails}>
                 <View style={{ flex: 1 }}>
 
 

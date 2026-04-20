@@ -478,27 +478,23 @@ const CanvasScreen = ({ navigation }) => {
 
 
   const mapUrlsToPages = async (urls, doc, order) => {
-    const pages = await Promise.all(
-      urls.map(
-        (url, index) =>
-          new Promise((resolve) => {
-            Image.getSize(url, (width, height) => {
-              resolve({
-                imageId: `page_${index + 1}`,
-                id: `${doc.document_key}_${index + 1}`,
-                document_name: doc.document_name,
-                document_key: order.toString(),
-                document_order: order,
-                page: index + 1,
-                page_no: index + 1,
-                url,
-                width,
-                height,
-              });
-            });
-          })
-      )
-    );
+    const signed_urls = urls?.signed_urls || [];
+
+    const docWidth = urls?.documents?.[0]?.doc_width;
+    const docHeight = urls?.documents?.[0]?.doc_height;
+
+    const pages = signed_urls.map((url, index) => ({
+      imageId: `page_${index + 1}`,
+      id: `${doc.document_key}_${index + 1}`,
+      document_name: doc.document_name,
+      document_key: order.toString(),
+      document_order: order,
+      page: index + 1,
+      page_no: index + 1,
+      url,
+      width: docWidth,   // use backend value
+      height: docHeight, // use backend value
+    }));
 
     return pages;
   };
@@ -545,7 +541,7 @@ const CanvasScreen = ({ navigation }) => {
 
     const documentsWithIndex = addGlobalIndex(allPages);
     const groupedDocs = groupDocuments(documentsWithIndex);
-    console.log(groupedDocs)
+    // console.log(groupedDocs)
 
     setGroupedDocuments(groupedDocs);
     setDocuments(documentsWithIndex);
@@ -669,9 +665,18 @@ const CanvasScreen = ({ navigation }) => {
     const recipientsWithMeta = recipients.map(recipient => {
       const email = recipient.recepient_email;
 
-      const recipientFields = fields.filter(
-        field => field.recipient_id === email
-      );
+      // const recipientFields = fields.filter(
+      //   field => field.recipient_id === email
+      // );
+
+      const recipientFields = fields
+        .filter(field => field.recipient_id === email)
+        .map(field => ({
+          ...field,
+          top: field.y,
+          left: field.x,
+        }));
+
 
       return {
         ...recipient,

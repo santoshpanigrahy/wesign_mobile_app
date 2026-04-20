@@ -14,6 +14,7 @@ import AddRecipientScreen from '@screens/AddRecipientScreen';
 import CanvasScreen from '@screens/canvas/CanvasScreen';
 import FinishScreen from '@screens/FinishScreen';
 import SentScreen from '@screens/manage/SentScreen';
+import EnvelopeDetailsScreen from '@screens/manage/EnvelopeDetailsScreen';
 
 
 
@@ -37,6 +38,7 @@ const Navigation = () => {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Drawer" component={DrawerNavigation} />
         <Stack.Screen name="Upload" component={UploadScreen} />
+        <Stack.Screen name="EnvelopeDetails" component={EnvelopeDetailsScreen} />
         <Stack.Screen name="Recipient" component={AddRecipientScreen} />
         <Stack.Screen name="Canvas" component={CanvasScreen} />
         <Stack.Screen name="Finish" component={FinishScreen} />

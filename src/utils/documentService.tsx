@@ -25,7 +25,7 @@ export const getDocumentUrl = async (document_key) => {
 
   if (!res.data.status) throw new Error(res.data.message);
 
-  // console.log(res.data);
+  console.log(res.data);
 
-  return res.data?.signed_urls;
+  return res.data;
 };

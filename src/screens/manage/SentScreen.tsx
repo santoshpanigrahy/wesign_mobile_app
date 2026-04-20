@@ -109,7 +109,7 @@ const SentScreen = ({ navigation }) => {
         setLoading(true);
 
         try {
-            // 👉 replace with your API
+
             const res = await api.post(
                 `/api/sent/envelope?page=${pageNum}`, requestData
             );
@@ -129,7 +129,7 @@ const SentScreen = ({ navigation }) => {
         }
     };
 
-    // Pull to refresh
+
     const onRefresh = useCallback(async () => {
 
         setRefreshing(true);
@@ -137,7 +137,7 @@ const SentScreen = ({ navigation }) => {
 
     }, [userId]);
 
-    // Initial load
+
     useEffect(() => {
         fetchData(1);
     }, [userId]);

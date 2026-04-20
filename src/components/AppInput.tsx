@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 
-// Lucide Icons
+
 import { Eye, EyeOff } from 'lucide-react-native';
 import { Colors, Fonts } from '@utils/Constants';
 
@@ -46,7 +46,7 @@ const AppInput = ({
           },
         ]}
       >
-        {/* LEFT ICON */}
+
         {LeftIcon && (
           <LeftIcon
             size={20}
@@ -72,7 +72,7 @@ const AppInput = ({
           {...props}
         />
 
-        {/* RIGHT ICON */}
+
         {secureTextEntry ? (
           <TouchableOpacity
             onPress={() => setHidePassword(!hidePassword)}

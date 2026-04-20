@@ -21,7 +21,7 @@ const AppToggleButton = ({
     progress.value = withTiming(value ? 1 : 0, { duration: 250 });
   }, [value]);
 
-  // Track animation (background)
+
   const trackStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       progress.value,
@@ -34,7 +34,7 @@ const AppToggleButton = ({
     };
   });
 
-  // Thumb animation
+
   const thumbStyle = useAnimatedStyle(() => {
     return {
       transform: [

@@ -44,16 +44,16 @@ const GradientCard = ({ icon: Icon, value, label, colors }: any) => {
   );
 };
 const HomeScreen = ({ navigation }) => {
-  
-    const userId = useAppSelector(state=> state.auth.user?.id);
-    const userName = useAppSelector(state => state.auth.user?.first_name);
+
+  const userId = useAppSelector(state => state.auth.user?.id);
+  const userName = useAppSelector(state => state.auth.user?.first_name);
 
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
 
-  // API call
+
   const fetchDashboard = async () => {
-     setRefreshing(true);
+    setRefreshing(true);
     try {
       const res = await api.get(
         `/api/dashboard/information?user=${userId}`
@@ -68,107 +68,106 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Pull to refresh
+
   const onRefresh = useCallback(async () => {
-   
+
     await fetchDashboard();
-    
+
   }, [userId]);
 
-  // Initial load
+
   useEffect(() => {
     fetchDashboard();
   }, [userId]);
 
 
   return (
-      <ScrollView
+    <ScrollView
       contentContainerStyle={{ flexGrow: 1 }}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-    <View style={styles.container}>
-       <DrawerHeader navigation={navigation} title="Home" />
-       <View style={styles.inner}>
-      {/* Header */}
-        <Text style={styles.heading}>Hello, {userName}!</Text>
+      <View style={styles.container}>
+        <DrawerHeader navigation={navigation} title="Home" />
+        <View style={styles.inner}>
+
+          <Text style={styles.heading}>Hello, {userName}!</Text>
 
           {
             refreshing ? <View style={styles.cardRow}>
-            <Skeleton style={styles.skeletonCard}/>
-            <Skeleton style={styles.skeletonCard}/>
-            <Skeleton style={styles.skeletonCard}/>
-            <Skeleton style={styles.skeletonCard}/>
-          </View> :  <View style={styles.cardRow}>
-  <GradientCard
-    icon={Rocket}
-    value={data?.action_required || 0}
-    label="Action Required"
-    colors={Gradients.purple}
-  />
+              <Skeleton style={styles.skeletonCard} />
+              <Skeleton style={styles.skeletonCard} />
+              <Skeleton style={styles.skeletonCard} />
+              <Skeleton style={styles.skeletonCard} />
+            </View> : <View style={styles.cardRow}>
+              <GradientCard
+                icon={Rocket}
+                value={data?.action_required || 0}
+                label="Action Required"
+                colors={Gradients.purple}
+              />
 
-  <GradientCard
-    icon={Clock}
-    value={data?.waiting_for_others || 0}
-    label="Waiting for Others"
-    colors={Gradients.blue}
-  />
+              <GradientCard
+                icon={Clock}
+                value={data?.waiting_for_others || 0}
+                label="Waiting for Others"
+                colors={Gradients.blue}
+              />
 
-  <GradientCard
-    icon={Timer}
-        value={data?.expiring_soon || 0}
+              <GradientCard
+                icon={Timer}
+                value={data?.expiring_soon || 0}
 
-    label="Expiring Soon"
-    colors={Gradients.orange}
-  />
+                label="Expiring Soon"
+                colors={Gradients.orange}
+              />
 
-  <GradientCard
-    icon={CheckCircle2}
-       value={data?.completed || 0}
+              <GradientCard
+                icon={CheckCircle2}
+                value={data?.completed || 0}
 
-    label="Completed"
-    colors={Gradients.green}
-  />
-</View>
+                label="Completed"
+                colors={Gradients.green}
+              />
+            </View>
           }
-          
-           <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => navigate('Upload')}
-    >
-      <LinearGradient
-        colors={['#3B82F6', '#2563EB']} // premium blue gradient
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.getStartedBtn}
-      >
-        {/* Left Content */}
-        <View style={styles.left}>
-          <View style={styles.iconBox}>
-            <FileSignature size={fp(3)} color="#fff" />
-          </View>
 
-          <View>
-            <Text style={styles.title}>Get Started</Text>
-            <Text style={styles.subtitle}>
-              Request signatures quickly & securely
-            </Text>
-          </View>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigate('Upload')}
+          >
+            <LinearGradient
+              colors={['#3B82F6', '#2563EB']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.getStartedBtn}
+            >
+
+              <View style={styles.left}>
+                <View style={styles.iconBox}>
+                  <FileSignature size={fp(3)} color="#fff" />
+                </View>
+
+                <View>
+                  <Text style={styles.title}>Get Started</Text>
+                  <Text style={styles.subtitle}>
+                    Request signatures quickly & securely
+                  </Text>
+                </View>
+              </View>
+
+
+            </LinearGradient>
+          </TouchableOpacity>
+
+
+
         </View>
 
-        {/* Right Arrow */}
-        {/* <ArrowRight size={fp(3)} color="#fff" /> */}
-      </LinearGradient>
-    </TouchableOpacity>
-          
-     
-
-     </View>
-
       </View>
-      
-      </ScrollView>
+
+    </ScrollView>
   );
 };
 
@@ -181,7 +180,7 @@ const styles = StyleSheet.create({
     // padding: wp(5),
   },
   inner: {
-    padding:wp(5)
+    padding: wp(5)
   },
 
   heading: {
@@ -240,38 +239,38 @@ const styles = StyleSheet.create({
     fontSize: fp(1.8),
   },
   skeletonCard: {
-   width: '48%',
-  borderRadius: wp(1),
- height:hp(10)
-},
- gradientCard: {
-  width: '48%',
-  borderRadius: wp(1),
-  padding: wp(4),
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: wp(3),
-  marginBottom: hp(0.5),
+    width: '48%',
+    borderRadius: wp(1),
+    height: hp(10)
+  },
+  gradientCard: {
+    width: '48%',
+    borderRadius: wp(1),
+    padding: wp(4),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    marginBottom: hp(0.5),
 
-  shadowColor: '#000',
-  shadowOpacity: 0.15,
-  shadowRadius: 10,
-  elevation: 5,
-},
-
-gradientValue: {
-  fontSize: fp(2.6),
-  fontFamily: Fonts.Bold,
-  color: '#fff',
-},
-
-gradientLabel: {
-  fontSize: fp(1.6),
-  color: '#E5E7EB',
-  fontFamily: Fonts.Regular,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
   },
 
-   getStartedBtn: {
+  gradientValue: {
+    fontSize: fp(2.6),
+    fontFamily: Fonts.Bold,
+    color: '#fff',
+  },
+
+  gradientLabel: {
+    fontSize: fp(1.6),
+    color: '#E5E7EB',
+    fontFamily: Fonts.Regular,
+  },
+
+  getStartedBtn: {
     width: '100%',
     borderRadius: wp(1),
     padding: wp(5),

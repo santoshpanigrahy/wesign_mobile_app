@@ -326,14 +326,9 @@ const AddRecipientScreen = () => {
   }
 
   const handleDeleteRecipient = () => {
-    // 1. Create a new array excluding the recipient with the matching ID
-    // const updatedRecipients = recipients.filter(recipient => recipient.id !== selectedRecipientId);
 
-    // 2. Update the state
     dispatch(deleteRecipientById(selectedRecipientId));
-    // setRecipients(updatedRecipients);
 
-    // 3. Close the modal/bottom sheet
     editRef.current?.close();
   };
 
@@ -776,7 +771,7 @@ const AddRecipientScreen = () => {
 
               </View>
 
-              {/* <AppDropdown/> */}
+
 
 
 

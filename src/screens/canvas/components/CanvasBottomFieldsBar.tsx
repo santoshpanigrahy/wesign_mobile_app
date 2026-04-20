@@ -36,7 +36,7 @@ const fields = [
   { type: 'plain_text', label: 'Note', icon: NotepadText },
   { type: 'checkbox', label: 'Checkbox', icon: SquareCheck },
   { type: 'dropdown', label: 'Dropdown', icon: SquareChevronDown },
-  { type: 'radio', label: 'Radio', icon: CircleDot },
+  // { type: 'radio', label: 'Radio', icon: CircleDot },
   { type: 'drawing', label: 'Drawing', icon: Palette },
   { type: 'attachment', label: 'Attachment', icon: Paperclip },
 ];

@@ -24,8 +24,8 @@ const AppDropdown = () => {
 
   return (
     <View style={styles.container}>
-      
-      {/* 🔽 Dropdown Header */}
+
+
       <TouchableOpacity
         style={styles.dropdown}
         onPress={() => setOpen(!open)}
@@ -35,7 +35,7 @@ const AppDropdown = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* 🔥 Dropdown List */}
+
       {open && (
         <View style={styles.list}>
           <FlatList

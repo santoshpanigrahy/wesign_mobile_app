@@ -36,7 +36,7 @@ const AppBottomSheet = forwardRef<any, Props>(
   ) => {
     const memoSnapPoints = useMemo(() => snapPoints, []);
 
-    // 🔥 Custom Backdrop (click outside to close)
+
     const renderBackdrop = useCallback(
       (props: any) => (
         <BottomSheetBackdrop
@@ -53,7 +53,7 @@ const AppBottomSheet = forwardRef<any, Props>(
     return (
       <BottomSheet
         ref={ref}
-        index={-1} // closed initially
+        index={-1}
         snapPoints={memoSnapPoints}
         enablePanDownToClose
         enableDynamicSizing={false}

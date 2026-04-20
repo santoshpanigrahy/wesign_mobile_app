@@ -11,8 +11,8 @@ type Props = {
   onSave: () => void;
   onConfirm: () => void;
   confirmText?: string;
-    cancelText?: string;
-    saveText?: string;
+  cancelText?: string;
+  saveText?: string;
 };
 
 const ConfirmExitModal = ({
@@ -20,65 +20,65 @@ const ConfirmExitModal = ({
   title = 'Discard changes?',
   description = 'You have unsaved changes. If you leave, they will be lost.',
   onCancel,
-    onConfirm,
+  onConfirm,
   onSave,
   confirmText = 'Discard',
-    cancelText = 'Stay',
-    saveText = "Save & Close"
+  cancelText = 'Stay',
+  saveText = "Save & Close"
 }: Props) => {
-    console.log(visible)
+  console.log(visible)
 
-    if (!visible) return null;
-    return (
-    <Animated.View 
-     entering={FadeIn.duration(150).easing(Easing.out(Easing.quad))} 
-      // 🚀 Faster exit (100ms)
+  if (!visible) return null;
+  return (
+    <Animated.View
+      entering={FadeIn.duration(150).easing(Easing.out(Easing.quad))}
+
       exiting={FadeOut.duration(100)}
       style={styles.overlay}
-    > 
-     <View style={styles.overlay}>
+    >
+      <View style={styles.overlay}>
         <View style={styles.container}>
-          
+
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.desc}>{description}</Text>
 
-                  <View style={styles.actions}>
-                      
-                       <TouchableOpacity onPress={onSave} style={styles.cancelBtn}>
+          <View style={styles.actions}>
+
+            <TouchableOpacity onPress={onSave} style={styles.cancelBtn}>
               <Text style={styles.cancelText}>{saveText}</Text>
-                      </TouchableOpacity>
-                       <TouchableOpacity onPress={onConfirm} style={styles.cancelBtn}>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onConfirm} style={styles.cancelBtn}>
               <Text style={styles.confirmText}>{confirmText}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={onCancel} style={styles.cancelBtn}>
               <Text style={styles.cancelText}>{cancelText}</Text>
             </TouchableOpacity>
 
-           
+
           </View>
 
         </View>
-            </View>
-            
-            </Animated.View> 
-   
-    
+      </View>
+
+    </Animated.View>
+
+
   );
 };
 
 export default ConfirmExitModal;
 
 const styles = StyleSheet.create({
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.4)',
-  justifyContent: 'center',
-  alignItems: 'center',
-        flex: 1,
-    
-        zIndex: 9999,
-  
-    
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+
+    zIndex: 9999,
+
+
   },
   container: {
     width: wp(85),
@@ -92,15 +92,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   desc: {
-      fontSize: fp(1.7),
-      fontFamily:Fonts.Regular,
+    fontSize: fp(1.7),
+    fontFamily: Fonts.Regular,
     color: Colors.text_secondary,
     marginBottom: 20,
   },
   actions: {
     // flexDirection: 'row',
-      // justifyContent: 'flex-end',
-      alignItems:'flex-end',
+    // justifyContent: 'flex-end',
+    alignItems: 'flex-end',
     gap: wp(2),
   },
   cancelBtn: {
@@ -113,17 +113,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
     borderRadius: 6,
   },
-    cancelText: {
-      fontSize:fp(1.6),
-      color: Colors.primary,
-      fontFamily:Fonts.SemiBold
+  cancelText: {
+    fontSize: fp(1.6),
+    color: Colors.primary,
+    fontFamily: Fonts.SemiBold
   },
-    confirmText: {
-      fontSize:fp(1.6),
-      color: Colors.primary,
+  confirmText: {
+    fontSize: fp(1.6),
+    color: Colors.primary,
 
     //    color: Colors.text_primary,
-      fontFamily:Fonts.SemiBold
-    
+    fontFamily: Fonts.SemiBold
+
   },
 });

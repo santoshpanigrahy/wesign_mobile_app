@@ -74,7 +74,7 @@ const SplashScreen = () => {
       easing: Easing.out(Easing.cubic),
     });
 
-    // Title fade + rise (earlier start, smoother)
+
     textOpacity.value = withDelay(
       900,
       withTiming(1, {

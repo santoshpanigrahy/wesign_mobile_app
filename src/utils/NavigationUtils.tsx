@@ -26,8 +26,7 @@ export async function resetAndNavigate(routeName: string, params: object = {}) {
         navigationRef.dispatch(
             CommonActions.reset({
                 index: 0,
-                // CRITICAL: v7 requires 'params' to be an object {} 
-                // if it's missing or a string, you get the 'in' error.
+
                 routes: [{ name: routeName, params: params }],
             }),
         );

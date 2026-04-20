@@ -12,7 +12,7 @@ import { ChevronDown, KeyRound, Info } from 'lucide-react-native';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import AppInput from './AppInput';
 
-// --- The Core Accordion Component (Your Logic) ---
+
 function AccordionItem({ isExpanded, children, duration = 300 }) {
   const height = useSharedValue(0);
 
@@ -38,7 +38,7 @@ function AccordionItem({ isExpanded, children, duration = 300 }) {
   );
 }
 
-// --- The Main Section Component ---
+
 export default function AdvanceSecurity({ control }) {
   const open = useSharedValue(false);
 
@@ -46,20 +46,20 @@ export default function AdvanceSecurity({ control }) {
     open.value = !open.value;
   };
 
-  // Rotate arrow icon
+
   const arrowStyle = useAnimatedStyle(() => {
-  const rotation = interpolate(open.value ? 1 : 0, [0, 1], [0, 180]);
-  return {
-    transform: [{ rotate: `${withTiming(rotation)}deg` }],
-  };
-});
+    const rotation = interpolate(open.value ? 1 : 0, [0, 1], [0, 180]);
+    return {
+      transform: [{ rotate: `${withTiming(rotation)}deg` }],
+    };
+  });
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <TouchableOpacity 
-        onPress={toggleAccordion} 
-        activeOpacity={0.7} 
+
+      <TouchableOpacity
+        onPress={toggleAccordion}
+        activeOpacity={0.7}
         style={styles.header}
       >
         <Text style={styles.title}>Advance Security</Text>
@@ -68,11 +68,11 @@ export default function AdvanceSecurity({ control }) {
         </Animated.View>
       </TouchableOpacity>
 
-      {/* Animated Content */}
+
       <AccordionItem isExpanded={open}>
         <View style={styles.innerContent}>
-          
-          {/* Access Code Input */}
+
+
           <Controller
             control={control}
             name="access_code"
@@ -89,40 +89,40 @@ export default function AdvanceSecurity({ control }) {
             )}
           />
 
-          {/* Sign Request Alert Switch */}
+
           <Controller
             control={control}
             name="sign_request_alert"
-            render={({ field: { onChange, value }}) => (
+            render={({ field: { onChange, value } }) => (
               <View style={styles.switchRow}>
                 <View style={styles.labelGroup}>
                   <Text style={styles.switchLabel}>Sign Request Alert</Text>
-                  <Info color={Colors.text_primary} size={fp(2.3)}/>
+                  <Info color={Colors.text_primary} size={fp(2.3)} />
                 </View>
                 <TouchableOpacity onPress={() => onChange(!value)}>
-                  <Image 
-                    source={value ? require('@assets/icons/switch_on.png') : require('@assets/icons/switch_off.png')} 
-                    style={styles.switchImage} 
+                  <Image
+                    source={value ? require('@assets/icons/switch_on.png') : require('@assets/icons/switch_off.png')}
+                    style={styles.switchImage}
                   />
                 </TouchableOpacity>
               </View>
             )}
           />
 
-          {/* Completed Alert Switch */}
+
           <Controller
             control={control}
             name="completed_alert"
-            render={({ field: { onChange, value }}) => (
+            render={({ field: { onChange, value } }) => (
               <View style={styles.switchRow}>
                 <View style={styles.labelGroup}>
                   <Text style={styles.switchLabel}>Completed Alert</Text>
-                  <Info color={Colors.text_primary} size={fp(2.3)}/>
+                  <Info color={Colors.text_primary} size={fp(2.3)} />
                 </View>
                 <TouchableOpacity onPress={() => onChange(!value)}>
-                  <Image 
-                    source={value ? require('@assets/icons/switch_on.png') : require('@assets/icons/switch_off.png')} 
-                    style={styles.switchImage} 
+                  <Image
+                    source={value ? require('@assets/icons/switch_on.png') : require('@assets/icons/switch_off.png')}
+                    style={styles.switchImage}
                   />
                 </TouchableOpacity>
               </View>
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   innerContent: {
     gap: hp(3),
     paddingTop: hp(2),
-    paddingBottom: hp(1), // Extra padding so it doesn't look cramped
+    paddingBottom: hp(1),
   },
   switchRow: {
     flexDirection: 'row',

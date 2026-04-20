@@ -11,14 +11,14 @@ import { Colors, wp, hp, fp, Fonts } from '@utils/Constants';
 const AppButton = ({
   title,
   onPress,
-  variant = 'filled', // 'filled' | 'outlined'
+  variant = 'filled',
   loading = false,
   disabled = false,
   leftIcon: LeftIcon,
   rightIcon: RightIcon,
   style,
   textStyle,
-}:any) => {
+}: any) => {
   const isFilled = variant === 'filled';
 
   return (
@@ -40,7 +40,7 @@ const AppButton = ({
         />
       ) : (
         <View style={styles.content}>
-          
+
           {LeftIcon && (
             <LeftIcon
               size={fp(2)}

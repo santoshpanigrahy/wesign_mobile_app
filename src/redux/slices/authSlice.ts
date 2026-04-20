@@ -4,7 +4,7 @@ import api from "@utils/api";
 import { hideLoader, showLoader } from "./loaderSlice";
 import { resetAndNavigate } from "@utils/NavigationUtils";
 
-// 🔐 LOGIN
+
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (data:any, thunkAPI) => {
@@ -19,7 +19,7 @@ export const loginUser = createAsyncThunk(
       }
 
 
-      // save
+      
       await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
       await AsyncStorage.setItem("token", res.data.token);
 
@@ -34,7 +34,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// 🔄 AUTO LOGIN
+
 export const loadUser = createAsyncThunk("auth/loadUser", async () => {
   const user = await AsyncStorage.getItem("user");
   const token = await AsyncStorage.getItem("token");
@@ -46,7 +46,7 @@ export const loadUser = createAsyncThunk("auth/loadUser", async () => {
   return null;
 });
 
-// state
+
 const initialState = {
   user: null,
   token: null,
@@ -70,7 +70,6 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -87,7 +86,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // auto login
       .addCase(loadUser.fulfilled, (state:any, action) => {
         if (action.payload) {
           state.user = action.payload.user;

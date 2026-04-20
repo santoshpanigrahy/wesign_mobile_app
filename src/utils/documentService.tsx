@@ -22,7 +22,6 @@ export const getDocumentUrl = async (document_key) => {
 
   const res = await api.get(`/api/access/document/snapshot/revised?key=${document_key}&type=image`);
 
-  // console.log(res);
 
   if (!res.data.status) throw new Error(res.data.message);
 

@@ -113,10 +113,10 @@ const UploadScreen = () => {
     try {
       setLoading(true);
 
-      const token = await signIn(); // 👈 your function
+      const token = await signIn();
       setAccessToken(token);
 
-      const driveFiles = await getDriveFiles(token); // 👈 your function
+      const driveFiles = await getDriveFiles(token);
       setFiles(driveFiles);
 
     } catch (err) {
@@ -180,7 +180,7 @@ const UploadScreen = () => {
 
       console.log('Downloaded file:', downloaded);
 
-      // 👉 Send to your signing flow
+
       handleSelectedFile(downloaded);
 
     } catch (err) {
@@ -194,7 +194,7 @@ const UploadScreen = () => {
   const handleSelectedFile = (file) => {
     console.log('Ready for signing:', file);
 
-    // 👉 Navigate to PDF screen
+
     // navigation.navigate('PdfViewer', { file });
   };
 
@@ -269,7 +269,7 @@ const UploadScreen = () => {
     }, [envelopeDocuments])
   );
 
-  // 🔥 PICK + UPLOAD
+
   const handleUpload = async () => {
     try {
       const results = await pick({
@@ -329,15 +329,15 @@ const UploadScreen = () => {
 
       }
 
-      // 🔥 request body
+
       const requestData = {
         document_key: [document_key],
         user: userId,
       };
 
-      // 🔥 API CALL
+
       const res = await api.delete('/api/document', {
-        data: requestData, // ✅ axios uses `data` not body
+        data: requestData,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -375,13 +375,13 @@ const UploadScreen = () => {
     //     ...updated[index],
     //     uploading: false,
     //     progress: 0,
-    //     error: message, // 🔥 store error
+    //     error: message, 
     //   };
     //   return updated;
     // });
   };
 
-  // 🔥 UPLOAD API
+
   const uploadFile = async (file, index) => {
 
     if (!validTypes.includes(file.type)) {
@@ -433,7 +433,7 @@ const UploadScreen = () => {
           document_id: result.document_id,
           document_key: result.document_key,
           document_url: result.document_url,
-          document_name: result.document_name.split(".").pop(), // ⚠️ fix (see below)
+          document_name: result.document_name.split(".").pop(),
           snaphots: res.data?.snaphots,
         }
       }));
@@ -448,11 +448,11 @@ const UploadScreen = () => {
     } catch (err) {
       console.log(err);
       updateFileError(index, "Network Error");
-      // updateFileProgress(index, 0, false);
+
     }
   };
 
-  // 🔥 UPDATE PROGRESS
+
   const updateFileProgress = (index, progress, uploading = true) => {
 
 
@@ -514,10 +514,10 @@ const UploadScreen = () => {
 
     const document_ids = envelopeDocuments
       .map((doc) => doc?.document_key)
-      .filter((key) => key); // removes null, undefined, ""
+      .filter((key) => key);
 
 
-    if (document_ids.length === 0) return; // 🚫 don't call API if empty
+    if (document_ids.length === 0) return;
     dispatch(showLoader('Checking'));
     const request_data = {
       document_ids,
@@ -628,7 +628,7 @@ const UploadScreen = () => {
     dispatch(removeErrorDocuments());
   }
 
-  // 🎨 RENDER FILE ITEM
+
   const renderItem = ({ item, index }) => {
 
 
@@ -637,17 +637,17 @@ const UploadScreen = () => {
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
 
-          {/* 🔥 IMAGE OR FILE ICON */}
+
           <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
 
 
-          {/* 🔥 FILE INFO */}
+
           <View style={{ flex: 1 }}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
 
-            {/* ✅ Show uploading OR size */}
+
             {item.uploading ? (
               <Text style={styles.subText}>Uploading...</Text>
             ) : item.error ? (
@@ -667,7 +667,7 @@ const UploadScreen = () => {
 
         </View>
 
-        {/* ❌ REMOVE PROGRESS BAR AFTER UPLOAD */}
+
         {item.uploading && (
           <View style={styles.progressBar}>
             <View
@@ -690,17 +690,17 @@ const UploadScreen = () => {
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
 
-          {/* 🔥 IMAGE OR FILE ICON */}
+
           <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
 
 
-          {/* 🔥 FILE INFO */}
+
           <View style={{ flex: 1 }}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
 
-            {/* ✅ Show uploading OR size */}
+
             {item.uploading ? (
               <Text style={styles.subText}>Uploading...</Text>
             ) : item.error ? (
@@ -732,12 +732,12 @@ const UploadScreen = () => {
 
       <View style={styles.header}>
 
-        {/* Left Menu */}
+
         <TouchableOpacity onPress={() => handleBack()}>
           <ArrowLeft size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
         </TouchableOpacity>
 
-        {/* Title */}
+
         <Text style={styles.title}>Add Documents</Text>
 
 
@@ -754,7 +754,7 @@ const UploadScreen = () => {
           <MenuOptions placement="bottom"
             customStyles={{
               optionsContainer: {
-                marginTop: hp(2),   // 👈 spacing from icon
+                marginTop: hp(2),
 
                 paddingVertical: 3,
                 backgroundColor: '#fff',
@@ -790,7 +790,7 @@ const UploadScreen = () => {
 
 
 
-        {/* Upload Box */}
+
         <TouchableOpacity style={styles.uploadBox} onPress={() => openSheet()}>
           <Upload size={fp(4)} color={Colors.primary} />
           <Text style={styles.uploadText}>

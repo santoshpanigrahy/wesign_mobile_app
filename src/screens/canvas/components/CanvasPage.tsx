@@ -17,7 +17,7 @@ const CanvasPage = ({
   setIsZoomed,
   setEnableResize,
   enableResize,
-  showToolbar,setShowToolbar
+  showToolbar, setShowToolbar
 }) => {
   const scale = screenWidth / page.width;
 
@@ -34,45 +34,45 @@ const CanvasPage = ({
       }}
     >
       <ImageZoom
-  cropWidth={screenWidth}
-  cropHeight={contentHeight}
-  imageWidth={contentWidth}
-  imageHeight={contentHeight}
-  minScale={1}
-  maxScale={4}
+        cropWidth={screenWidth}
+        cropHeight={contentHeight}
+        imageWidth={contentWidth}
+        imageHeight={contentHeight}
+        minScale={1}
+        maxScale={4}
         enableCenterFocus={false}
-        
+
         onMove={(e) => {
-    const zoomed = e.scale > 1.01;
-  runOnJS(setZoomScale)(e.scale);
-  runOnJS(setIsZoomed)(zoomed);
-}}
-  onClick={(e) => {
-    // ✅ FIXED
-    const locationX = e.locationX;
-    const locationY = e.locationY;
+          const zoomed = e.scale > 1.01;
+          runOnJS(setZoomScale)(e.scale);
+          runOnJS(setIsZoomed)(zoomed);
+        }}
+        onClick={(e) => {
 
-    if (selectedField) {
-      setSelectedField(null);
-    }
+          const locationX = e.locationX;
+          const locationY = e.locationY;
 
-    if (enableResize) {
-      
-      setEnableResize(false);
-      
-    }
+          if (selectedField) {
+            setSelectedField(null);
+          }
 
-    handleTap(
-      {
-        nativeEvent: {
-          locationX,
-          locationY,
-        },
-      },
-      page
-    );
-  }}
->
+          if (enableResize) {
+
+            setEnableResize(false);
+
+          }
+
+          handleTap(
+            {
+              nativeEvent: {
+                locationX,
+                locationY,
+              },
+            },
+            page
+          );
+        }}
+      >
         <View
           style={{
             width: contentWidth,
@@ -80,19 +80,19 @@ const CanvasPage = ({
             position: 'relative',
           }}
         >
-          {/* IMAGE */}
+
           <Image
             source={{ uri: page.url }}
             style={{ width: '100%', height: '100%' }}
           />
 
-          {/* FIELDS */}
+
           {fields
             .filter(
               (f) =>
                 String(f.document_key) ===
-                  String(page.document_key) &&
-                f.page === page.page
+                String(page.document_key) &&
+                f.page_no === page.page
             )
             .map((field) => (
               <CanvasFieldBox
@@ -105,8 +105,8 @@ const CanvasPage = ({
                 pageWidth={page.width}
                 pageHeight={page.height}
                 zoomScale={zoomScale}
-                                  showToolbar={showToolbar}
-                  setShowToolbar={setShowToolbar}
+                showToolbar={showToolbar}
+                setShowToolbar={setShowToolbar}
               />
             ))}
         </View>

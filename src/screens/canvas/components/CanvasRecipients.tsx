@@ -44,54 +44,57 @@ const RecipientItem = React.memo(({ item, isSelected, onPress }) => {
   );
 });
 
-const CanvasRecipients = ({ recipients, selectedRecipient, setSelectedRecipient }) => {
-  const renderItem = ({ item }) => {
-    const recpBgColor = item?.meta_info?.recepient_color + "20";
-    const recpBorderColor = item?.meta_info?.recepient_border_color;
-    const email = item?.recepient_email;
-    const selectedRecipientEmail = selectedRecipient?.recepient_email;
+const CanvasRecipients = ({
+  recipients,
+  selectedRecipient,
+  setSelectedRecipient,
+}) => {
+  const selectedEmail = selectedRecipient?.recepient_email;
 
+  const renderItem = React.useCallback(({ item }) => {
+    const isSelected = item?.recepient_email === selectedEmail;
 
     return (
-      <TouchableOpacity onPress={() => setSelectedRecipient(item)} style={[styles.card, {
-        backgroundColor: email === selectedRecipientEmail ? recpBgColor : 'transparent',
-        borderColor: email === selectedRecipientEmail ? recpBorderColor : Colors.border
-      }]}>
-        <View style={[styles.cardCircle, {
+      <RecipientItem
+        item={item}
+        isSelected={isSelected}
+        onPress={() => setSelectedRecipient(item)}
+      />
+    );
+  }, [selectedEmail, setSelectedRecipient]);
 
-          borderColor: email === selectedRecipientEmail ? recpBorderColor : Colors.placeholder
-
-        }]}>
-          <Text style={[styles.cardCircleText, {
-            color: email === selectedRecipientEmail && recpBorderColor
-          }]}>
-            {item.recepient_name?.slice(0, 2)}
-          </Text>
-        </View>
-        <Text numberOfLines={1} style={styles.recpName}>{item.recepient_name}</Text>
-      </TouchableOpacity>
-    )
-  };
+  const keyExtractor = React.useCallback(
+    (item) => item.id?.toString(),
+    []
+  );
 
   return (
     <FlatList
       data={recipients}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={{ gap: wp(2) }}
-      horizontal={true}   // 🔥 This makes it horizontal
+      keyExtractor={keyExtractor}
+      horizontal
       showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.listContainer}
+      initialNumToRender={5}
+      maxToRenderPerBatch={5}
+      windowSize={5}
+      removeClippedSubviews
     />
   );
-}
+};
 
 export default CanvasRecipients
 
 const styles = StyleSheet.create({
 
+  listContainer: {
+    gap: wp(2),
+  },
+
   card: {
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    borderColor: Colors.border,
     borderRadius: wp(2),
     gap: 4,
     alignItems: 'center',

@@ -6,16 +6,16 @@ import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 const DrawerHeader = ({ navigation, title = "Dashboard" }: any) => {
   return (
     <View style={styles.header}>
-      
-      {/* Left Menu */}
+
+
       <TouchableOpacity onPress={() => navigation.openDrawer()}>
         <Menu size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
       </TouchableOpacity>
 
-      {/* Title */}
+
       <Text style={styles.title}>{title}</Text>
 
-      {/* Right Notification */}
+
       <TouchableOpacity>
         <Bell size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
       </TouchableOpacity>

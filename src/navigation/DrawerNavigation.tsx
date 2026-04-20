@@ -64,7 +64,7 @@ const DrawerNavigation = () => {
 
   return (
     <CustomSafeAreaView>
-      {/* <AppOpenAdManager/> */}
+
       <Drawer.Navigator
         drawerContent={props => <CustomDrawer {...props} />}
         initialRouteName="Home"

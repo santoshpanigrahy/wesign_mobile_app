@@ -242,20 +242,21 @@ const CanvasScreen = ({ navigation }) => {
   }
 
 
-  const createField = (type, x, y, page, document_key, recipient, prefillData = null, isPrefilled = false) => {
+  const createField = (type, x, y, page_no, document_key, document_order, recipient, prefillData = null, isPrefilled = false) => {
     const defaults = getFieldDefaults(type);
 
     let field = {
       id: Date.now().toString(),
-      type, // signature, text, etc.
+      type,
       x,
       y,
       top: y,
       left: x,
       width: defaults.width,
       height: defaults.height,
-      page,
+      page_no,
       document_key,
+      document_order,
       recipient_id: recipient?.recepient_email,
       recipient_color: recipient?.meta_info?.recepient_color,
       value: '', // for text fields
@@ -361,7 +362,7 @@ const CanvasScreen = ({ navigation }) => {
 
     const baseScale = screenWidth / page.width;
 
-    // ✅ NO transform math here anymore
+
     const originalX = locationX / baseScale;
     const originalY = locationY / baseScale;
 
@@ -371,7 +372,7 @@ const CanvasScreen = ({ navigation }) => {
     let prefilledError = null;
 
     if (isPrefillType) {
-      // ✅ check cache first
+
       if (!prefillData[selectedFieldType]) {
         dispatch(showLoader('Fetching'));
         try {
@@ -430,7 +431,7 @@ const CanvasScreen = ({ navigation }) => {
 
 
 
-            // ✅ store in cache
+
 
           }
         } catch (err) {
@@ -466,6 +467,7 @@ const CanvasScreen = ({ navigation }) => {
       originalY,
       page.page,
       page.document_key,
+      page.document_order,
       selectedRecipient,
       prefillValue,
       isPrefillType
@@ -485,7 +487,7 @@ const CanvasScreen = ({ navigation }) => {
                 imageId: `page_${index + 1}`,
                 id: `${doc.document_key}_${index + 1}`,
                 document_name: doc.document_name,
-                document_key: order,
+                document_key: order.toString(),
                 document_order: order,
                 page: index + 1,
                 page_no: index + 1,
@@ -532,12 +534,12 @@ const CanvasScreen = ({ navigation }) => {
     for (let i = 0; i < docs.length; i++) {
       const doc = docs[i];
 
-      // 🔥 backend already gives array of page images
+
       const urls = await getDocumentUrl(doc.document_key);
 
       const pages = await mapUrlsToPages(urls, doc, i + 1);
 
-      // ✅ flatten
+
       allPages = [...allPages, ...pages];
     }
 
@@ -723,6 +725,33 @@ const CanvasScreen = ({ navigation }) => {
   ), [renderPageItem]);
 
 
+  const renderCanvasPageItem = useCallback(({ item }) => {
+    return (
+      <View style={styles.pageWrapper}>
+        <CanvasPage
+          page={item}
+          fields={fields}
+          selectedField={selectedField}
+          setSelectedField={setSelectedField}
+          updateField={updateField}
+          handleTap={handleTap}
+          setIsZoomed={setIsZoomed}
+          setEnableResize={setEnableResize}
+          enableResize={enableResize}
+          showToolbar={showToolbar}
+          setShowToolbar={setShowToolbar}
+        />
+      </View>
+    );
+  }, [
+    fields,
+    selectedField,
+    enableResize,
+    showToolbar,
+    handleTap
+  ]);
+
+
   return (
     <CustomSafeAreaView>
 
@@ -834,27 +863,17 @@ const CanvasScreen = ({ navigation }) => {
             initialNumToRender={2}
             windowSize={3}
             removeClippedSubviews={true}
+            nestedScrollEnabled={true}
+            scrollEventThrottle={16}
 
             scrollEnabled={!isZoomed}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.pageWrapper}>
-                <CanvasPage
-                  page={item}
-                  fields={fields}
-                  selectedField={selectedField}
-                  setSelectedField={setSelectedField}
-                  updateField={updateField}
-                  handleTap={handleTap}
-                  setIsZoomed={setIsZoomed}
-                  setEnableResize={setEnableResize}
-                  enableResize={enableResize}
-                  showToolbar={showToolbar}
-                  setShowToolbar={setShowToolbar}
-                // 🔥 ADD THIS
-                />
-              </View>
-            )}
+            renderItem={renderCanvasPageItem}
+            getItemLayout={(data, index) => ({
+              length: screenWidth,
+              offset: screenWidth * index,
+              index,
+            })}
           />
         </View>
 
@@ -868,7 +887,7 @@ const CanvasScreen = ({ navigation }) => {
           {selectedField && enableResize && (
             <View
               // entering={FadeIn.duration(150).easing(Easing.out(Easing.quad))} 
-              //  // 🚀 Faster exit (100ms)
+
               //   exiting={FadeOut.duration(100)}
               style={styles.sliderContainer}>
 

@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from '@redux/hooks'
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import moment from 'moment'
+import { goBack } from '@utils/NavigationUtils'
 
 const reminders = [
     {
@@ -177,7 +178,7 @@ const FinishScreen = () => {
                 })),
                 envelope_documents,
                 email_content: { subject: subject.substring(0, 240), content: message },
-                expiry_date: expiryDate,
+                expiry_date: moment(expiryDate).format('YYYY-MM-DD'),
                 envelope_language: envelope_language?.value,
                 im_signer: false,
                 enable_comments: false,
@@ -186,7 +187,7 @@ const FinishScreen = () => {
                 follow_signing_order: false,
                 enable_writing_id: false,
                 enable_certification: true,
-                device_info: null,
+                device_info: {},
                 api_v1: true,
                 iam: null,
                 sent_ip: null,
@@ -222,7 +223,7 @@ const FinishScreen = () => {
 
 
                 <View style={{ flexDirection: 'row', alignItems: "center", gap: wp(4) }}>
-                    <TouchableOpacity >
+                    <TouchableOpacity onPress={() => goBack()}>
                         <ArrowLeft size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
                     </TouchableOpacity>
 
@@ -240,7 +241,7 @@ const FinishScreen = () => {
 
             <View style={styles.container}>
                 <KeyboardAwareScrollView
-                    contentContainerStyle={{ backgroundColor: '#F4F7FB', paddingBottom: 50, gap: hp(3) }}
+                    contentContainerStyle={{ backgroundColor: '#fff', paddingBottom: 50, gap: hp(3) }}
 
                     enableOnAndroid={true}
                     extraScrollHeight={250}
@@ -331,7 +332,7 @@ const FinishScreen = () => {
                                         <Text style={{ fontFamily: Fonts.Regular, color: Colors.text_primary, fontSize: fp(1.9), textAlign: "center" }}>{selectedNumberOfReminders}</Text>
 
 
-                                        {/* <ChevronDown size={fp(2)} color={Colors.text_primary} /> */}
+
                                     </Pressable>
 
                                 </View>
@@ -421,29 +422,11 @@ const FinishScreen = () => {
 
 
 
-            {/* <View style={{ backgroundColor: Colors.white, height: hp(9), flexDirection: 'row', elevation: 3, justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: wp(5) }}>
-                <AppButton title='Send Now' style={{ width: wp(25), height: hp(5.2) }} />
-            </View> */}
+
 
             <AppBottomSheet ref={dateRef} title={'Select expiration date'} snapPoints={['60%']}  >
 
 
-                {/* <Calendar
-                    theme={{
-                        backgroundColor: '#fff',
-                        calendarBackground: '#fff',
-                        textSectionTitleColor: '#b6c1cd',
-                        selectedDayBackgroundColor: '#00adf5',
-                        selectedDayTextColor: '#ffffff',
-                        todayTextColor: '#00adf5',
-                        dayTextColor: '#2d4150',
-                        arrowColor: 'orange',
-                        monthTextColor: 'black',
-                        textDayFontWeight: '500',
-                        textMonthFontWeight: 'bold',
-                        textDayHeaderFontWeight: '600',
-                    }}
-                /> */}
 
                 <View style={{ marginTop: hp(2) }}>
                     <Calendar
@@ -579,7 +562,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: wp(5),
-        backgroundColor: '#F4F7FB',
+        backgroundColor: '#fff',
         gap: hp(3)
     },
     header: {
@@ -590,6 +573,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(5),
 
         backgroundColor: '#FFFFFF',
+        borderBottomColor: Colors.border,
+        borderBottomWidth: 1,
 
         // shadow (iOS)
         shadowColor: '#000',

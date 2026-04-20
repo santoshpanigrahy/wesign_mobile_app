@@ -15,14 +15,12 @@ import {
 
 } from 'lucide-react-native';
 
-import { navigate } from '@utils/NavigationUtils';
 
 
 const CustomDrawer = (props: any) => {
 
   const { state, navigation } = props;
 
-  // SAFETY CHECK: If state is missing, don't try to render menu items yet
   if (!state) return null;
   const activeRoute = state.routeNames[state.index];
 
@@ -37,8 +35,7 @@ const CustomDrawer = (props: any) => {
         }}
         style={[styles.drawerItem, isActive && styles.activeItem]}
       >
-        {/* Left Indicator */}
-        {/* {isActive && <View style={styles.activeIndicator} />} */}
+
 
         <View style={{
           flexDirection: 'row',
@@ -79,7 +76,7 @@ const CustomDrawer = (props: any) => {
   return (
     <View style={styles.drawerWrapper}>
 
-      {/* Header */}
+
       <View style={styles.drawerTop}>
         <Image
           source={require('@assets/images/logo.png')}
@@ -92,12 +89,10 @@ const CustomDrawer = (props: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* <View style={styles.hr} /> */}
 
-      {/* Menu */}
       <View style={{ gap: wp(2), marginTop: wp(6) }}>
         <DrawerItem label="Home" Icon={House} route="Home" />
-        <DrawerItem label="Inbox" Icon={Inbox} route="Inbox" count={20} />
+        <DrawerItem label="Inbox" Icon={Inbox} route="Inbox" />
         <DrawerItem label="Sent" Icon={Send} route="Sent" />
         <DrawerItem label="Draft" Icon={SquarePen} route="Draft" />
         <DrawerItem label="Deleted" Icon={Trash} route="Deleted" />
@@ -136,7 +131,7 @@ const styles = StyleSheet.create({
   },
   hr: {
     borderBottomColor: Colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth, // thinnest possible line
+    borderBottomWidth: StyleSheet.hairlineWidth,
     marginVertical: wp(6),
   },
 

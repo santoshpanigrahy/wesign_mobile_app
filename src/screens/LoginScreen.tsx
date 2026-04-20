@@ -16,11 +16,11 @@ import AppButton from '@components/AppButton';
 import { Colors, wp, hp, fp, Fonts } from '@utils/Constants';
 import { loginUser } from '@slices/authSlice';
 
-// Lucide Icons
+
 import {
   Mail,
   Lock,
- 
+
 } from 'lucide-react-native';
 import { useAppSelector } from '@redux/hooks';
 
@@ -29,114 +29,118 @@ const LoginScreen = () => {
   const { error } = useAppSelector((state) => state.auth);
   const { control, handleSubmit } = useForm();
 
-  const onSubmit = (data:any) => {
+  const onSubmit = (data: any) => {
     dispatch(loginUser(data) as any);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-    <StatusBar
-    barStyle="light-content"
-    // backgroundColor="#fff"
+      <StatusBar
+        barStyle="light-content"
+      // backgroundColor="#fff"
       />
-      
-       {/* <Text style={styles.title}>Sign</Text> */}
+
+      {/* <Text style={styles.title}>Sign</Text> */}
       <View style={styles.inner}>
 
-        <Image source={require('@assets/images/logo.png')} style={{width:wp(60),marginBottom:wp(15),marginHorizontal:'auto'}} resizeMode='contain' />
+        <Image source={require('@assets/images/logo.png')} style={{ width: wp(60), marginBottom: wp(15), marginHorizontal: 'auto' }} resizeMode='contain' />
 
-        {/* 🔷 Header */}
+
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>
           Sign in to continue to WeSign
         </Text>
 
-        {/* 📧 Email */}
-        <Controller
-          control={control}
-          name="email"
-          rules={{ required: 'Email is required' }}
-          render={({ field: { onChange, value }, fieldState: { error } }) => (
-            <AppInput
-              label="Email"
-              placeholder="Enter your email"
-              value={value}
-              onChangeText={onChange}
-              error={error?.message}
-              leftIcon={Mail}
-            />
-          )}
-        />
+        <View style={{ gap: hp(2) }}>
+          <Controller
+            control={control}
+            name="email"
+            rules={{ required: 'Email is required' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <AppInput
+                label="Email"
+                placeholder="Enter your email"
+                value={value}
+                onChangeText={onChange}
+                error={error?.message}
+                leftIcon={Mail}
+              />
+            )}
+          />
 
-        {/* 🔒 Password */}
-        <Controller
-          control={control}
-          name="password"
-          rules={{ required: 'Password is required' }}
-          render={({ field: { onChange, value }, fieldState: { error } }) => (
-            <AppInput
-              label="Password"
-              placeholder="Enter password"
-              value={value}
-              onChangeText={onChange}
-              error={error?.message}
-              secureTextEntry
-              leftIcon={Lock}
-            />
-          )}
-        />
+
+          <Controller
+            control={control}
+            name="password"
+            rules={{ required: 'Password is required' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <AppInput
+                label="Password"
+                placeholder="Enter password"
+                value={value}
+                onChangeText={onChange}
+                error={error?.message}
+                secureTextEntry
+                leftIcon={Lock}
+
+              />
+            )}
+          />
+        </View>
+
+
 
         {
           error && <Text style={styles.error}>{error}</Text>
         }
-        
-        {/* 🔗 Forgot Password */}
+
+
         <TouchableOpacity style={styles.forgot}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        {/* 🔘 Login Button */}
+
         <AppButton
           title="Login"
-        
+
           onPress={handleSubmit(onSubmit)}
         />
 
-        {/* Divider */}
+
         <View style={styles.dividerContainer}>
           <View style={styles.line} />
           <Text style={styles.or}>OR</Text>
           <View style={styles.line} />
         </View>
 
-        {/* 🔐 Social Login */}
+
         <View style={styles.socialRow}>
-          
+
           <TouchableOpacity style={styles.socialBtn}>
             <View style={styles.socialBtnWrapper}>
 
-           
-            <Image source={require('@assets/icons/google.png')} alt='google' style={styles.socialIcon} />
+
+              <Image source={require('@assets/icons/google.png')} alt='google' style={styles.socialIcon} />
               <Text style={styles.socialText}>Continue with Google</Text>
-              
-               </View>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.socialBtn}>
-             <View style={styles.socialBtnWrapper}>
-            <Image source={require('@assets/icons/apple.png')} alt='apple' style={styles.socialIcon} />
-            <Text style={styles.socialText}>Continue with Apple</Text>
             </View>
-            
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.socialBtn}>
+            <View style={styles.socialBtnWrapper}>
+              <Image source={require('@assets/icons/apple.png')} alt='apple' style={styles.socialIcon} />
+              <Text style={styles.socialText}>Continue with Apple</Text>
+            </View>
+
 
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.socialBtn}>
-             <View style={styles.socialBtnWrapper}>
+            <View style={styles.socialBtnWrapper}>
 
-                       <Image source={require('@assets/icons/linkedin.png')} alt='linkedin' style={styles.socialIcon} />
-            <Text style={styles.socialText}>Continue with Linkedin</Text>
-</View>
+              <Image source={require('@assets/icons/linkedin.png')} alt='linkedin' style={styles.socialIcon} />
+              <Text style={styles.socialText}>Continue with Linkedin</Text>
+            </View>
           </TouchableOpacity>
 
         </View>
@@ -153,7 +157,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.primary_dark,
-     justifyContent: 'flex-end',
+    justifyContent: 'flex-end',
 
   },
 
@@ -161,12 +165,12 @@ const styles = StyleSheet.create({
     flex: 1,
     // height:hp(80),
     paddingHorizontal: wp(6),
-    paddingVertical:hp(4),
+    paddingVertical: hp(4),
     justifyContent: 'center',
     backgroundColor: Colors.background,
     // borderTopLeftRadius: wp(5),
     // borderTopRightRadius:wp(5)
-    
+
 
   },
 
@@ -216,7 +220,7 @@ const styles = StyleSheet.create({
   socialRow: {
     // flexDirection: 'row',
     gap: wp(3),
-    alignItems:'center'
+    alignItems: 'center'
   },
 
   socialBtn: {
@@ -226,33 +230,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
-    justifyContent:'center',
+    justifyContent: 'center',
     backgroundColor: Colors.white,
     flexDirection: 'row',
-    
+
   },
   socialBtnWrapper: {
     width: wp(48),
-    
-    flexDirection:'row',
+
+    flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap:wp(3)
-   
+    gap: wp(3)
+
   },
   socialText: {
     color: Colors.text_primary,
     fontSize: fp(1.8),
-    fontFamily:Fonts.Regular
+    fontFamily: Fonts.Regular
   },
 
-  socialIcon:{
+  socialIcon: {
     width: wp(5),
     height: wp(5),
   },
-   error: {
+  error: {
     color: Colors.error,
-     fontSize: 14,
-     fontFamily: Fonts.Regular,
+    fontSize: 14,
+    fontFamily: Fonts.Regular,
     // textAlign:'center',
     // marginTop: 4,
   },

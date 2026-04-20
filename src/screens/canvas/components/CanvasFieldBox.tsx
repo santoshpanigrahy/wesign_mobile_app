@@ -35,13 +35,13 @@ const CanvasFieldBox = ({
 
   const dragRef = useRef();
 
-  // ✅ Position + size (based on PDF scale only)
+
   const translateX = useSharedValue(field.x * scale);
   const translateY = useSharedValue(field.y * scale);
   const width = useSharedValue(field.width * scale);
   const height = useSharedValue(field.height * scale);
 
-  // ✅ Sync when field updates
+
   useEffect(() => {
     translateX.value = field.x * scale;
     translateY.value = field.y * scale;
@@ -84,7 +84,7 @@ const CanvasFieldBox = ({
     },
   });
 
-  // ================= STYLE =================
+
   const animatedStyle = useAnimatedStyle(() => ({
     position: 'absolute',
     left: translateX.value,
@@ -101,11 +101,11 @@ const CanvasFieldBox = ({
         style={[animatedStyle, { zIndex: isSelected ? 10 : 1 }]}
         pointerEvents="box-none"
       >
-        {/* FIELD BOX */}
+
         <Pressable
           onPress={(e) => {
             e.stopPropagation();
-            // ✅ VERY IMPORTANT
+
             setShowToolbar(true);
             onSelect(field);
           }}
@@ -125,7 +125,7 @@ const CanvasFieldBox = ({
 
         </Pressable>
 
-        {/* ACTION TOOLBAR */}
+
         {isSelected && showToolbar && (
           <View
             style={{

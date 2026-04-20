@@ -6,10 +6,10 @@ export default function AppPhoneInput() {
 
   return (
     <View style={styles.container}>
-      
+
       <View style={styles.inputBox}>
-        
-        {/* 🔹 FLAG ONLY */}
+
+
         <TouchableOpacity style={styles.flagContainer}>
           <Image
             source={{ uri: "https://flagcdn.com/w40/us.png" }} // change dynamically later
@@ -17,7 +17,7 @@ export default function AppPhoneInput() {
           />
         </TouchableOpacity>
 
-        {/* 🔹 PHONE INPUT */}
+
         <TextInput
           placeholder="Enter phone number"
           keyboardType="number-pad"
@@ -39,11 +39,11 @@ const styles = StyleSheet.create({
     // padding: 16,
   },
 
-  // 🔥 SAME HEIGHT AS EMAIL INPUT
+
   inputBox: {
     flexDirection: "row",
     alignItems: "center",
-    height: 55, // 👈 match your email field height
+    height: 55,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 2,

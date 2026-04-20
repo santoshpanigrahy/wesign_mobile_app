@@ -20,12 +20,12 @@ const RecipientItem = ({ item, onSelectRecipient }) => {
     <TouchableOpacity onPress={() => onSelectRecipient(item)} style={styles.card}>
 
 
-      {/* Name */}
+
       {item.recepient_name && (
         <Text style={styles.name}>{item.recepient_name}</Text>
       )}
 
-      {/* Email */}
+
       {item.recepient_email && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(1.5), marginTop: 5 }}>
 
@@ -34,7 +34,7 @@ const RecipientItem = ({ item, onSelectRecipient }) => {
         </View>
       )}
 
-      {/* Phone */}
+
       {item.recepient_phone && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginTop: 5 }}>
           <Phone color={Colors.text_secondary} size={fp(1.8)} />
@@ -56,7 +56,7 @@ const AddressBook = ({ onSelectRecipient }) => {
   const [filteredData, setFilteredData] = useState([]);
   const [search, setSearch] = useState('');
 
-  // API call
+
   const fetchDashboard = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -75,7 +75,7 @@ const AddressBook = ({ onSelectRecipient }) => {
     fetchDashboard();
   }, [userId]);
 
-  // 🔍 Search handler
+
   const handleSearch = (text) => {
     setSearch(text);
 
@@ -107,7 +107,7 @@ const AddressBook = ({ onSelectRecipient }) => {
   return (
     <View style={styles.container}>
 
-      {/* 🔍 SEARCH BAR */}
+
       <View style={{
         flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1,
         borderBottomColor: Colors.text_secondary,
@@ -126,7 +126,7 @@ const AddressBook = ({ onSelectRecipient }) => {
       </View>
 
 
-      {/* 📋 LIST */}
+
       <BottomSheetFlatList
         data={filteredData}
         keyExtractor={(item, index) => index.toString()}

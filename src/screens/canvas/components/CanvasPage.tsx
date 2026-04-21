@@ -42,7 +42,14 @@ const CanvasPage = ({
         maxScale={4}
         enableCenterFocus={false}
 
+        panToMove={zoomScale > 1}
+        pinchToZoom={true}
+        enableDoubleClickZoom={true}
+
+
         onMove={(e) => {
+
+          console.log(e.scale)
           const zoomed = e.scale > 1.01;
           runOnJS(setZoomScale)(e.scale);
           runOnJS(setIsZoomed)(zoomed);

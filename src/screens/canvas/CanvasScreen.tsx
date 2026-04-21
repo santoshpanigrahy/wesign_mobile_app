@@ -867,7 +867,7 @@ const CanvasScreen = ({ navigation }) => {
 
             initialNumToRender={2}
             windowSize={3}
-            removeClippedSubviews={true}
+            // removeClippedSubviews={true}
             nestedScrollEnabled={true}
             scrollEventThrottle={16}
 

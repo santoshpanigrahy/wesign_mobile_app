@@ -60,8 +60,11 @@ const CanvasFieldBox = ({
     },
 
     onActive: (event, ctx) => {
-      const newX = ctx.startX + event.translationX;
-      const newY = ctx.startY + event.translationY;
+      // const newX = ctx.startX + event.translationX;
+      // const newY = ctx.startY + event.translationY;
+
+      const newX = ctx.startX + event.translationX / zoomScale;
+      const newY = ctx.startY + event.translationY / zoomScale;
 
       const maxX = (pageWidth * scale) - width.value;
       const maxY = (pageHeight * scale) - height.value;

@@ -96,7 +96,7 @@ const EnvelopeItem = memo(({ item, onDetails, onAction }) => {
 
 
 // --- Main Screen Component ---
-const SentScreen = ({ navigation }) => {
+const InboxScreen = ({ navigation }) => {
 
     const actionRef = useRef(null);
     const user = useAppSelector(state => state?.auth?.user);
@@ -187,13 +187,11 @@ const SentScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            const requestData = {
-                user: userId
-            };
 
-            const res = await api.post(`/api/sent/envelope?page=${pageNum}`, requestData);
+
+            const res = await api.get(`/api/inbox?user=${userId}&page=${pageNum}`);
             const envelopes = res?.data?.envelope || [];
-            const count = res?.data?.total_count || 0;
+            const count = res?.data?.count || 0;
 
             setTotalCount(count);
 
@@ -239,10 +237,10 @@ const SentScreen = ({ navigation }) => {
 
 
 
-            console.log(`/api/envelope/sent/search?query=${search.trim()}&user=${userId}`)
+            console.log(`/api/envelope/inbox/search?query=${search.trim()}&user=${userId}&page=${pageNum}`)
 
 
-            const response = await api(`/api/envelope/sent/search?query=${search.trim()}&user=${userId}&from_date=&to_date=&status=&page=${pageNum}`);
+            const response = await api.get(`/api/envelope/inbox/search?query=${search.trim()}&user=${userId}&page=${pageNum}`);
 
 
 
@@ -251,8 +249,10 @@ const SentScreen = ({ navigation }) => {
 
 
 
-                const envelopes = response?.data?.result || [];
+                const envelopes = response?.data?.envelope || [];
                 const count = response?.data?.count || 0;
+
+
 
                 setTotalCount(count);
 
@@ -260,7 +260,7 @@ const SentScreen = ({ navigation }) => {
                     id: item.id,
                     subject: item.subject,
                     signed_status: item.signed_status,
-                    recipients: (item.envelope_recepients || []).map(r => r.recepient_name).join(", "),
+                    recipients: (item?.envelope_recepients || []).map(r => r?.recepient_name).join(", "),
                     last_changed: item.last_changed
                 }));
 
@@ -287,7 +287,7 @@ const SentScreen = ({ navigation }) => {
 
             console.log('Search Error:', error);
 
-            Alert.alert('Error', 'Something went wrong');
+            // Alert.alert('Error', 'Something went wrong');
         } finally {
             setLoading(false);
             setFirstLoading(false);
@@ -369,7 +369,7 @@ const SentScreen = ({ navigation }) => {
                     text2: response.data.message,
                 });
 
-                fetchData(pageNo)
+                // fetchData(pageNo)
             } else {
                 Toast.show({
                     type: 'error',
@@ -489,12 +489,12 @@ const SentScreen = ({ navigation }) => {
             />
             {/* <View style={styles.header}>
                 <TouchableOpacity onPress={goBack}><ArrowLeft size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} /></TouchableOpacity>
-                <Text style={styles.title}>Sent</Text>
+                <Text style={styles.title}>Inbox</Text>
 
 
             </View> */}
 
-            <DrawerHeader navigation={navigation} title="Sent" />
+            <DrawerHeader navigation={navigation} title="Inbox" />
 
 
             <View style={styles.inner}>
@@ -550,13 +550,10 @@ const SentScreen = ({ navigation }) => {
                 )}
             </View>
 
-            <AppBottomSheet ref={actionRef} snapPoints={['25%']} withCloseBtn={false}>
+            <AppBottomSheet ref={actionRef} snapPoints={['15%']} withCloseBtn={false}>
 
                 <View style={{ flex: 1 }}>
-                    <AppActionButton btnText='Copy' icon={Copy} onPress={() => console.log('Copy Pressed')} />
-                    {/* <AppActionButton btnText='Download' icon={Download} onPress={() => { actionRef?.current?.close(); setModalVisible(true); }} /> */}
                     <AppActionButton btnText='Email Download' icon={MailOpen} onPress={emailDownload} />
-                    <AppActionButton btnText='Void' icon={Ban} onPress={() => voidEnvelope()} />
                     <AppActionButton btnText='Delete' icon={Trash} onPress={() => { actionRef?.current?.close(); setDeleteModalVisible(true) }} />
                 </View>
 
@@ -568,7 +565,7 @@ const SentScreen = ({ navigation }) => {
     );
 };
 
-export default SentScreen;
+export default InboxScreen;
 
 const styles = StyleSheet.create({
     container: {

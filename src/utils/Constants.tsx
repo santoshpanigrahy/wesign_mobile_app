@@ -1,5 +1,6 @@
 
-import { CheckCheck, Clock, ClockArrowUp } from 'lucide-react-native';
+import { AlertCircle, Ban, CheckCheck, Clock, ClockArrowUp, SquarePen } from 'lucide-react-native';
+import moment from 'moment';
 import {
   responsiveWidth as wp,
   responsiveHeight as hp,
@@ -69,15 +70,14 @@ export const darkWeatherColors = [
   'rgba(54, 67, 92, 0.0)',
 ];
 
-export const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
+export const formatDate = (tempDate) => {
+  if (!tempDate) {
+    return null
+  }
 
-  const day = date.getDate();
-  const month = date.toLocaleString('en-US', { month: 'short' });
-  const year = date.getFullYear();
+  return moment(tempDate).format('Do MMMM YYYY, hh:mm A');
 
-  return `${day} ${month}, ${year}`;
-};
+}
 
 export const formatNumber = (num: any) => {
   if (num === null || num === undefined) return "0";
@@ -100,7 +100,24 @@ export const STATUS_CONFIG = {
     color: "#3498db",
     icon: ClockArrowUp
   },
+
+  progress: {
+    label: "In Progress",
+    color: "#3498db",
+    icon: ClockArrowUp
+  },
+  void: {
+    label: "Voided",
+    color: "#4285f4",
+    icon: Ban
+  },
+  draft: {
+    label: "Draft",
+    color: "#59085f",
+    icon: SquarePen
+  }
 };
+
 
 
 export const RECIPIENT_COLORS = [

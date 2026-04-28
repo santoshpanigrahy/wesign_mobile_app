@@ -23,7 +23,8 @@ import {
     Download,
     MailOpen,
     Ban,
-    Trash
+    Trash,
+    SquarePen
 } from 'lucide-react-native';
 import moment from 'moment';
 
@@ -96,7 +97,7 @@ const EnvelopeItem = memo(({ item, onDetails, onAction }) => {
 
 
 // --- Main Screen Component ---
-const SentScreen = ({ navigation }) => {
+const DraftScreen = ({ navigation }) => {
 
     const actionRef = useRef(null);
     const user = useAppSelector(state => state?.auth?.user);
@@ -191,16 +192,16 @@ const SentScreen = ({ navigation }) => {
                 user: userId
             };
 
-            const res = await api.post(`/api/sent/envelope?page=${pageNum}`, requestData);
+            const res = await api.post(`/api/drafts?page=${pageNum}`, requestData);
             const envelopes = res?.data?.envelope || [];
-            const count = res?.data?.total_count || 0;
+            const count = res?.data?.count || 0;
 
             setTotalCount(count);
 
             const formatted = envelopes.map((item) => ({
                 id: item.id,
                 subject: item.subject,
-                signed_status: item.signed_status,
+                signed_status: 'draft',
                 recipients: (item.envelope_recepients || []).map(r => r.recepient_name).join(", "),
                 last_changed: item.last_changed
             }));
@@ -239,10 +240,10 @@ const SentScreen = ({ navigation }) => {
 
 
 
-            console.log(`/api/envelope/sent/search?query=${search.trim()}&user=${userId}`)
 
 
-            const response = await api(`/api/envelope/sent/search?query=${search.trim()}&user=${userId}&from_date=&to_date=&status=&page=${pageNum}`);
+
+            const response = await api(`/api/envelope/draft/search?query=${search.trim()}&user=${userId}&page=${pageNum}`);
 
 
 
@@ -259,7 +260,7 @@ const SentScreen = ({ navigation }) => {
                 const formatted = envelopes.map((item) => ({
                     id: item.id,
                     subject: item.subject,
-                    signed_status: item.signed_status,
+                    signed_status: 'draft',
                     recipients: (item.envelope_recepients || []).map(r => r.recepient_name).join(", "),
                     last_changed: item.last_changed
                 }));
@@ -369,7 +370,7 @@ const SentScreen = ({ navigation }) => {
                     text2: response.data.message,
                 });
 
-                fetchData(pageNo)
+                // fetchData(pageNo)
             } else {
                 Toast.show({
                     type: 'error',
@@ -487,15 +488,13 @@ const SentScreen = ({ navigation }) => {
                 onClose={() => setDeleteModalVisible(false)}
                 onDelete={handleDelete}
             />
+            <DrawerHeader navigation={navigation} title="Drafts" />
             {/* <View style={styles.header}>
                 <TouchableOpacity onPress={goBack}><ArrowLeft size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} /></TouchableOpacity>
-                <Text style={styles.title}>Sent</Text>
+                <Text style={styles.title}>Drafts</Text>
 
 
             </View> */}
-
-            <DrawerHeader navigation={navigation} title="Sent" />
-
 
             <View style={styles.inner}>
 
@@ -519,10 +518,10 @@ const SentScreen = ({ navigation }) => {
 
                 </View>
 
+
                 {
                     !firstLoading && data.length === 0 && <NoDataFound />
                 }
-
 
                 {firstLoading && data.length === 0 ? (
                     renderSkeleton()
@@ -550,13 +549,13 @@ const SentScreen = ({ navigation }) => {
                 )}
             </View>
 
-            <AppBottomSheet ref={actionRef} snapPoints={['25%']} withCloseBtn={false}>
+            <AppBottomSheet ref={actionRef} snapPoints={['20%']} withCloseBtn={false}>
 
                 <View style={{ flex: 1 }}>
-                    <AppActionButton btnText='Copy' icon={Copy} onPress={() => console.log('Copy Pressed')} />
+                    {/* <AppActionButton btnText='Edit / Continue' icon={SquarePen} onPress={() => console.log('Copy Pressed')} /> */}
                     {/* <AppActionButton btnText='Download' icon={Download} onPress={() => { actionRef?.current?.close(); setModalVisible(true); }} /> */}
                     <AppActionButton btnText='Email Download' icon={MailOpen} onPress={emailDownload} />
-                    <AppActionButton btnText='Void' icon={Ban} onPress={() => voidEnvelope()} />
+                    {/* <AppActionButton btnText='Void' icon={Ban} onPress={() => voidEnvelope()} /> */}
                     <AppActionButton btnText='Delete' icon={Trash} onPress={() => { actionRef?.current?.close(); setDeleteModalVisible(true) }} />
                 </View>
 
@@ -568,7 +567,7 @@ const SentScreen = ({ navigation }) => {
     );
 };
 
-export default SentScreen;
+export default DraftScreen;
 
 const styles = StyleSheet.create({
     container: {

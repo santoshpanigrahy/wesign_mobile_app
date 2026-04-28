@@ -96,7 +96,7 @@ const EnvelopeItem = memo(({ item, onDetails, onAction }) => {
 
 
 // --- Main Screen Component ---
-const SentScreen = ({ navigation }) => {
+const DeletedScreen = ({ navigation }) => {
 
     const actionRef = useRef(null);
     const user = useAppSelector(state => state?.auth?.user);
@@ -187,13 +187,11 @@ const SentScreen = ({ navigation }) => {
 
         setLoading(true);
         try {
-            const requestData = {
-                user: userId
-            };
 
-            const res = await api.post(`/api/sent/envelope?page=${pageNum}`, requestData);
+
+            const res = await api.get(`/api/deleted?page=${pageNum}&user=${userId}&page=${pageNum}`);
             const envelopes = res?.data?.envelope || [];
-            const count = res?.data?.total_count || 0;
+            const count = res?.data?.count || 0;
 
             setTotalCount(count);
 
@@ -239,10 +237,9 @@ const SentScreen = ({ navigation }) => {
 
 
 
-            console.log(`/api/envelope/sent/search?query=${search.trim()}&user=${userId}`)
 
 
-            const response = await api(`/api/envelope/sent/search?query=${search.trim()}&user=${userId}&from_date=&to_date=&status=&page=${pageNum}`);
+            const response = await api(`/api/envelope/deleted?query=${search.trim()}&user=${userId}&page=${pageNum}`);
 
 
 
@@ -251,8 +248,8 @@ const SentScreen = ({ navigation }) => {
 
 
 
-                const envelopes = response?.data?.result || [];
-                const count = response?.data?.count || 0;
+                const envelopes = response?.data?.expiring_soon || [];
+                const count = response?.data?.total_count || 0;
 
                 setTotalCount(count);
 
@@ -369,7 +366,7 @@ const SentScreen = ({ navigation }) => {
                     text2: response.data.message,
                 });
 
-                fetchData(pageNo)
+                // fetchData(pageNo)
             } else {
                 Toast.show({
                     type: 'error',
@@ -489,12 +486,12 @@ const SentScreen = ({ navigation }) => {
             />
             {/* <View style={styles.header}>
                 <TouchableOpacity onPress={goBack}><ArrowLeft size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} /></TouchableOpacity>
-                <Text style={styles.title}>Sent</Text>
+                <Text style={styles.title}>Deleted</Text>
 
 
             </View> */}
 
-            <DrawerHeader navigation={navigation} title="Sent" />
+            <DrawerHeader navigation={navigation} title="Deleted" />
 
 
             <View style={styles.inner}>
@@ -568,7 +565,7 @@ const SentScreen = ({ navigation }) => {
     );
 };
 
-export default SentScreen;
+export default DeletedScreen;
 
 const styles = StyleSheet.create({
     container: {

@@ -1,17 +1,13 @@
-import React, { useEffect, useRef } from 'react';
-import { Text, Pressable, View, Image } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
+import { Text, View, Pressable, StyleSheet } from 'react-native';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
   runOnJS,
 } from 'react-native-reanimated';
-import { FIELD_CONFIG, FIELD_ICONS, FIELD_NAMES } from '@utils/fieldConstants';
 import RenderFieldContent from './RenderFieldContent';
-
-
-
+import { Colors, fp, wp } from '@utils/Constants';
 
 const CanvasFieldBox = ({
   field,
@@ -26,21 +22,15 @@ const CanvasFieldBox = ({
   setShowToolbar
 }) => {
 
-
-
-
-
-
-
-
-  const dragRef = useRef();
-
-
   const translateX = useSharedValue(field.x * scale);
   const translateY = useSharedValue(field.y * scale);
   const width = useSharedValue(field.width * scale);
   const height = useSharedValue(field.height * scale);
 
+  const [showTempToolbar, setShowTempToolbar] = useState(true);
+
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
 
   useEffect(() => {
     translateX.value = field.x * scale;
@@ -49,31 +39,27 @@ const CanvasFieldBox = ({
     height.value = field.height * scale;
   }, [field, scale]);
 
-  // ================= DRAG =================
-  const dragHandler = useAnimatedGestureHandler({
-    onStart: (_, ctx) => {
-      ctx.startX = translateX.value;
-      ctx.startY = translateY.value;
 
-      // runOnJS(setShowToolbar)(false);
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startX.value = translateX.value;
+      startY.value = translateY.value;
 
-    },
+      runOnJS(setShowTempToolbar)(false);
+    })
+    .onUpdate((event) => {
 
-    onActive: (event, ctx) => {
-      // const newX = ctx.startX + event.translationX;
-      // const newY = ctx.startY + event.translationY;
-
-      const newX = ctx.startX + event.translationX / zoomScale;
-      const newY = ctx.startY + event.translationY / zoomScale;
+      const currentZoom = zoomScale.value;
+      const newX = startX.value + (event.translationX / currentZoom);
+      const newY = startY.value + (event.translationY / currentZoom);
 
       const maxX = (pageWidth * scale) - width.value;
       const maxY = (pageHeight * scale) - height.value;
 
       translateX.value = Math.max(0, Math.min(newX, maxX));
       translateY.value = Math.max(0, Math.min(newY, maxY));
-    },
-
-    onEnd: () => {
+    })
+    .onEnd(() => {
       let finalX = translateX.value / scale;
       let finalY = translateY.value / scale;
 
@@ -84,112 +70,197 @@ const CanvasFieldBox = ({
         x: finalX,
         y: finalY,
       });
-    },
-  });
+    })
+    .onFinalize(() => {
+      runOnJS(setShowTempToolbar)(true);
+    });
 
+
+  const tapGesture = Gesture.Tap()
+    .onEnd(() => {
+      runOnJS(setShowToolbar)(true);
+      runOnJS(onSelect)(field);
+    });
+
+
+  const composedGesture = Gesture.Simultaneous(panGesture, tapGesture);
+
+
+  const autoSizeFields = [
+    'my_date_signed', 'my_full_name', 'my_email',
+    'my_company', 'full_name', 'email', 'plain_text'
+  ];
+  const isAutoSized = autoSizeFields.includes(field.field_name);
+
+  const handleLayout = (event) => {
+    if (isAutoSized) {
+      const { width: layoutW, height: layoutH } = event.nativeEvent.layout;
+      width.value = layoutW;
+      height.value = layoutH;
+    }
+  };
 
   const animatedStyle = useAnimatedStyle(() => ({
     position: 'absolute',
     left: translateX.value,
     top: translateY.value,
-    width: width.value,
-    height: height.value,
+    width: isAutoSized ? 'auto' : width.value,
+    height: isAutoSized ? 'auto' : height.value,
   }));
 
 
 
+  const removeTap = Gesture.Tap().onEnd(() => {
+    runOnJS(onUpdate)(field.id, { deleted: true });
+  });
+
+  const editTap = Gesture.Tap().onEnd(() => {
+    runOnJS(onUpdate)('edit', field);
+    runOnJS(setShowToolbar)(false);
+  });
+
+  const duplicateTap = Gesture.Tap().onEnd(() => {
+    runOnJS(onUpdate)('duplicate', field);
+    runOnJS(setShowToolbar)(false);
+  });
+
+  const resizeTap = Gesture.Tap().onEnd(() => {
+    runOnJS(onUpdate)('resize', field);
+    runOnJS(setShowToolbar)(false);
+  });
+
+
+
+  const toolbarAnimatedStyle = useAnimatedStyle(() => {
+
+    const invScale = 1 / zoomScale.value;
+
+
+    const TOOLBAR_W = 280;
+    const TOOLBAR_H = 35;
+    const GAP = 15;
+
+
+    const effW = TOOLBAR_W * invScale;
+    const effH = TOOLBAR_H * invScale;
+    const effGap = GAP * invScale;
+
+    const fW = width.value;
+    const fH = height.value;
+    const fX = translateX.value;
+    const fY = translateY.value;
+
+
+    let desiredCenterX = fW / 2;
+    let desiredCenterY = -effGap - (effH / 2);
+
+
+    if (fY - effGap - effH < 0) {
+      desiredCenterY = fH + effGap + (effH / 2);
+    }
+
+
+    if (fX + desiredCenterX - (effW / 2) < 10) {
+      desiredCenterX = (effW / 2) - fX + 10;
+    }
+
+
+    const canvasWidth = pageWidth * scale;
+    if (fX + desiredCenterX + (effW / 2) > canvasWidth - 10) {
+      desiredCenterX = canvasWidth - fX - (effW / 2) - 10;
+    }
+
+
+    return {
+      position: 'absolute',
+
+      left: desiredCenterX - (TOOLBAR_W / 2),
+      top: desiredCenterY - (TOOLBAR_H / 2),
+      width: TOOLBAR_W,
+      height: TOOLBAR_H,
+      transform: [{ scale: invScale }]
+    };
+  });
   return (
-    <PanGestureHandler ref={dragRef} onGestureEvent={dragHandler}>
-      <Animated.View
-        style={[animatedStyle, { zIndex: isSelected ? 10 : 1 }]}
-        pointerEvents="box-none"
-      >
+    <Animated.View
+      onLayout={handleLayout}
+      style={[animatedStyle, { zIndex: isSelected ? 10 : 1 }]}
+      pointerEvents="box-none"
+    >
 
-        <Pressable
-          onPress={(e) => {
-            e.stopPropagation();
-
-            setShowToolbar(true);
-            onSelect(field);
-          }}
-          pointerEvents="auto"
-          style={{
-            flex: 1,
-
-            // justifyContent: 'center',
-            // alignItems: 'center',
-            // flexDirection: 'row',
-            // gap: 5,
-          }}
-        >
+      <GestureDetector gesture={composedGesture}>
+        <View style={{ flex: 1 }} pointerEvents="auto">
           <RenderFieldContent isSelected={isSelected} field={field} onUpdate={onUpdate} />
+        </View>
+      </GestureDetector>
 
 
-
-        </Pressable>
-
-
-        {isSelected && showToolbar && (
-          <View
-            style={{
-              position: 'absolute',
-              top: -35,
-              left: '50%',
-              transform: [{ translateX: "-50%" }],
+      {isSelected && showToolbar && showTempToolbar && (
+        <Animated.View
+          style={[
+            toolbarAnimatedStyle,
+            {
               flexDirection: 'row',
               backgroundColor: '#000',
-              borderRadius: 6,
-              paddingHorizontal: 6,
-              paddingVertical: 4,
+              borderRadius: 20,
+              paddingHorizontal: 3,
+              // paddingVertical: 4,
               zIndex: 1000,
-              width: 200,
-              justifyContent: 'space-evenly'
-            }}
-          >
-            <Pressable onPress={(e) => {
-              e.stopPropagation()
-              onUpdate(field.id, { deleted: true });
-            }}>
-              <Text style={{ color: '#fff', fontSize: 10, marginHorizontal: 5 }}>
-                Remove
-              </Text>
-            </Pressable>
+              justifyContent: 'space-evenly',
+              alignItems: 'center',
+              width: 280
+            }
+          ]}
+        >
+          <GestureDetector gesture={removeTap}>
+            <View hitSlop={10} style={styles.toolBarButton}>
+              <Text style={styles.toolBarBtnText}>Remove</Text>
+            </View>
+          </GestureDetector>
 
-            <Pressable onPress={(e) => {
-              e.stopPropagation();
-              onUpdate('edit', field);
-              setShowToolbar(false);
-            }} >
-              <Text style={{ color: '#fff', fontSize: 10, marginHorizontal: 5 }}>
-                Edit
-              </Text>
-            </Pressable>
+          <View style={styles.hr} />
 
-            <Pressable onPress={(e) => {
-              e.stopPropagation()
-              onUpdate('duplicate', field);
-              setShowToolbar(false);
+          <GestureDetector gesture={editTap} >
+            <View hitSlop={10} style={styles.toolBarButton}>
+              <Text style={styles.toolBarBtnText}>Edit</Text>
+            </View>
+          </GestureDetector>
+          <View style={styles.hr} />
 
-            }} >
-              <Text style={{ color: '#fff', fontSize: 10, marginHorizontal: 5 }}>
-                Duplicate
-              </Text>
-            </Pressable>
 
-            <Pressable onPress={(e) => {
-              e.stopPropagation()
-              onUpdate('resize', field);
-              setShowToolbar(false);
-            }} >
-              <Text style={{ color: '#fff', fontSize: 10, marginHorizontal: 5 }}>
-                Resize
-              </Text>
-            </Pressable>
-          </View>
-        )}
-      </Animated.View>
-    </PanGestureHandler>
+          <GestureDetector gesture={duplicateTap}>
+            <View hitSlop={10} style={styles.toolBarButton}>
+              <Text style={styles.toolBarBtnText}>Duplicate</Text>
+            </View>
+          </GestureDetector>
+          <View style={styles.hr} />
+
+
+          <GestureDetector gesture={resizeTap}>
+            <View hitSlop={10} style={styles.toolBarButton}>
+              <Text style={styles.toolBarBtnText}>Resize</Text>
+            </View>
+          </GestureDetector>
+        </Animated.View>
+      )}
+    </Animated.View>
   );
 };
 
 export default React.memo(CanvasFieldBox);
+
+const styles = StyleSheet.create({
+  toolBarButton: {
+    paddingHorizontal: wp(1),
+  },
+  toolBarBtnText: {
+    fontSize: fp(1.8),
+    color: Colors.white
+  },
+  hr: {
+    height: '100%',
+    backgroundColor: Colors.white,
+    width: 1
+  }
+
+});

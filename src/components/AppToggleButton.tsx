@@ -1,4 +1,4 @@
-import { Fonts, fp } from "@utils/Constants";
+import { Colors, Fonts, fp } from "@utils/Constants";
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, View, Text } from "react-native";
 import Animated, {
@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: 'space-between',
     gap: 10,
+
   },
   label: {
     fontSize: fp(1.9),

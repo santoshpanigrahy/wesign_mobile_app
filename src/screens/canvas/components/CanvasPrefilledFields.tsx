@@ -57,9 +57,9 @@ const CanvasPrefilledFields = ({ selectedType, onSelect, selectedRecipient }) =>
               key={item.type}
               onPress={() => {
                 if (selectedType === item.type) {
-                  onSelect(null); // toggle OFF
+                  onSelect(null);
                 } else {
-                  onSelect(item.type); // toggle ON
+                  onSelect(item.type);
                 }
               }}
               style={{

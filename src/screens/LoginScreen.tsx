@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   Image,
   StatusBar,
+  BackHandler,
+  InteractionManager,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
@@ -14,7 +16,7 @@ import { useDispatch } from 'react-redux';
 import AppInput from '@components/AppInput';
 import AppButton from '@components/AppButton';
 import { Colors, wp, hp, fp, Fonts } from '@utils/Constants';
-import { loginUser } from '@slices/authSlice';
+import { loginUser, setUser, updateToken, updateUser } from '@slices/authSlice';
 
 
 import {
@@ -23,20 +25,124 @@ import {
 
 } from 'lucide-react-native';
 import { useAppSelector } from '@redux/hooks';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import Toast from 'react-native-toast-message';
+import api from '@utils/api';
+import { navigate, resetAndNavigate } from '@utils/NavigationUtils';
+import { useFocusEffect } from '@react-navigation/native';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+
+GoogleSignin.configure({
+  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+  webClientId: '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
+
+});
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
   const { error } = useAppSelector((state) => state.auth);
   const { control, handleSubmit } = useForm();
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
+
   const onSubmit = (data: any) => {
     dispatch(loginUser(data) as any);
+  };
+
+
+  const signInWithGoogle = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+
+      const userInfo = await GoogleSignin.signIn();
+
+      const idToken = userInfo?.data?.idToken;
+
+      if (!idToken) return;
+
+      loginWithGoogle(idToken);
+    } catch (error) {
+      console.log('Google Login Error:', error);
+      Toast.show({ type: 'error', text1: error?.message });
+
+    }
+  };
+
+  const loginWithGoogle = async (idToken) => {
+    dispatch(showLoader('Loading'));
+    try {
+      const requestData = {
+        token: idToken,
+      };
+
+      const response = await api.post(
+        `/auth/google/verify`,
+        requestData
+      );
+
+      const data = response.data;
+
+      if (data.status === true) {
+        await GoogleSignin.signOut();
+
+
+
+        if (data.is_user_registered) {
+          const loginSuccessResponse = {
+            user: data.user,
+            token: data.token,
+            subscription: data.subscription,
+          };
+
+          console.log(data.user, data.token)
+
+
+
+          dispatch(setUser(data.user));
+          dispatch(updateToken(data.token));
+
+          // setTimeout(() => {
+          navigate('Drawer');
+          // }, 100);
+
+          // Navigate Dashboard
+        } else {
+          Toast.show({ type: 'error', text1: "User not logged in" });
+        }
+      } else {
+        Toast.show({ type: 'error', text1: data.message });
+
+
+      }
+    } catch (error) {
+      console.log('Login API Error:', error);
+      Toast.show({ type: 'error', text1: 'Something went wrong' });
+
+
+    } finally {
+      dispatch(hideLoader());
+
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
-        barStyle="light-content"
+        barStyle="dark-content"
       // backgroundColor="#fff"
       />
 
@@ -95,13 +201,14 @@ const LoginScreen = () => {
         }
 
 
-        <TouchableOpacity style={styles.forgot}>
+        {/* <TouchableOpacity style={styles.forgot}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
 
         <AppButton
           title="Login"
+          style={{ marginTop: hp(3) }}
 
           onPress={handleSubmit(onSubmit)}
         />
@@ -116,7 +223,7 @@ const LoginScreen = () => {
 
         <View style={styles.socialRow}>
 
-          <TouchableOpacity style={styles.socialBtn}>
+          <TouchableOpacity style={styles.socialBtn} onPress={signInWithGoogle}>
             <View style={styles.socialBtnWrapper}>
 
 
@@ -126,7 +233,7 @@ const LoginScreen = () => {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.socialBtn}>
+          {/* <TouchableOpacity style={styles.socialBtn}>
             <View style={styles.socialBtnWrapper}>
               <Image source={require('@assets/icons/apple.png')} alt='apple' style={styles.socialIcon} />
               <Text style={styles.socialText}>Continue with Apple</Text>
@@ -141,7 +248,7 @@ const LoginScreen = () => {
               <Image source={require('@assets/icons/linkedin.png')} alt='linkedin' style={styles.socialIcon} />
               <Text style={styles.socialText}>Continue with Linkedin</Text>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
         </View>
 
@@ -166,7 +273,8 @@ const styles = StyleSheet.create({
     // height:hp(80),
     paddingHorizontal: wp(6),
     paddingVertical: hp(4),
-    justifyContent: 'center',
+    paddingTop: hp(10),
+    // justifyContent: 'center',
     backgroundColor: Colors.background,
     // borderTopLeftRadius: wp(5),
     // borderTopRightRadius:wp(5)

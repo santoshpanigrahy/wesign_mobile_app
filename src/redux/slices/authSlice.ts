@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@utils/api";
 import { hideLoader, showLoader } from "./loaderSlice";
-import { resetAndNavigate } from "@utils/NavigationUtils";
+import { navigate, resetAndNavigate } from "@utils/NavigationUtils";
 
 
 export const loginUser = createAsyncThunk(
@@ -23,7 +23,7 @@ export const loginUser = createAsyncThunk(
       await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
       await AsyncStorage.setItem("token", res.data.token);
 
-      resetAndNavigate('Drawer')
+      navigate('Drawer');
 
       return res.data;
     } catch (err:any) {
@@ -66,6 +66,20 @@ const authSlice = createSlice({
       AsyncStorage.removeItem("user");
       AsyncStorage.removeItem("token");
     },
+    setUser: (state, action) => {
+      state.user = action.payload;
+    },
+   updateUser: (state, action) => {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          ...action.payload
+        };
+      }
+    },
+    updateToken: (state, action) => {
+     state.token = action.payload
+   }
   },
 
   extraReducers: (builder) => {
@@ -95,5 +109,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout,updateUser ,updateToken,setUser} = authSlice.actions;
 export default authSlice.reducer;

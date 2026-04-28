@@ -35,20 +35,20 @@ export const FIELD_CONFIG = {
   initial: {
     label: "Initial",
     icon: CaseUpper,
-    width: 200,
-    height: 60,
+    width: 100,
+    height: 30,
   },
   stamp: {
     label: "Stamp",
     icon: Stamp,
-    width: 200,
-    height: 60,
+    width: 100,
+    height: 30,
   },
   date_signed: {
     label: "Date",
     icon: CalendarDays,
-    width: 200,
-    height: 60,
+    width: 100,
+    height: 30,
   },
   full_name: {
     label: "Name",
@@ -65,39 +65,39 @@ export const FIELD_CONFIG = {
   company: {
     label: "Company",
     icon: Building,
-    width: 200,
-    height: 60,
+    width: 100,
+    height: 30,
   },
   title: {
     label: "Only For Recipient",
     icon: Type,
-    width: 200,
-    height: 60,
+    width: 150,
+    height: 30,
   },
   comment_text: {
     label: "Only For Recipient",
 
     icon: FileText,
-    width: 200,
-    height: 60,
+    width: 150,
+    height: 30,
   },
   plain_text: {
     label: "Write Here",
     icon: FileText,
-    width: 400,
-    height: 200,
+    width: 200,
+    height: 80,
   },
   checkbox: {
     label: "Checkbox",
     icon: CheckSquare,
-    width: 40, // 🔥 slightly bigger for UX
-    height: 40,
+    width: 20, // 🔥 slightly bigger for UX
+    height: 20,
   },
   dropdown: {
     label: "Dropdown",
     icon: ChevronDown,
-    width: 200,
-    height: 60,
+    width: 100,
+    height: 30,
   },
   radio: {
     label: "Radio",
@@ -108,15 +108,15 @@ export const FIELD_CONFIG = {
   drawing: {
     label: "Drawing",
     icon: Palette,
-    width: 200,
-    height: 60,
+    width: 100,
+    height: 30,
   },
 
   attachment: {
     label: "Attachment",
     icon: Paperclip,
-    width: 240,
-    height: 60,
+    width: 120,
+    height: 30,
   },
 };
 
@@ -132,7 +132,7 @@ export const getFieldLabel = (type) =>
   FIELD_CONFIG[type]?.label || 'Field';
 
 export const getFieldDefaults = (type) =>
-  FIELD_CONFIG[type] || { width: 150, height: 40 };
+  FIELD_CONFIG[type] || { width: 80, height: 30 };
 
 
 export const FIELD_META_COMPONENTS = {

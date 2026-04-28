@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { ArrowLeft, EllipsisVertical, Save, Trash, Upload } from 'lucide-react-native';
 import { pick } from '@react-native-documents/picker';
@@ -26,6 +27,7 @@ import {
   MenuOption,
   MenuTrigger,
 } from 'react-native-popup-menu';
+import { authorize } from 'react-native-app-auth';
 
 
 const validTypes = [
@@ -77,7 +79,7 @@ const FILE_TYPE_MAP = {
 };
 
 
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import RNFS from 'react-native-fs';
 import { deleteDocumentByIndex, removeErrorDocuments, resetEnvelope, setDocuments, setEnableWritingID, updateDocumentByIndex } from '@redux/slices/envelopeSlice';
 import AppToggleButton from '@components/AppToggleButton';
@@ -85,16 +87,363 @@ import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
+import { launchImageLibrary } from 'react-native-image-picker';
 
-GoogleSignin.configure({
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-  webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
 
-});
+
+const configureGoogleDrive = () => {
+  GoogleSignin.configure({
+    // This scope is MANDATORY to read files from Drive
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    // You get this ID from the Google Cloud Console
+    // webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
+    webClientId: '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
+    offlineAccess: true,
+  });
+};
+
+const dropboxAuthConfig = {
+  clientId: 'fzhtxlkmaxm5awm',
+  redirectUrl: 'com.wesign://auth',
+  serviceConfiguration: {
+    authorizationEndpoint: 'https://www.dropbox.com/oauth2/authorize',
+    tokenEndpoint: 'https://api.dropboxapi.com/oauth2/token',
+  },
+};
 
 const UploadScreen = () => {
   const userId = useAppSelector(state => state.auth.user?.id);
+  const [googleDriveFiles, setGoogleDriveFiles] = useState([]);
   // const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    configureGoogleDrive();
+  }, []);
+
+
+  const [googleAccessToken, setGoogleAccessToken] = useState(null);
+
+  const pickImages = async () => {
+
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        selectionLimit: 0, // unlimited selection
+      },
+      (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled');
+        } else if (response.errorCode) {
+          console.log('Error:', response.errorMessage);
+        } else {
+
+          sheetRef?.current?.close();
+
+          const files = response.assets?.map((asset) => ({
+            uri: asset.uri,
+            name: asset.fileName,
+            type: asset.type,
+            size: asset.fileSize,
+          })) || [];
+
+          if (files.length > 0) {
+            handleUpload(files)
+            console.log('Selected Images:', files);
+          }
+        }
+      }
+    );
+
+  }
+
+  const fetchGoogleDrivePDFs = async () => {
+    try {
+      // 1. Ensure the device supports Google Play Services (Android)
+      await GoogleSignin.hasPlayServices();
+
+      // 2. Prompt the user to log in and authorize wesign
+      const userInfo = await GoogleSignin.signIn();
+
+      // 3. Get the access token to use with the Drive API
+      const tokens = await GoogleSignin.getTokens();
+      const accessToken = tokens.accessToken;
+
+
+      if (!accessToken) {
+        throw new Error('No access token received');
+      }
+      setGoogleAccessToken(accessToken)
+
+
+
+      const response = await fetch(
+        'https://www.googleapis.com/drive/v3/files?q=mimeType="application/pdf"&fields=files(id,name,mimeType)',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.files && data.files.length > 0) {
+        console.log('Found PDFs:', data.files);
+        return data.files;
+      } else {
+        console.log('No PDFs found in this Drive.');
+        GoogleSignin.signOut();
+        return [];
+      }
+
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('User cancelled the login flow');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('Sign in is already in progress');
+      } else {
+        console.error('Error fetching from Google Drive:', error);
+      }
+    }
+  };
+
+
+  const handleDriveLogin = async () => {
+    sheetRef?.current?.close();
+    try {
+
+
+      // if (googleDriveFiles?.length === 0 && !googleAccessToken) {
+
+
+      const driveFiles = await fetchGoogleDrivePDFs();
+      setGoogleDriveFiles(driveFiles);
+
+      // }
+
+      googleDriveRef?.current?.snapToIndex(0);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const downloadFileFromDrive = async (file, accessToken) => {
+
+    const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
+
+
+    const options = {
+      fromUrl: `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+      toFile: localPath,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+
+      begin: (res) => {
+        console.log('Download started. Content Length:', res.contentLength);
+      },
+      progress: (res) => {
+        let progressPercent = (res.bytesWritten / res.contentLength) * 100;
+        // console.log(`Download Progress: ${progressPercent.toFixed(2)}%`);
+      }
+    };
+
+    try {
+      // Start the download and wait for the promise to resolve
+      const response = await RNFS.downloadFile(options).promise;
+
+      if (response.statusCode === 200) {
+        console.log('File successfully downloaded to:', localPath);
+        return localPath;
+      } else {
+        console.error('Download failed with status code:', response.statusCode);
+        return null;
+      }
+
+    } catch (error) {
+      console.error('Error downloading from Drive via RNFS:', error);
+      return null;
+    }
+  };
+
+
+
+
+
+  const handleDriveFileSelect = async (driveFile, accessToken) => {
+
+    googleDriveRef?.current?.close();
+    dispatch(showLoader('Uploading'));
+    try {
+
+      const localPath = await downloadFileFromDrive(driveFile, accessToken);
+
+      if (localPath) {
+
+        const fileStats = await RNFS.stat(localPath);
+        const actualSizeInBytes = fileStats.size;
+
+        const formattedFile = {
+          uri: `file://${localPath}`,
+          name: driveFile.name,
+          type: 'application/pdf',
+          size: actualSizeInBytes || 0,
+        };
+
+        await handleUpload([formattedFile]);
+
+        GoogleSignin.signOut();
+        setGoogleAccessToken(null);
+        setGoogleDriveFiles([]);
+      }
+    } catch (error) {
+
+      console.error("Failed to process Drive file:", error);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
+
+  const renderGoogleDriveFileItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.cloundFileWrapper}
+      onPress={() => handleDriveFileSelect(item, googleAccessToken)}
+
+    >
+
+      <Image source={require('@assets/icons/pdf.png')} style={{ width: wp(8), height: wp(12) }} />
+      <Text style={styles.cloundFileName}>{item.name}</Text>
+
+    </TouchableOpacity>
+  );
+
+  const renderDropboxFileItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.cloundFileWrapper}
+      onPress={() => handleDropboxFileSelect(item)}
+
+    >
+
+      <Image source={require('@assets/icons/pdf.png')} style={{ width: wp(8), height: wp(12) }} />
+      <Text style={styles.cloundFileName}>{item.name}</Text>
+
+    </TouchableOpacity>
+  );
+
+
+  //dropbox
+
+  const [dropboxAccessToken, setDropboxAccessToken] = useState(null);
+  const [dropboxFiles, setDropboxFiles] = useState([]);
+  const dropboxRef = useRef(null);
+  const connectAndFetchDropbox = async () => {
+    sheetRef?.current?.close();
+    dispatch(showLoader('Loading'));
+    try {
+      const authState = await authorize(dropboxAuthConfig);
+      const token = authState.accessToken;
+      setDropboxAccessToken(token);
+
+      const response = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          path: "", // Root directory
+          recursive: true, // Set to true to find PDFs inside subfolders
+          include_media_info: false,
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.entries && data.entries.length > 0) {
+        const pdfFiles = data.entries.filter(file =>
+          file['.tag'] === 'file' && file.name.toLowerCase().endsWith('.pdf')
+        );
+        setDropboxFiles(pdfFiles);
+        dropboxRef?.current?.snapToIndex(0);
+      } else {
+        setDropboxFiles([]);
+      }
+    } catch (error) {
+      console.error('Dropbox Auth/Fetch Error:', error);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
+
+
+  const handleDropboxFileSelect = async (file) => {
+    if (!dropboxAccessToken) return;
+
+    dropboxRef?.current?.close()
+
+    dispatch(showLoader('Loading'));
+    console.log(`Downloading ${file.name} from Dropbox...`);
+
+    const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
+    const dropboxApiArg = JSON.stringify({ path: file.path_lower });
+
+    const options = {
+      fromUrl: 'https://content.dropboxapi.com/2/files/download',
+      toFile: localPath,
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${dropboxAccessToken}`,
+        'Dropbox-API-Arg': dropboxApiArg,
+      },
+      progress: (res) => {
+        let progressPercent = (res.bytesWritten / res.contentLength) * 100;
+        console.log(`Dropbox Download Progress: ${progressPercent.toFixed(2)}%`);
+      }
+    };
+
+    try {
+      const response = await RNFS.downloadFile(options).promise;
+
+      if (response.statusCode === 200) {
+        console.log('Dropbox file securely downloaded to:', localPath);
+
+        // Await the file stats to ensure we get a real number, not a Promise
+        const fileStats = await RNFS.stat(localPath);
+
+        const formattedFile = {
+          uri: `file://${localPath}`,
+          name: file.name,
+          type: 'application/pdf',
+          size: fileStats.size,
+        };
+
+        // Pass it to your existing upload function as an array
+        await handleUpload([formattedFile]);
+      } else {
+        console.error('Dropbox download failed with status:', response.statusCode);
+      }
+    } catch (error) {
+      console.error('Error downloading from Dropbox:', error);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
+
+
+
+
+
+
+
+
+
 
   const enableEnvelopeId = useAppSelector(state => state.envelope?.enable_writing_id);
 
@@ -102,117 +451,16 @@ const UploadScreen = () => {
   // const [enableEnvelopeId,setEnableEnvelopeId] =useState(false)
   const dispatch = useAppDispatch();
 
-  // Google Drive Code
-
-  const [accessToken, setAccessToken] = useState(null);
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
 
 
-  const handleDriveLogin = async () => {
-    try {
-      setLoading(true);
-
-      const token = await signIn();
-      setAccessToken(token);
-
-      const driveFiles = await getDriveFiles(token);
-      setFiles(driveFiles);
-
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signIn = async () => {
-    await GoogleSignin.hasPlayServices();
-    const userInfo = await GoogleSignin.signIn();
-    const tokens = await GoogleSignin.getTokens();
-
-    console.log(userInfo, tokens)
-
-    return tokens.accessToken;
-  };
-
-  const getDriveFiles = async (accessToken) => {
-    const res = await fetch(
-      'https://www.googleapis.com/drive/v3/files',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    const data = await res.json();
-    return data.files;
-  };
-
-  const downloadFile = async (file, accessToken) => {
-    const url = file.mimeType.includes('google-apps')
-      ? `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=application/pdf`
-      : `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
-
-    const path = `${RNFS.DocumentDirectoryPath}/${file.name}`;
-
-    const res = await RNFS.downloadFile({
-      fromUrl: url,
-      toFile: path,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }).promise;
-
-    return {
-      uri: 'file://' + path,
-      name: file.name,
-      type: file.mimeType,
-    };
-  };
-
-  const handleDownload = async (file) => {
-    try {
-      setLoading(true);
-
-      const downloaded = await downloadFile(file, accessToken);
-
-      console.log('Downloaded file:', downloaded);
 
 
-      handleSelectedFile(downloaded);
-
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
-  const handleSelectedFile = (file) => {
-    console.log('Ready for signing:', file);
 
 
-    // navigation.navigate('PdfViewer', { file });
-  };
 
-  const renderItemDrive = ({ item }) => (
-    <TouchableOpacity
-      style={{
-        padding: 15,
-        borderBottomWidth: 1,
-        borderColor: '#eee',
-      }}
-      onPress={() => handleDownload(item)}
-    >
-      <Text>{item.name}</Text>
-      <Text style={{ fontSize: 12, color: 'gray' }}>
-        {item.mimeType}
-      </Text>
-    </TouchableOpacity>
-  );
+
 
 
 
@@ -220,9 +468,10 @@ const UploadScreen = () => {
   const sheetRef = useRef<any>(null);
   const fileRef = useRef<any>(null);
   const errorFileRef = useRef<any>(null);
+  const googleDriveRef = useRef<any>(null);
 
   const openSheet = () => {
-    sheetRef.current?.snapToIndex(1);
+    sheetRef.current?.snapToIndex(0);
   };
   const [documentId, setDocumentId] = useState(null);
   const openFileSheet = (index) => {
@@ -270,7 +519,7 @@ const UploadScreen = () => {
   );
 
 
-  const handleUpload = async () => {
+  const handleDocumentPicker = async () => {
     try {
       const results = await pick({
         allowMultiSelection: true,
@@ -279,7 +528,17 @@ const UploadScreen = () => {
 
       sheetRef?.current.close();
 
-      const updatedFiles = results.map(file => ({
+      await handleUpload(results)
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleUpload = async (files) => {
+    try {
+
+
+      const updatedFiles = files.map(file => ({
         ...file,
         progress: 0,
         uploading: true,
@@ -293,9 +552,8 @@ const UploadScreen = () => {
 
       dispatch(setDocuments(updatedFiles));
 
-      // setEnvelopeDocuments(prev => [...prev, ...updatedFiles]);
 
-      results.forEach(async (file, index) => {
+      files.forEach(async (file, index) => {
         await uploadFile(file, index + envelopeDocuments.length);
       });
 
@@ -383,6 +641,8 @@ const UploadScreen = () => {
 
 
   const uploadFile = async (file, index) => {
+
+    console.log("File===========>", file)
 
     if (!validTypes.includes(file.type)) {
       updateFileError(index, 'Invalid file type');
@@ -629,6 +889,10 @@ const UploadScreen = () => {
   }
 
 
+
+
+
+
   const renderItem = ({ item, index }) => {
 
 
@@ -823,11 +1087,11 @@ const UploadScreen = () => {
       }
 
 
-      <AppBottomSheet ref={sheetRef} title={'Add Documents'}>
+      <AppBottomSheet ref={sheetRef} title={'Add Documents'} snapPoints={['35%']}>
 
 
         <View style={styles.providerWrapper}>
-          <TouchableOpacity style={styles.provider} >
+          {/* <TouchableOpacity style={styles.provider} >
             <Image source={require('@assets/icons/scan.png')} alt='scan' style={styles.providerIcon} />
             <Text style={styles.providerText}>Scan</Text>
           </TouchableOpacity>
@@ -835,29 +1099,29 @@ const UploadScreen = () => {
           <TouchableOpacity style={styles.provider} >
             <Image source={require('@assets/icons/layout.png')} alt='template' style={styles.providerIcon} />
             <Text style={styles.providerText}>Templates</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity style={styles.provider} >
+          <TouchableOpacity style={styles.provider} onPress={pickImages}>
             <Image source={require('@assets/icons/picture.png')} alt='Photos' style={styles.providerIcon} />
             <Text style={styles.providerText}>Photos</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} onPress={() => handleUpload()}>
+          <TouchableOpacity style={styles.provider} onPress={() => handleDocumentPicker()}>
             <Image source={require('@assets/icons/open-folder.png')} alt='media' style={styles.providerIcon} />
             <Text style={styles.providerText}>My Files</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} onPress={handleUpload}>
+          {/* <TouchableOpacity style={styles.provider} >
             <Image source={require('@assets/icons/one-drive.png')} alt='onedrive' style={styles.providerIcon} />
             <Text style={styles.providerText}>One Drive</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity style={styles.provider} onPress={() => handleDriveLogin()}>
             <Image source={require('@assets/icons/google-drive.png')} alt='googledrive' style={styles.providerIcon} />
             <Text style={styles.providerText}>Google Drive</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} onPress={handleUpload}>
+          <TouchableOpacity style={styles.provider} onPress={() => connectAndFetchDropbox()}>
             <Image source={require('@assets/icons/dropbox.png')} alt='dropbox' style={styles.providerIcon} />
             <Text style={styles.providerText}>Drop Box</Text>
           </TouchableOpacity>
@@ -904,6 +1168,45 @@ const UploadScreen = () => {
           />
 
           <AppButton title='Remove All' onPress={() => clearAllErrorFiles()} style={{ backgroundColor: Colors.error }} />
+
+        </View>
+
+      </AppBottomSheet>
+
+      <AppBottomSheet ref={googleDriveRef} title={'Google Drive Files'} containerStyle={{ paddingBottom: wp(4) }} snapPoints={["90%"]}>
+
+        <View style={{ flex: 1, paddingTop: hp(2) }}>
+
+
+
+          <BottomSheetFlatList
+            data={googleDriveFiles}
+            // contentContainerStyle={{ flex: 1 }}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderGoogleDriveFileItem}
+            keyboardShouldPersistTaps="handled"
+          />
+
+
+        </View>
+
+      </AppBottomSheet>
+
+
+      <AppBottomSheet ref={dropboxRef} title={'Dropbox Files'} containerStyle={{ paddingBottom: wp(4) }} snapPoints={["90%"]}>
+
+        <View style={{ flex: 1, paddingTop: hp(2) }}>
+
+
+
+          <BottomSheetFlatList
+            data={dropboxFiles}
+            // contentContainerStyle={{ flex: 1 }}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderDropboxFileItem}
+            keyboardShouldPersistTaps="handled"
+          />
+
 
         </View>
 
@@ -1070,5 +1373,18 @@ const styles = StyleSheet.create({
     fontSize: fp(1.4),
     color: '#ff0000',
     marginTop: 2,
+  },
+  cloundFileWrapper: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    flexDirection: 'row',
+    gap: wp(3),
+    alignItems: 'center',
+    paddingVertical: wp(2)
+
+  },
+  cloundFileName: {
+    fontSize: fp(1.6),
+    fontFamily: Fonts.Medium,
   }
 });

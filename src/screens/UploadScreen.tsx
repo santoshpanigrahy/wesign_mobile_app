@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,24 @@ import {
   Image,
   BackHandler,
 } from 'react-native';
-import { ArrowLeft, EllipsisVertical, Save, Trash, Upload } from 'lucide-react-native';
-import { pick } from '@react-native-documents/picker';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
-import { useAppDispatch, useAppSelector } from '@redux/hooks';
+import {
+  ArrowLeft,
+  EllipsisVertical,
+  Save,
+  Trash,
+  Upload,
+} from 'lucide-react-native';
+import {pick} from '@react-native-documents/picker';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
+import {useAppDispatch, useAppSelector} from '@redux/hooks';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import api from '@utils/api';
-import { goBack, navigate } from '@utils/NavigationUtils';
+import {goBack, navigate} from '@utils/NavigationUtils';
 import AppBottomSheet from '@components/AppBottomSheet';
 import ConfirmExitModal from '@components/ConfirmExitModal';
-import { Portal } from '@gorhom/portal';
+import {Portal} from '@gorhom/portal';
 import AppButton from '@components/AppButton';
-import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
 import {
   Menu,
   MenuOptions,
@@ -27,31 +33,30 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 
-
 const validTypes = [
-  "image/gif",
-  "image/tiff",
-  "image/tif",
-  "image/TIF",
-  "image/bmp",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "application/vnd.ms-excel.sheet.macroenabled.12",
-  "application/vnd.ms-excel",
-  "application/excel",
-  "application/x-excel",
-  "application/x-msexcel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/plain",
-  "text/csv",
-  "text/html",
-  "image/jpeg",
-  "image/png",
-  "application/pdf",
-  "application/doc",
-  "application/ms-doc",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  'image/gif',
+  'image/tiff',
+  'image/tif',
+  'image/TIF',
+  'image/bmp',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel.sheet.macroenabled.12',
+  'application/vnd.ms-excel',
+  'application/excel',
+  'application/x-excel',
+  'application/x-msexcel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain',
+  'text/csv',
+  'text/html',
+  'image/jpeg',
+  'image/png',
+  'application/pdf',
+  'application/doc',
+  'application/ms-doc',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
 const FILE_ICONS = {
@@ -69,34 +74,43 @@ const FILE_ICONS = {
 const FILE_TYPE_MAP = {
   'application/pdf': 'PDF',
   'application/msword': 'DOC',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+    'DOCX',
   'text/csv': 'CSV',
   'text/plain': 'TXT',
   'application/vnd.ms-excel': 'XLS',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
 };
 
-
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+// import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import RNFS from 'react-native-fs';
-import { deleteDocumentByIndex, removeErrorDocuments, resetEnvelope, setDocuments, setEnableWritingID, updateDocumentByIndex } from '@redux/slices/envelopeSlice';
+import {
+  deleteDocumentByIndex,
+  removeErrorDocuments,
+  resetEnvelope,
+  setDocuments,
+  setEnableWritingID,
+  updateDocumentByIndex,
+} from '@redux/slices/envelopeSlice';
 import AppToggleButton from '@components/AppToggleButton';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { useFocusEffect } from '@react-navigation/native';
+import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 
-GoogleSignin.configure({
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-  webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
+// GoogleSignin.configure({
+//   scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+//   webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
 
-});
+// });
 
 const UploadScreen = () => {
   const userId = useAppSelector(state => state.auth.user?.id);
   // const dispatch = useAppDispatch()
 
-  const enableEnvelopeId = useAppSelector(state => state.envelope?.enable_writing_id);
+  const enableEnvelopeId = useAppSelector(
+    state => state.envelope?.enable_writing_id,
+  );
 
   const [showExitModal, setShowExitModal] = useState(false);
   // const [enableEnvelopeId,setEnableEnvelopeId] =useState(false)
@@ -108,7 +122,6 @@ const UploadScreen = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-
   const handleDriveLogin = async () => {
     try {
       setLoading(true);
@@ -118,7 +131,6 @@ const UploadScreen = () => {
 
       const driveFiles = await getDriveFiles(token);
       setFiles(driveFiles);
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -127,24 +139,22 @@ const UploadScreen = () => {
   };
 
   const signIn = async () => {
-    await GoogleSignin.hasPlayServices();
-    const userInfo = await GoogleSignin.signIn();
-    const tokens = await GoogleSignin.getTokens();
+    // await GoogleSignin.hasPlayServices();
+    // const userInfo = await GoogleSignin.signIn();
+    // const tokens = await GoogleSignin.getTokens();
 
-    console.log(userInfo, tokens)
+    // console.log(userInfo, tokens)
 
-    return tokens.accessToken;
+    // return tokens.accessToken;
+    return 'asd';
   };
 
-  const getDriveFiles = async (accessToken) => {
-    const res = await fetch(
-      'https://www.googleapis.com/drive/v3/files',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+  const getDriveFiles = async accessToken => {
+    const res = await fetch('https://www.googleapis.com/drive/v3/files', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     const data = await res.json();
     return data.files;
@@ -172,7 +182,7 @@ const UploadScreen = () => {
     };
   };
 
-  const handleDownload = async (file) => {
+  const handleDownload = async file => {
     try {
       setLoading(true);
 
@@ -180,9 +190,7 @@ const UploadScreen = () => {
 
       console.log('Downloaded file:', downloaded);
 
-
       handleSelectedFile(downloaded);
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -190,32 +198,24 @@ const UploadScreen = () => {
     }
   };
 
-
-  const handleSelectedFile = (file) => {
+  const handleSelectedFile = file => {
     console.log('Ready for signing:', file);
-
 
     // navigation.navigate('PdfViewer', { file });
   };
 
-  const renderItemDrive = ({ item }) => (
+  const renderItemDrive = ({item}) => (
     <TouchableOpacity
       style={{
         padding: 15,
         borderBottomWidth: 1,
         borderColor: '#eee',
       }}
-      onPress={() => handleDownload(item)}
-    >
+      onPress={() => handleDownload(item)}>
       <Text>{item.name}</Text>
-      <Text style={{ fontSize: 12, color: 'gray' }}>
-        {item.mimeType}
-      </Text>
+      <Text style={{fontSize: 12, color: 'gray'}}>{item.mimeType}</Text>
     </TouchableOpacity>
   );
-
-
-
 
   const sheetRef = useRef<any>(null);
   const fileRef = useRef<any>(null);
@@ -225,26 +225,19 @@ const UploadScreen = () => {
     sheetRef.current?.snapToIndex(1);
   };
   const [documentId, setDocumentId] = useState(null);
-  const openFileSheet = (index) => {
-
-    console.log(index)
+  const openFileSheet = index => {
+    console.log(index);
     setDocumentId(index);
     fileRef.current?.snapToIndex(0);
-
-  }
-
-
+  };
 
   const envelopeDocuments = useAppSelector(
-    state => state.envelope.envelopeDocuments
+    state => state.envelope.envelopeDocuments,
   );
-
 
   const handleBack = () => {
     if (envelopeDocuments.length > 0) {
       setShowExitModal(true);
-
-
     } else {
       goBack();
     }
@@ -262,13 +255,12 @@ const UploadScreen = () => {
 
       const backHandler = BackHandler.addEventListener(
         'hardwareBackPress',
-        backAction
+        backAction,
       );
 
       return () => backHandler.remove();
-    }, [envelopeDocuments])
+    }, [envelopeDocuments]),
   );
-
 
   const handleUpload = async () => {
     try {
@@ -298,17 +290,15 @@ const UploadScreen = () => {
       results.forEach(async (file, index) => {
         await uploadFile(file, index + envelopeDocuments.length);
       });
-
     } catch (err) {
       console.log(err);
     }
   };
 
-
   const handleDeleteDocument = async () => {
     try {
-      fileRef?.current?.close()
-      dispatch(showLoader("Deleting"))
+      fileRef?.current?.close();
+      dispatch(showLoader('Deleting'));
       const doc = envelopeDocuments[documentId];
 
       console.log(doc);
@@ -318,23 +308,16 @@ const UploadScreen = () => {
       const is_file_error = doc?.error;
       console.log(is_file_error, documentId);
 
-
       if (is_file_error) {
-
-
         dispatch(deleteDocumentByIndex(documentId));
 
-
         return;
-
       }
-
 
       const requestData = {
         document_key: [document_key],
         user: userId,
       };
-
 
       const res = await api.delete('/api/document', {
         data: requestData,
@@ -344,46 +327,41 @@ const UploadScreen = () => {
       });
 
       if (res?.data?.status_code === 200) {
-
         dispatch(deleteDocumentByIndex(documentId));
-
-
       } else {
         console.log('Error:', res?.data?.message);
       }
     } catch (err) {
       console.log('Delete error:', err);
     } finally {
-      dispatch(hideLoader())
-
+      dispatch(hideLoader());
     }
   };
 
   const updateFileError = (index, message) => {
-
-    dispatch(updateDocumentByIndex({
-      index,
-      data: {
-        uploading: false,
-        progress: 0,
-        error: message,
-      }
-    }));
+    dispatch(
+      updateDocumentByIndex({
+        index,
+        data: {
+          uploading: false,
+          progress: 0,
+          error: message,
+        },
+      }),
+    );
     // setEnvelopeDocuments(prev => {
     //   const updated = [...prev];
     //   updated[index] = {
     //     ...updated[index],
     //     uploading: false,
     //     progress: 0,
-    //     error: message, 
+    //     error: message,
     //   };
     //   return updated;
     // });
   };
 
-
   const uploadFile = async (file, index) => {
-
     if (!validTypes.includes(file.type)) {
       updateFileError(index, 'Invalid file type');
       return;
@@ -392,8 +370,6 @@ const UploadScreen = () => {
       updateFileError(index, 'File size exceeds 25MB');
       return;
     }
-
-
 
     const formData = new FormData();
 
@@ -406,77 +382,68 @@ const UploadScreen = () => {
     formData.append('user', userId);
 
     try {
-      const res = await api.post('/converter/file/upload?ngsw-bypass=true',
+      const res = await api.post(
+        '/converter/file/upload?ngsw-bypass=true',
         formData,
         {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: {'Content-Type': 'multipart/form-data'},
 
           onUploadProgress: progressEvent => {
             const percent = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
+              (progressEvent.loaded * 100) / progressEvent.total,
             );
 
             updateFileProgress(index, percent);
 
             // dispatch(setDocuments())
           },
-        }
+        },
       );
 
-      console.log(res)
+      console.log(res);
 
       const result = res.data?.result;
 
-      dispatch(updateDocumentByIndex({
-        index,
-        data: {
-          document_id: result.document_id,
-          document_key: result.document_key,
-          document_url: result.document_url,
-          document_name: result.document_name.split(".").pop(),
-          snaphots: res.data?.snaphots,
-        }
-      }));
-
-
+      dispatch(
+        updateDocumentByIndex({
+          index,
+          data: {
+            document_id: result.document_id,
+            document_key: result.document_key,
+            document_url: result.document_url,
+            document_name: result.document_name.split('.').pop(),
+            snaphots: res.data?.snaphots,
+          },
+        }),
+      );
 
       updateFileProgress(index, 100, false);
-
-
-
-
     } catch (err) {
       console.log(err);
-      updateFileError(index, "Network Error");
-
+      updateFileError(index, 'Network Error');
     }
   };
 
-
   const updateFileProgress = (index, progress, uploading = true) => {
-
-
-    dispatch(updateDocumentByIndex({
-      index,
-      data: {
-        progress,
-        uploading,
-      }
-    }));
+    dispatch(
+      updateDocumentByIndex({
+        index,
+        data: {
+          progress,
+          uploading,
+        },
+      }),
+    );
   };
 
-
-
-  const formatFileSize = (bytes) => {
+  const formatFileSize = bytes => {
     if (!bytes) return '';
     const kb = bytes / 1024;
     if (kb < 1024) return `${kb.toFixed(1)} KB`;
     return `${(kb / 1024).toFixed(1)} MB`;
   };
 
-
-
-  const getFileType = (file) => {
+  const getFileType = file => {
     if (file.type?.startsWith('image/')) return 'IMG';
 
     return (
@@ -485,7 +452,7 @@ const UploadScreen = () => {
       'DEFAULT'
     );
   };
-  const getFileIcon = (file) => {
+  const getFileIcon = file => {
     const type = getFileType(file);
     return FILE_ICONS[type] || FILE_ICONS.DEFAULT;
   };
@@ -493,9 +460,7 @@ const UploadScreen = () => {
   const [errorFiles, setErrorFiles] = useState([]);
 
   const handleNext = () => {
-
     // console.log(envelopeDocuments)
-
 
     const errorFilesData = envelopeDocuments
       .map((file, index) => ({
@@ -505,17 +470,14 @@ const UploadScreen = () => {
       .filter(file => file.error);
 
     if (errorFilesData.length > 0) {
-      setErrorFiles(errorFilesData);   // store for bottom sheet
-      errorFileRef?.current?.snapToIndex(0);    // open bottom sheet
+      setErrorFiles(errorFilesData); // store for bottom sheet
+      errorFileRef?.current?.snapToIndex(0); // open bottom sheet
       return;
     }
 
-
-
     const document_ids = envelopeDocuments
-      .map((doc) => doc?.document_key)
-      .filter((key) => key);
-
+      .map(doc => doc?.document_key)
+      .filter(key => key);
 
     if (document_ids.length === 0) return;
     dispatch(showLoader('Checking'));
@@ -524,11 +486,10 @@ const UploadScreen = () => {
     };
 
     checkDocumentProcessingStatus(request_data);
-  }
-
+  };
 
   const handleSave = async () => {
-    dispatch(showLoader('Saving'))
+    dispatch(showLoader('Saving'));
     var subject = 'Wesign:';
 
     const envelope_documents = envelopeDocuments
@@ -539,7 +500,6 @@ const UploadScreen = () => {
         document_url: document.document_url,
       }));
 
-
     var request_data = {
       subject: subject.substring(0, 240),
       holder: userId,
@@ -547,200 +507,148 @@ const UploadScreen = () => {
       envelope_documents: envelope_documents,
       email_content: {
         subject: subject,
-        content: "",
+        content: '',
       },
       expiry_date: null,
       enable_comments: false,
-      last_changed: moment().utc().format("YYYY-MM-DDTHH:mm:ss"),
-      last_viewed: moment().utc().format("YYYY-MM-DDTHH:mm:ss"),
+      last_changed: moment().utc().format('YYYY-MM-DDTHH:mm:ss'),
+      last_viewed: moment().utc().format('YYYY-MM-DDTHH:mm:ss'),
       follow_signing_order: false,
       enable_writing_id: enableEnvelopeId,
       enable_certification: true,
     };
 
-
     try {
-
       const res = await api.post('/api/envelope', request_data);
 
       if (res?.status) {
         Toast.show({
           type: 'success',
-          text1: "Draft Saved Successfully",
+          text1: 'Draft Saved Successfully',
         });
 
         dispatch(resetEnvelope());
         goBack();
-
-
       }
-
-
-
     } catch (error) {
-
       Toast.show({
         type: 'error',
         text1: error?.message,
-
       });
     } finally {
-      dispatch(hideLoader())
+      dispatch(hideLoader());
     }
-
-
-
-  }
+  };
 
   const handleDiscard = () => {
     dispatch(resetEnvelope());
     goBack();
-  }
+  };
 
-  const checkDocumentProcessingStatus = async (requestData) => {
+  const checkDocumentProcessingStatus = async requestData => {
     try {
-      const response = await api.post("/api/document/processing/status/revised",
-        requestData
+      const response = await api.post(
+        '/api/document/processing/status/revised',
+        requestData,
       );
 
       const data = response.data;
 
       if (data?.status === true) {
-
-        navigate('Recipient', { keys: requestData });
-
-
+        navigate('Recipient', {keys: requestData});
       }
-
     } catch (err) {
-      console.log(err)
+      console.log(err);
     } finally {
       dispatch(hideLoader());
-
     }
-  }
-
+  };
 
   // console.log(envelopeDocuments)
 
   const clearAllErrorFiles = () => {
     errorFileRef?.current?.close();
     dispatch(removeErrorDocuments());
-  }
+  };
 
-
-  const renderItem = ({ item, index }) => {
-
-
+  const renderItem = ({item, index}) => {
     return (
       <View style={styles.fileItem}>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Image source={getFileIcon(item)} style={{width: 40, height: 40}} />
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-
-
-          <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
-
-
-
-          <View style={{ flex: 1 }}>
+          <View style={{flex: 1}}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
-
 
             {item.uploading ? (
               <Text style={styles.subText}>Uploading...</Text>
             ) : item.error ? (
               <Text style={styles.fileEroor}>{item.error}</Text>
             ) : (
-              <Text style={styles.subText}>
-                {formatFileSize(item.size)}
-              </Text>
+              <Text style={styles.subText}>{formatFileSize(item.size)}</Text>
             )}
           </View>
 
           <TouchableOpacity onPress={() => openFileSheet(index)}>
-            <EllipsisVertical size={fp(2.8)} color={Colors.text_secondary} strokeWidth={1.6} />
+            <EllipsisVertical
+              size={fp(2.8)}
+              color={Colors.text_secondary}
+              strokeWidth={1.6}
+            />
           </TouchableOpacity>
-
-
-
         </View>
-
 
         {item.uploading && (
           <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${item.progress}%` },
-              ]}
-            />
+            <View style={[styles.progressFill, {width: `${item.progress}%`}]} />
           </View>
         )}
       </View>
     );
   };
 
-  const renderErrorItem = ({ item, index }) => {
-
-
+  const renderErrorItem = ({item, index}) => {
     return (
       <View style={styles.fileItemError}>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Image source={getFileIcon(item)} style={{width: 40, height: 40}} />
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-
-
-          <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
-
-
-
-          <View style={{ flex: 1 }}>
+          <View style={{flex: 1}}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
-
 
             {item.uploading ? (
               <Text style={styles.subText}>Uploading...</Text>
             ) : item.error ? (
               <Text style={styles.fileEroor}>{item.error}</Text>
             ) : (
-              <Text style={styles.subText}>
-                {formatFileSize(item.size)}
-              </Text>
+              <Text style={styles.subText}>{formatFileSize(item.size)}</Text>
             )}
           </View>
 
           {/* <TouchableOpacity onPress={() => openFileSheet(index)}>
             <Trash size={fp(2.8)} color={Colors.error} />
           </TouchableOpacity> */}
-
-
-
         </View>
-
-
       </View>
     );
   };
 
   return (
     <CustomSafeAreaView>
-
-
-
       <View style={styles.header}>
-
-
         <TouchableOpacity onPress={() => handleBack()}>
-          <ArrowLeft size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
+          <ArrowLeft
+            size={fp(2.8)}
+            color={Colors.text_primary}
+            strokeWidth={1.6}
+          />
         </TouchableOpacity>
 
-
         <Text style={styles.title}>Add Documents</Text>
-
-
 
         <Menu>
           <MenuTrigger>
@@ -751,7 +659,8 @@ const UploadScreen = () => {
             />
           </MenuTrigger>
 
-          <MenuOptions placement="bottom"
+          <MenuOptions
+            placement="bottom"
             customStyles={{
               optionsContainer: {
                 marginTop: hp(2),
@@ -762,22 +671,48 @@ const UploadScreen = () => {
               },
             }}>
             <MenuOption onSelect={() => handleSave()}>
-              <View style={{ height: hp(4), gap: wp(2), flexDirection: "row", alignItems: 'center', paddingHorizontal: wp(3) }}>
+              <View
+                style={{
+                  height: hp(4),
+                  gap: wp(2),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: wp(3),
+                }}>
                 <Save color={Colors.text_primary} size={fp(2.5)} />
-                <Text style={{ fontFamily: Fonts.Medium, color: Colors.text_primary, fontSize: fp(1.9) }}>Save</Text>
+                <Text
+                  style={{
+                    fontFamily: Fonts.Medium,
+                    color: Colors.text_primary,
+                    fontSize: fp(1.9),
+                  }}>
+                  Save
+                </Text>
               </View>
-
             </MenuOption>
 
             <MenuOption onSelect={() => handleDiscard()}>
-              <View style={{ height: hp(4), gap: wp(2), flexDirection: "row", alignItems: 'center', paddingHorizontal: wp(3) }}>
+              <View
+                style={{
+                  height: hp(4),
+                  gap: wp(2),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: wp(3),
+                }}>
                 <Trash color={Colors.error} size={fp(2.5)} />
-                <Text style={{ fontFamily: Fonts.Medium, color: Colors.error, fontSize: fp(1.9) }}>Discard</Text>
+                <Text
+                  style={{
+                    fontFamily: Fonts.Medium,
+                    color: Colors.error,
+                    fontSize: fp(1.9),
+                  }}>
+                  Discard
+                </Text>
               </View>
             </MenuOption>
           </MenuOptions>
         </Menu>
-
       </View>
 
       {/* <FlatList
@@ -787,156 +722,197 @@ const UploadScreen = () => {
 /> */}
 
       <View style={styles.container}>
-
-
-
-
         <TouchableOpacity style={styles.uploadBox} onPress={() => openSheet()}>
           <Upload size={fp(4)} color={Colors.primary} />
-          <Text style={styles.uploadText}>
-            Upload Image / PDF / Docs
-          </Text>
+          <Text style={styles.uploadText}>Upload Image / PDF / Docs</Text>
         </TouchableOpacity>
 
-
-        <AppToggleButton containerStyle={{ backgroundColor: Colors.white, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: wp(3), height: hp(8), marginVertical: hp(1), paddingHorizontal: wp(4) }} size={40} label='Enable Envelope Id on documents' value={enableEnvelopeId} onToggle={(v) => dispatch(setEnableWritingID(v))} />
-
+        <AppToggleButton
+          containerStyle={{
+            backgroundColor: Colors.white,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderRadius: wp(3),
+            height: hp(8),
+            marginVertical: hp(1),
+            paddingHorizontal: wp(4),
+          }}
+          size={40}
+          label="Enable Envelope Id on documents"
+          value={enableEnvelopeId}
+          onToggle={v => dispatch(setEnableWritingID(v))}
+        />
 
         <FlatList
           data={envelopeDocuments}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingVertical: hp(1) }}
+          contentContainerStyle={{paddingVertical: hp(1)}}
         />
-
-
-
-
-
-
       </View>
 
-      {
-        envelopeDocuments?.length > 0 && <View style={{ backgroundColor: Colors.white, height: hp(9), flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: wp(5) }}>
-          <AppButton onPress={() => handleNext()} title='Next' style={{ width: wp(25), height: hp(5.2) }} />
+      {envelopeDocuments?.length > 0 && (
+        <View
+          style={{
+            backgroundColor: Colors.white,
+            height: hp(9),
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            paddingHorizontal: wp(5),
+          }}>
+          <AppButton
+            onPress={() => handleNext()}
+            title="Next"
+            style={{width: wp(25), height: hp(5.2)}}
+          />
         </View>
-      }
-
+      )}
 
       <AppBottomSheet ref={sheetRef} title={'Add Documents'}>
-
-
         <View style={styles.providerWrapper}>
-          <TouchableOpacity style={styles.provider} >
-            <Image source={require('@assets/icons/scan.png')} alt='scan' style={styles.providerIcon} />
+          <TouchableOpacity style={styles.provider}>
+            <Image
+              source={require('@assets/icons/scan.png')}
+              alt="scan"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>Scan</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} >
-            <Image source={require('@assets/icons/layout.png')} alt='template' style={styles.providerIcon} />
+          <TouchableOpacity style={styles.provider}>
+            <Image
+              source={require('@assets/icons/layout.png')}
+              alt="template"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>Templates</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} >
-            <Image source={require('@assets/icons/picture.png')} alt='Photos' style={styles.providerIcon} />
+          <TouchableOpacity style={styles.provider}>
+            <Image
+              source={require('@assets/icons/picture.png')}
+              alt="Photos"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>Photos</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} onPress={() => handleUpload()}>
-            <Image source={require('@assets/icons/open-folder.png')} alt='media' style={styles.providerIcon} />
+          <TouchableOpacity
+            style={styles.provider}
+            onPress={() => handleUpload()}>
+            <Image
+              source={require('@assets/icons/open-folder.png')}
+              alt="media"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>My Files</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.provider} onPress={handleUpload}>
-            <Image source={require('@assets/icons/one-drive.png')} alt='onedrive' style={styles.providerIcon} />
+            <Image
+              source={require('@assets/icons/one-drive.png')}
+              alt="onedrive"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>One Drive</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.provider} onPress={() => handleDriveLogin()}>
-            <Image source={require('@assets/icons/google-drive.png')} alt='googledrive' style={styles.providerIcon} />
+          <TouchableOpacity
+            style={styles.provider}
+            onPress={() => handleDriveLogin()}>
+            <Image
+              source={require('@assets/icons/google-drive.png')}
+              alt="googledrive"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>Google Drive</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.provider} onPress={handleUpload}>
-            <Image source={require('@assets/icons/dropbox.png')} alt='dropbox' style={styles.providerIcon} />
+            <Image
+              source={require('@assets/icons/dropbox.png')}
+              alt="dropbox"
+              style={styles.providerIcon}
+            />
             <Text style={styles.providerText}>Drop Box</Text>
           </TouchableOpacity>
         </View>
-
       </AppBottomSheet>
 
-
-      <AppBottomSheet ref={fileRef} withCloseBtn={false} snapPoints={["10%"]}>
-
-
-        <View >
-          <TouchableOpacity style={{ flexDirection: 'row', gap: wp(2), alignItems: 'center', height: hp(5) }} onPress={() => handleDeleteDocument()}>
+      <AppBottomSheet ref={fileRef} withCloseBtn={false} snapPoints={['10%']}>
+        <View>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              gap: wp(2),
+              alignItems: 'center',
+              height: hp(5),
+            }}
+            onPress={() => handleDeleteDocument()}>
             <Trash size={fp(2.5)} color={Colors.error} />
-            <Text style={[styles.providerText, { fontSize: fp(2) }]}>Delete</Text>
+            <Text style={[styles.providerText, {fontSize: fp(2)}]}>Delete</Text>
           </TouchableOpacity>
-
-
         </View>
-
       </AppBottomSheet>
 
-
-
-      <AppBottomSheet ref={errorFileRef} withCloseBtn={false} containerStyle={{ paddingBottom: wp(4) }} snapPoints={["50%"]}>
-
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: Fonts.Medium, color: Colors.text_primary, fontSize: fp(1.9), marginBottom: hp(2) }}>
+      <AppBottomSheet
+        ref={errorFileRef}
+        withCloseBtn={false}
+        containerStyle={{paddingBottom: wp(4)}}
+        snapPoints={['50%']}>
+        <View style={{flex: 1}}>
+          <Text
+            style={{
+              fontFamily: Fonts.Medium,
+              color: Colors.text_primary,
+              fontSize: fp(1.9),
+              marginBottom: hp(2),
+            }}>
             {errorFiles.length === 1
-              ? "1 file needs attention. Please remove it."
+              ? '1 file needs attention. Please remove it.'
               : `${errorFiles.length} files need attention. Please remove them.`}
           </Text>
           {/* <Text style={{ fontFamily: Fonts.Medium, color: Colors.error, fontSize: fp(2), textAlign: 'center' }}>
             {errorFiles.length} {errorFiles.length > 1 ? "files" : "file"} need attention
           </Text> */}
 
-
           <BottomSheetFlatList
             data={errorFiles}
-            contentContainerStyle={{ flex: 1 }}
+            contentContainerStyle={{flex: 1}}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderErrorItem}
             keyboardShouldPersistTaps="handled"
           />
 
-          <AppButton title='Remove All' onPress={() => clearAllErrorFiles()} style={{ backgroundColor: Colors.error }} />
-
+          <AppButton
+            title="Remove All"
+            onPress={() => clearAllErrorFiles()}
+            style={{backgroundColor: Colors.error}}
+          />
         </View>
-
       </AppBottomSheet>
 
-
-
       <Portal>
-
-
         <ConfirmExitModal
           visible={showExitModal}
           onCancel={() => setShowExitModal(false)}
           onConfirm={() => {
-            setShowExitModal(false)
+            setShowExitModal(false);
             handleDiscard();
           }}
           onSave={() => {
-            setShowExitModal(false)
-            handleSave()
+            setShowExitModal(false);
+            handleSave();
           }}
         />
-
       </Portal>
-
-
-
     </CustomSafeAreaView>
   );
 };
 
 export default UploadScreen;
-
 
 const styles = StyleSheet.create({
   container: {
@@ -977,7 +953,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(2),
     marginBottom: hp(1.5),
     borderWidth: 1,
-    borderColor: Colors.border
+    borderColor: Colors.border,
   },
 
   fileName: {
@@ -991,12 +967,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
     borderRadius: 10,
     overflow: 'hidden',
-    marginTop: 8
+    marginTop: 8,
   },
 
   progressFill: {
     height: '100%',
-    backgroundColor: "#4185f2",
+    backgroundColor: '#4185f2',
   },
 
   percent: {
@@ -1031,7 +1007,7 @@ const styles = StyleSheet.create({
   provider: {
     flexDirection: 'row',
     gap: wp(5),
-    alignItems: 'center'
+    alignItems: 'center',
   },
   providerIcon: {
     width: wp(7),
@@ -1040,11 +1016,11 @@ const styles = StyleSheet.create({
   providerText: {
     fontFamily: Fonts.Regular,
     fontSize: fp(2),
-    color: Colors.text_primary
+    color: Colors.text_primary,
   },
   providerWrapper: {
     gap: wp(6),
-    marginTop: hp(3)
+    marginTop: hp(3),
   },
   fileIcon: {
     width: 45,
@@ -1070,5 +1046,5 @@ const styles = StyleSheet.create({
     fontSize: fp(1.4),
     color: '#ff0000',
     marginTop: 2,
-  }
+  },
 });

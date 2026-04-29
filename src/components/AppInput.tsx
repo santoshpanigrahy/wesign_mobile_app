@@ -10,7 +10,7 @@ import {
 
 
 import { Eye, EyeOff } from 'lucide-react-native';
-import { Colors, Fonts } from '@utils/Constants';
+import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 
 const AppInput = ({
   label,
@@ -44,6 +44,7 @@ const AppInput = ({
                 : Colors.text_secondary,
 
           },
+          (secureTextEntry || RightIcon) && { paddingRight: 0 }
         ]}
       >
 
@@ -76,6 +77,7 @@ const AppInput = ({
         {secureTextEntry ? (
           <TouchableOpacity
             onPress={() => setHidePassword(!hidePassword)}
+            style={styles.securityPassword}
           >
             {hidePassword ? (
               <EyeOff size={20} color={Colors.placeholder} />
@@ -84,7 +86,7 @@ const AppInput = ({
             )}
           </TouchableOpacity>
         ) : RightIcon ? (
-          <TouchableOpacity onPress={props.onRightIconPress}>
+          <TouchableOpacity style={styles.securityPassword} onPress={props.onRightIconPress} >
             <RightIcon size={20} color={Colors.text_secondary} />
           </TouchableOpacity>
         ) : null}
@@ -114,14 +116,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderRadius: 3,
+    height: hp(5.7),
     paddingHorizontal: 12,
     backgroundColor: Colors.background,
   },
 
   input: {
     flex: 1,
-    height: 48,
-    fontSize: 16,
+
+    fontSize: fp(1.9),
     color: Colors.text_primary,
     fontFamily: Fonts.Regular,
 
@@ -130,6 +133,7 @@ const styles = StyleSheet.create({
   leftIcon: {
     marginRight: 8,
   },
+  securityPassword: { height: '100%', width: wp(12), justifyContent: 'center', alignItems: 'center' },
 
   error: {
     color: Colors.error,

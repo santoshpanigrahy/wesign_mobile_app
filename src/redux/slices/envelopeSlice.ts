@@ -7,6 +7,7 @@ const initialState = {
     snapshotDetails: [],
     allSnapshots: {},
     allPages: [],
+    allFields:[],
 
     addRecipientsBox: [
         
@@ -53,12 +54,23 @@ const envelopeSlice = createSlice({
             state.message = action.payload;
         },
 
+         setField: (state, action) => {
+            state.allFields = [
+        ...state.allFields,
+        action.payload
+    ];
+        },
+        setAllFields: (state, action) => {
+            state.allFields = action.payload;
+        },
+
         setRecipients: (state, action) => {
             state.addRecipientsBox = [
         ...state.addRecipientsBox,
         action.payload
     ];
         },
+
 
         updateRecipientById: (state, action) => {
     const { id, data } = action.payload;
@@ -199,7 +211,8 @@ export const {
     deleteRecipientById,
     setRecipientsBulk,
     deleteDocumentByIndex,
-    removeErrorDocuments
+    removeErrorDocuments,
+    setField,setAllFields
 } = envelopeSlice.actions;
 
 export default envelopeSlice.reducer;

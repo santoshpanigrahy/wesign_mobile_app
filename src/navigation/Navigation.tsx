@@ -15,6 +15,10 @@ import CanvasScreen from '@screens/canvas/CanvasScreen';
 import FinishScreen from '@screens/FinishScreen';
 import SentScreen from '@screens/manage/SentScreen';
 import EnvelopeDetailsScreen from '@screens/manage/EnvelopeDetailsScreen';
+import ModernProfilePager from '@screens/ProfileScreen';
+import InboxScreen from '@screens/manage/InboxScreen';
+import DraftScreen from '@screens/manage/DraftScreen';
+import DeletedScreen from '@screens/manage/DeletedScreen';
 
 
 
@@ -42,6 +46,7 @@ const Navigation = () => {
         <Stack.Screen name="Recipient" component={AddRecipientScreen} />
         <Stack.Screen name="Canvas" component={CanvasScreen} />
         <Stack.Screen name="Finish" component={FinishScreen} />
+
 
         <Stack.Screen name="Demo" component={BottomSheetDemo} />
 

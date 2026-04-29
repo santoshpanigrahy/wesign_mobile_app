@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, InteractionManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import {
@@ -11,15 +11,22 @@ import {
   SquareChartGantt,
   SquarePen,
   Trash,
+  User,
   X,
 
 } from 'lucide-react-native';
+import AppButton from './AppButton';
+import { useAppDispatch } from '@redux/hooks';
+import { logout } from '@redux/slices/authSlice';
+import { navigate, replace, resetAndNavigate } from '@utils/NavigationUtils';
 
 
 
 const CustomDrawer = (props: any) => {
 
   const { state, navigation } = props;
+
+  const dispatch = useAppDispatch();
 
   if (!state) return null;
   const activeRoute = state.routeNames[state.index];
@@ -90,13 +97,20 @@ const CustomDrawer = (props: any) => {
       </View>
 
 
-      <View style={{ gap: wp(2), marginTop: wp(6) }}>
+      <View style={{ gap: wp(2), marginTop: wp(6), flex: 1 }}>
         <DrawerItem label="Home" Icon={House} route="Home" />
         <DrawerItem label="Inbox" Icon={Inbox} route="Inbox" />
         <DrawerItem label="Sent" Icon={Send} route="Sent" />
-        <DrawerItem label="Draft" Icon={SquarePen} route="Draft" />
-        <DrawerItem label="Deleted" Icon={Trash} route="Deleted" />
-        <DrawerItem label="Settings" Icon={Settings} route="Settings" />
+        <DrawerItem label="Drafts" Icon={SquarePen} route="Draft" />
+        {/* <DrawerItem label="Deleted" Icon={Trash} route="Deleted" /> */}
+        <DrawerItem label="Profile" Icon={User} route="Profile" />
+      </View>
+
+      <View>
+        <AppButton title='Logout' style={{ backgroundColor: Colors.error }} onPress={() => {
+          dispatch(logout());
+          navigate('Login');
+        }} />
       </View>
     </View>
   );
@@ -110,6 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     flex: 1,
     paddingHorizontal: wp(6),
+    paddingBottom: hp(2)
   },
 
   drawerTop: {

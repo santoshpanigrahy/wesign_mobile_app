@@ -11,6 +11,10 @@ import CustomDrawer from '@components/CustomDrawer';
 import SettingScreen from '@screens/SettingScreen';
 import ManageScreen from '@screens/ManageScreen';
 import SentScreen from '@screens/manage/SentScreen';
+import InboxScreen from '@screens/manage/InboxScreen';
+import DraftScreen from '@screens/manage/DraftScreen';
+import DeletedScreen from '@screens/manage/DeletedScreen';
+import ProfilePagerScreen from '@screens/ProfileScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -62,6 +66,22 @@ const DrawerNavigation = () => {
   //   }, [backPressedOnce])
   // );
 
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        BackHandler.exitApp();
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
   return (
     <CustomSafeAreaView>
 
@@ -73,6 +93,11 @@ const DrawerNavigation = () => {
         <Drawer.Screen name="Manage" component={ManageScreen} />
         <Drawer.Screen name="Settings" component={SettingScreen} />
         <Drawer.Screen name="Sent" component={SentScreen} />
+        <Drawer.Screen name="Inbox" component={InboxScreen} />
+        <Drawer.Screen name="Draft" component={DraftScreen} />
+        <Drawer.Screen name="Deleted" component={DeletedScreen} />
+        <Drawer.Screen name="Profile" component={ProfilePagerScreen} />
+
       </Drawer.Navigator>
     </CustomSafeAreaView>
   );

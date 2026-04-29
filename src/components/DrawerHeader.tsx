@@ -4,19 +4,20 @@ import { Menu, Bell } from 'lucide-react-native';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 
 const DrawerHeader = ({ navigation, title = "Dashboard" }: any) => {
+
   return (
     <View style={styles.header}>
 
 
-      <TouchableOpacity onPress={() => navigation.openDrawer()}>
-        <Menu size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
+      <TouchableOpacity style={styles.headerIconWrapper} onPress={() => navigation.openDrawer()}>
+        <Menu size={fp(3)} color={Colors.text_primary} strokeWidth={1.6} />
       </TouchableOpacity>
 
 
       <Text style={styles.title}>{title}</Text>
 
 
-      <TouchableOpacity>
+      <TouchableOpacity style={styles.headerIconWrapper}>
         <Bell size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
       </TouchableOpacity>
 
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: wp(6),
+    paddingHorizontal: wp(3.5),
 
     backgroundColor: '#FFFFFF',
 
@@ -51,4 +52,5 @@ const styles = StyleSheet.create({
     color: Colors.text_primary,
     letterSpacing: 0.5,
   },
+  headerIconWrapper: { width: wp(10), height: wp(10), justifyContent: 'center', alignItems: 'center' }
 });

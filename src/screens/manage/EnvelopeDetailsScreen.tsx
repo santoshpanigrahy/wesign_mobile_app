@@ -1,8 +1,7 @@
-import React, { useState, useRef, memo } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Share } from 'react-native';
+import React, { useState, useRef, memo, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Share, Image } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import PagerView from 'react-native-pager-view';
-import * as Clipboard from 'expo-clipboard';
 import {
     ArrowLeft, FileText, History, Trash2,
     Download, Printer, QrCode, Mail,
@@ -10,21 +9,27 @@ import {
     PencilLine,
     Calendar,
     CheckCircle2,
-    Copy
+    Copy,
+    OctagonX,
+    CircleAlert
 } from 'lucide-react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import { Colors, Fonts, formatDate, fp, hp, wp } from '@utils/Constants';
 import { goBack } from '@utils/NavigationUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import BackHeader from '@components/BackHeader';
+import { useAppDispatch } from '@redux/hooks';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+import api from '@utils/api';
+import Toast from 'react-native-toast-message';
+import moment from 'moment';
+import AppBottomSheet from '@components/AppBottomSheet';
 
 const ACTION_ICON_SIZE = wp(5.5);
 
-// ------------------------------------------------------------------
-// 1. Memoized Components for Performance
-// ------------------------------------------------------------------
-const ActionButton = memo(({ Icon, label, onPress, isOutline }) => (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.actionBtn}>
+const ActionButton = memo(({ Icon, label, onPress, isOutline, disabled = false }) => (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[styles.actionBtn, { opacity: disabled ? 0.3 : 1 }]} disabled={disabled}>
         <View style={[styles.actionIconPill, isOutline && styles.actionPillOutline]}>
             <Icon color={isOutline ? Colors.blue : "#FFF"} size={ACTION_ICON_SIZE - 2} />
         </View>
@@ -41,61 +46,237 @@ const MetaItem = memo(({ label, value }) => (
 
 
 
-const RecipientCard = memo(({ data }) => {
+
+
+const RecipientCard = memo(({ data, handleCopyEnvelopeLink, handleEnvelopeQrCode }) => {
+    const initial = data?.recepient_name?.slice(0, 2);
+    const isEmailDelivered = data.email_status === 'accepted' || data.email_status === 'delivered' || data.email_status === 'opened' || data.email_status === 'clicked'
+    const isEmailNotDelivered = data.email_status === 'rejected' || data.email_status === 'failed';
+    const isEmailUnSubscribed = data.email_status === 'unsubscribed' || data.email_status === 'complained'
+
     return (
         <View style={styles.cardContainer}>
             {/* 1. Header: Avatar and Identity */}
             <View style={styles.headerRow}>
-                <View style={styles.avatarContainer}>
-                    <Text style={styles.avatarText}>KR</Text>
+                <View style={[styles.avatarContainer, { backgroundColor: data?.meta_info?.recepient_border_color }]}>
+                    <Text style={styles.avatarText}>{initial}</Text>
                 </View>
 
                 <View style={styles.infoColumn}>
                     <View style={styles.nameRow}>
-                        <Text style={styles.userName}>krishna1</Text>
-                        <TouchableOpacity style={styles.editBtn}>
+                        <Text style={styles.userName}>{data?.recepient_name}</Text>
+                        {/* <TouchableOpacity style={styles.editBtn}>
                             <PencilLine size={wp(4)} color={Colors.grey} />
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
-                    <Text style={styles.userEmail}>skreddy.dev@gmail.com</Text>
+                    <Text style={styles.userEmail}>{data?.recepient_email}</Text>
                 </View>
 
-                {/* Status Badge */}
-                <View style={styles.needsSignBadge}>
-                    <Text style={styles.needsSignText}>Needs to Sign</Text>
-                </View>
+
+                {data?.signed_status === 'unsigned' && (
+                    <View style={styles.statusWrapper}>
+                        {data?.action === 'needs_to_sign' && (
+                            <Text style={[styles.envelopeStatus, styles.needToSign]}>
+                                Needs to Sign
+                            </Text>
+                        )}
+
+                        {data?.action === 'receive_copy' && (
+                            <Text style={[styles.envelopeStatus, styles.receiveCopy]}>
+                                Receive Copy
+                            </Text>
+                        )}
+
+                        {data?.action === 'in_person_sign' && (
+                            <Text style={[styles.envelopeStatus, styles.inPersonSign]}>
+                                In Person Sign
+                            </Text>
+                        )}
+
+
+                    </View>
+                )}
+
+
+                {data?.signed_status === 'signed' && (
+                    <>
+                        {data?.action === 'needs_to_sign' && (
+                            <View style={styles.statusWrapper}>
+                                <Text style={[styles.envelopeStatus, styles.signed]}>
+                                    Signed
+                                </Text>
+
+
+                            </View>
+                        )}
+
+                        {data?.action === 'receive_copy' && (
+                            <View style={styles.statusWrapper}>
+                                <Text style={[styles.envelopeStatus, styles.receiveCopy]}>
+                                    Receive Copy
+                                </Text>
+
+
+                            </View>
+                        )}
+
+                        {data?.action === 'in_person_sign' && (
+                            <View style={styles.statusWrapper}>
+                                <Text style={[styles.envelopeStatus, styles.signed]}>
+                                    Signed
+                                </Text>
+
+
+                            </View>
+                        )}
+                    </>
+                )}
+
+
+                {data?.signed_status === 'declined' && (
+                    <View style={styles.statusWrapper}>
+                        <Text style={[styles.envelopeStatus, styles.declined]}>
+                            Declined
+                        </Text>
+
+
+                    </View>
+                )}
+
+
             </View>
 
-            {/* 2. Status Tracking Section */}
+
             <View style={styles.statusSection}>
-                <View style={styles.statusItem}>
-                    <Calendar size={wp(3.5)} color={Colors.grey} />
-                    <Text style={styles.statusLabel}>Viewed On:</Text>
-                    <Text style={styles.statusValue}>20th April 2026, 05:06 PM</Text>
+                <View style={styles.recipientRight}>
+                    <View>
+
+                        {data?.signed_status === 'unsigned' && (
+                            <View style={styles.statusWrapper}>
+
+                                {data?.last_viewed ? (
+                                    <Text style={styles.statusText}>
+                                        Viewed On: {formatDate(data.last_viewed)}
+                                    </Text>
+                                ) : (
+                                    <Text style={styles.statusText}>
+                                        Document not viewed yet
+                                    </Text>
+                                )}
+                            </View>
+                        )}
+
+
+                        {data?.signed_status === 'signed' && (
+                            <>
+                                {data?.action === 'needs_to_sign' && (
+                                    <View style={styles.statusWrapper}>
+
+
+                                        {data?.signed_date && (
+                                            <Text style={styles.statusText}>
+                                                Signed On: {formatDate(data.signed_date)}
+                                            </Text>
+                                        )}
+                                    </View>
+                                )}
+
+                                {data?.action === 'receive_copy' && (
+                                    <View style={styles.statusWrapper}>
+
+
+                                        <Text style={styles.statusText}>
+                                            {data?.last_viewed
+                                                ? `Viewed On: ${formatDate(data.last_viewed)}`
+                                                : 'Document not viewed yet'}
+                                        </Text>
+                                    </View>
+                                )}
+
+                                {data?.action === 'in_person_sign' && (
+                                    <View style={styles.statusWrapper}>
+
+
+                                        {data?.signed_date && (
+                                            <Text style={styles.statusText}>
+                                                Signed On: {formatDate(data.signed_date)}
+                                            </Text>
+                                        )}
+                                    </View>
+                                )}
+                            </>
+                        )}
+
+
+                        {data?.signed_status === 'declined' && (
+                            <View style={styles.statusWrapper}>
+
+
+                                {data?.last_viewed && (
+                                    <Text style={styles.statusText}>
+                                        Declined On: {formatDate(data.last_viewed)}
+                                    </Text>
+                                )}
+                            </View>
+                        )}
+                    </View>
+
+
+                    {/* {data?.action === 'in_person_sign' &&
+                        data?.signed_status !== 'signed' && (
+                            <TouchableOpacity
+                                style={styles.signBtn}
+                            // onPress={() =>
+                            //   inPersonSignLink(data?.recepient_email)
+                            // }
+                            >
+                                <Text style={styles.signBtnText}>Sign Here</Text>
+                            </TouchableOpacity>
+                        )} */}
                 </View>
 
-                <View style={styles.deliveryRow}>
-                    <CheckCircle2 size={wp(4.5)} color="#22C55E" fill="#DCFCE7" />
-                    <Text style={styles.deliveryText}>Email Delivery Status - <Text style={styles.boldSuccess}>SUCCESS</Text></Text>
-                </View>
+                {
+                    isEmailDelivered && <View style={styles.deliveryRow}>
+                        <CheckCircle2 size={wp(4.5)} color="#22C55E" fill="#DCFCE7" />
+                        <Text style={styles.deliveryText}>Email Delivery Status - <Text style={styles.boldSuccess}>SUCCESS</Text></Text>
+                    </View>
+                }
+
+                {
+                    isEmailNotDelivered && <View style={[styles.deliveryRow, { backgroundColor: '#f9eeee' }]}>
+                        <OctagonX size={wp(4.5)} color="#c52222" fill="#f9eeee" />
+                        <Text style={[styles.deliveryText, { color: '#c52222' }]}>Email Delivery Status - <Text style={styles.boldSuccess}>FAILED</Text></Text>
+                    </View>
+                }
+
+                {
+                    isEmailUnSubscribed && <View style={[styles.deliveryRow, { backgroundColor: '#fcf6dc' }]}>
+                        <CircleAlert size={wp(4.5)} color="#f9ab00" fill="#fcf6dc" />
+                        <Text style={[styles.deliveryText, { color: '#f9ab00' }]}>Email Delivery Status - <Text style={styles.boldSuccess}>UNSUBSCRIBE</Text></Text>
+                    </View>
+                }
+
             </View>
 
             <View style={styles.divider} />
 
             {/* 3. Modern Action Buttons */}
             <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.qrButton} activeOpacity={0.8}>
-                    <LinearGradient
-                        colors={['#0EA5E9', '#0284C7']}
-                        style={styles.gradientBtn}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    >
-                        <QrCode size={wp(4.5)} color="#FFF" />
-                        <Text style={styles.qrBtnText}>QR Code</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                {
+                    data?.qr_code && <TouchableOpacity style={styles.qrButton} activeOpacity={0.8} onPress={() => handleEnvelopeQrCode(data?.qr_code)}>
+                        <LinearGradient
+                            colors={['#0EA5E9', '#0284C7']}
+                            style={styles.gradientBtn}
+                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                        >
+                            <QrCode size={wp(4.5)} color="#FFF" />
+                            <Text style={styles.qrBtnText}>QR Code</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                }
 
-                <TouchableOpacity style={styles.linkButton} activeOpacity={0.7}>
+
+                <TouchableOpacity onPress={() => handleCopyEnvelopeLink(data?.link)} style={styles.linkButton} activeOpacity={0.7}>
                     <Copy size={wp(4.5)} color={Colors.blue} />
                     <Text style={styles.linkBtnText}>Envelope Link</Text>
                 </TouchableOpacity>
@@ -107,24 +288,29 @@ const RecipientCard = memo(({ data }) => {
 // ------------------------------------------------------------------
 // 2. Tab Scene Components
 // ------------------------------------------------------------------
-const SummaryScene = ({ recipients }) => (
+const SummaryScene = ({ recipients, handleCopyEnvelopeLink, handleEnvelopeQrCode }) => (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scenePadding}>
         <Text style={styles.sectionTitle}>Envelope Recipients</Text>
         {recipients.map((recip, index) => (
-            <RecipientCard key={index} data={recip} />
+            <RecipientCard key={index} data={recip} handleCopyEnvelopeLink={handleCopyEnvelopeLink} handleEnvelopeQrCode={handleEnvelopeQrCode} />
         ))}
         <View style={{ height: hp(15) }} />
     </ScrollView>
 );
 
-const DocumentsScene = ({ docName }) => (
+const DocumentsScene = ({ docNames }) => (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scenePadding}>
         <Text style={styles.sectionTitle}>Uploaded Files</Text>
-        <TouchableOpacity activeOpacity={0.8} style={styles.fileCard}>
-            <FileText color={Colors.grey} size={wp(7)} />
-            <Text style={[styles.titleText, { flex: 1 }]}>{docName}</Text>
-            <Clapperboard color={Colors.blue} size={wp(5.5)} />
-        </TouchableOpacity>
+        {
+            docNames?.map((doc, index) => {
+                return <TouchableOpacity activeOpacity={0.8} style={styles.fileCard} key={index}>
+                    <FileText color={Colors.grey} size={wp(7)} />
+                    <Text style={[styles.titleText, { flex: 1 }]}>{doc}</Text>
+                    <Clapperboard color={Colors.blue} size={wp(5.5)} />
+                </TouchableOpacity>
+            })
+        }
+
     </ScrollView>
 );
 
@@ -132,7 +318,167 @@ const DocumentsScene = ({ docName }) => (
 // MAIN COMPONENT
 // ------------------------------------------------------------------
 const EnvelopeDetailsScreen = ({ route }) => {
-    // Mock data for display - replace with data from route params
+
+    const envelopeId = route.params.id;
+    const qrCodeRef = useRef(null);
+    const dispatch = useAppDispatch();
+
+
+    const [envelopeDetails, setEnvelopeDetails] = useState();
+    const [recipients, setRecipients] = useState([]);
+    const [documentNames, setDocumentNames] = useState([]);
+    const [holderId, setHolderId] = useState(null);
+    const [links, setLinks] = useState([]);
+    const [qrCode, setQrCode] = useState(null);
+
+    const handleCopyEnvelopeLink = (link) => {
+        Clipboard.setString(link);
+
+        Toast.show({
+            type: 'success',
+            text1: 'Envelope Link Copied to Clipboard!',
+        });
+    };
+
+    const handleEnvelopeQrCode = (qr_code) => {
+        setQrCode(qr_code);
+        qrCodeRef?.current?.snapToIndex(0);
+    }
+
+
+    const resendEnvelope = async () => {
+        try {
+            dispatch(showLoader('Sending'));
+
+            const response = await api.post(`/api/envelope/resend/${envelopeId}`);
+
+            const data = response?.data;
+
+            if (data?.status === true) {
+                if (!data?.sent_emails?.length) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Limit Exceeded',
+                        text2: 'Resend limit has been exceeded',
+                    });
+                } else {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Success',
+                        text2: data?.message,
+                    });
+                }
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: data?.message,
+                });
+            }
+        } catch (error) {
+            console.log('Resend Envelope Error:', error);
+
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Something went wrong',
+            });
+        } finally {
+            dispatch(hideLoader());
+        }
+    };
+
+
+
+
+
+
+
+    const getDocDetails = async () => {
+        try {
+            dispatch(showLoader('Loading'));
+
+            const response = await api.get(
+                `/api/envelope/details/${envelopeId}`
+            );
+
+            dispatch(hideLoader());
+
+            const data = response.data;
+
+            if (data.status_code === 200) {
+                const envelope = data.envelope;
+
+
+
+                setHolderId(envelope?.holder);
+                setLinks(envelope?.links);
+
+                const envelopeDetailsData = {
+                    subject: envelope?.envelope_content?.subject,
+                    sentOn: formatDate(envelope?.sent_on),
+                    holderId: envelope?.holder,
+                    envelopeId: envelope?.id,
+                    signedStatus: envelope.signed_status
+                }
+
+                setEnvelopeDetails(envelopeDetailsData);
+
+                const links = envelope?.links || [];
+                const resp = envelope?.envelope_recepients || []
+
+                const mappedRecipients = resp.map((recipient, index) => {
+                    const linkData = links[index]; // index-based mapping
+
+                    return {
+                        ...recipient,
+                        link: linkData?.link || null,
+                        qr_code: linkData?.qr_code || null,
+                    };
+                });
+
+
+
+                setRecipients(mappedRecipients || []);
+                const envelope_documents = envelope.envelope_documents;
+
+                const documentNames = envelope_documents?.map((doc) => {
+                    return doc?.document_name;
+                });
+
+                setDocumentNames(documentNames);
+
+                console.log(documentNames)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            }
+        } catch (error) {
+            dispatch(hideLoader());
+
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to fetch document details',
+            });
+
+            console.log(error);
+        }
+    };
+
     const envelopeData = {
         title: "Test Envelope",
         sentOn: "20th April 2026 01:32 PM",
@@ -147,6 +493,15 @@ const EnvelopeDetailsScreen = ({ route }) => {
         docName: "resumeDebashish.pdf"
     };
 
+
+
+    useEffect(() => {
+        if (envelopeId) {
+
+            getDocDetails();
+        }
+    }, [envelopeId])
+
     const pagerRef = useRef(null);
     const [activeTab, setActiveTab] = useState(0);
 
@@ -160,31 +515,16 @@ const EnvelopeDetailsScreen = ({ route }) => {
     return (
         <View style={styles.mainContainer}>
             <BackHeader screenName={'Envelope Details'} goBack={goBack} />
-            {/* 3. Immersive Header Image Section */}
-            {/* <View style={styles.heroHeader}>
-              
 
-                <View style={styles.headerAbsoluteContent}>
-                    <TouchableOpacity style={styles.backBtn} onPress={() => goBack()}>
-                        <ArrowLeft color="#FFF" size={wp(6)} />
-                    </TouchableOpacity>
-                    <View style={styles.headerActions}>
-                        <TouchableOpacity style={styles.roundAction}><Trash2 color="#FFF" size={wp(5)} /></TouchableOpacity>
-                        <TouchableOpacity style={styles.roundAction}><Printer color="#FFF" size={wp(5)} /></TouchableOpacity>
-                    </View>
-                </View>
-
-               
-            </View> */}
 
             <View style={styles.infoOverlapCard}>
                 <View style={styles.row}>
-                    <Text style={styles.title}>{envelopeData.title}</Text>
+                    <Text style={styles.title}>{envelopeDetails?.subject}</Text>
                     <View style={styles.metaRow}>
                         <View style={styles.statusItem}>
                             <Calendar size={wp(3.5)} color={Colors.grey} />
                             <Text style={styles.statusLabel}>Sent On:</Text>
-                            <Text style={styles.statusValue}>20th April 2026, 05:06 PM</Text>
+                            <Text style={styles.statusValue}>{envelopeDetails?.sentOn}</Text>
                         </View>
                     </View>
                 </View>
@@ -192,10 +532,10 @@ const EnvelopeDetailsScreen = ({ route }) => {
                 <View style={styles.divider} />
 
                 <View style={styles.quickActions}>
-                    <ActionButton Icon={FileText} label="Resend" onPress={() => console.log('resend')} />
-                    <ActionButton Icon={History} label="History" onPress={() => console.log('history')} isOutline />
-                    <ActionButton Icon={Printer} label="Print" onPress={() => console.log('qr')} isOutline />
-                    <ActionButton Icon={Download} label="Download" onPress={() => console.log('qr')} isOutline />
+                    <ActionButton Icon={FileText} label="Resend" onPress={() => resendEnvelope()} />
+                    <ActionButton Icon={History} disabled={true} label="History" onPress={() => console.log('history')} isOutline />
+                    <ActionButton Icon={Printer} disabled={true} label="Print" onPress={() => console.log('qr')} isOutline />
+                    <ActionButton Icon={Download} disabled={true} label="Download" onPress={() => console.log('qr')} isOutline />
                 </View>
             </View>
 
@@ -218,13 +558,27 @@ const EnvelopeDetailsScreen = ({ route }) => {
                     onPageSelected={(e) => setActiveTab(e.nativeEvent.position)}
                 >
                     <View key="1">
-                        <SummaryScene recipients={envelopeData.recipients} />
+                        <SummaryScene recipients={recipients} handleCopyEnvelopeLink={handleCopyEnvelopeLink} handleEnvelopeQrCode={handleEnvelopeQrCode} />
                     </View>
                     <View key="2">
-                        <DocumentsScene docName={envelopeData.docName} />
+
+                        <DocumentsScene docNames={documentNames} />
                     </View>
                 </PagerView>
             </View>
+
+
+            <AppBottomSheet ref={qrCodeRef} title={'QR Code'} snapPoints={['60%']}>
+
+                <View style={{ justifyContent: 'center', alignItems: 'center', paddingTop: hp(3) }}>
+
+                    <Image source={{
+                        uri: `data:image/png;base64,${qrCode}`,
+                    }} alt='qr' style={{ height: '100%', width: '100%', }} />
+
+                </View>
+
+            </AppBottomSheet>
 
 
         </View>
@@ -256,7 +610,7 @@ const styles = StyleSheet.create({
     actionPillOutline: { backgroundColor: '#F0F7FF', borderWidth: 1, borderColor: '#D0E4FF' },
     actionLabel: { fontSize: fp(1.4), fontFamily: Fonts.SemiBold, color: Colors.blue },
     labelOutline: { color: Colors.blue },
-    contentBody: { flex: 1, marginTop: hp(1), zIndex: 5 },
+    contentBody: { flex: 1, marginTop: hp(1) },
     tabBar: { flexDirection: 'row', paddingHorizontal: wp(5), borderBottomWidth: 1, borderColor: '#EEE' },
     tabItem: { flex: 1, alignItems: 'center', paddingVertical: 15 },
     tabText: { fontSize: fp(1.7), color: '#777', fontFamily: Fonts.Medium },
@@ -276,7 +630,7 @@ const styles = StyleSheet.create({
     statusBadge: { backgroundColor: Colors.background_light, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 4 },
     badgeText: { fontSize: fp(1.2), color: '#FFF', fontFamily: Fonts.Bold },
     avatar: { width: wp(10), height: wp(10), borderRadius: wp(5), backgroundColor: Colors.blue, justifyContent: 'center', alignItems: 'center' },
-    avatarText: { color: '#FFF', fontSize: fp(1.6), fontFamily: Fonts.Bold },
+    avatarText: { color: '#FFF', fontSize: fp(1.6), fontFamily: Fonts.Bold, textTransform: 'uppercase' },
     detailActionFooter: { height: hp(12), borderTopWidth: 1, borderColor: '#EEE', paddingHorizontal: wp(5), flexDirection: 'row', alignItems: 'center', gap: 15, position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF' },
     footerCircleBtn: { width: wp(14), height: wp(14), borderRadius: 15, backgroundColor: '#F0F0F0', justifyContent: 'center', alignItems: 'center' },
     primaryActionBtn: { flex: 1 },
@@ -306,8 +660,8 @@ const styles = StyleSheet.create({
         height: wp(12),
         borderRadius: wp(6),
         backgroundColor: '#35a4ee',
-        borderWidth: 1,
-        borderColor: '#BAE6FD',
+        // borderWidth: 1,
+        // borderColor: '#BAE6FD',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: wp(3),
@@ -381,9 +735,13 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         gap: wp(3),
+        // alignItems: 'baseline'
     },
     qrButton: {
         flex: 1,
+        // height: hp(6)
+        // borderWidth: 1,
+
     },
 
     qrBtnText: {
@@ -401,11 +759,79 @@ const styles = StyleSheet.create({
         borderRadius: wp(3),
         gap: wp(2),
         backgroundColor: '#F8FAFC',
+        minHeight: hp(6)
+
     },
     linkBtnText: {
         color: '#475569',
         fontSize: fp(1.7),
         fontFamily: Fonts.SemiBold,
     },
-    editBtn: {}
+    editBtn: {},
+    recipientRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+    },
+
+    statusWrapper: {
+        gap: 4,
+    },
+
+    envelopeStatus: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: wp(3),
+        paddingVertical: wp(1.5),
+        borderRadius: 20,
+
+        fontSize: fp(1.5),
+        fontFamily: Fonts.Regular
+    },
+
+    needToSign: {
+        backgroundColor: '#FFF4D6',
+        color: '#B7791F',
+    },
+
+    receiveCopy: {
+        backgroundColor: '#E6F0FF',
+        color: '#2563EB',
+    },
+
+    inPersonSign: {
+        backgroundColor: '#F3E8FF',
+        color: '#7C3AED',
+    },
+
+    signed: {
+        backgroundColor: '#DCFCE7',
+        color: '#15803D',
+    },
+
+    declined: {
+        backgroundColor: '#FEE2E2',
+        color: '#DC2626',
+    },
+
+    statusText: {
+        fontSize: fp(1.5),
+        color: '#666',
+        fontFamily: Fonts.Regular
+    },
+
+    signBtn: {
+        borderWidth: 1,
+        borderColor: '#222',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+
+    signBtnText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#222',
+    },
+
 });

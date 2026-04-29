@@ -3,7 +3,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
+import { StyleSheet, TouchableOpacity, View, Text, Keyboard } from "react-native";
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
@@ -12,6 +12,7 @@ import BottomSheet, {
 
 import { X } from "lucide-react-native";
 import { Colors, Fonts, fp, wp } from "@utils/Constants";
+import { useKeyboard } from "@utils/documentService";
 
 type Props = {
   children: React.ReactNode;
@@ -34,6 +35,9 @@ const AppBottomSheet = forwardRef<any, Props>(
     },
     ref
   ) => {
+
+    const isKeyboardOpen = useKeyboard();
+
     const memoSnapPoints = useMemo(() => snapPoints, []);
 
 
@@ -58,12 +62,13 @@ const AppBottomSheet = forwardRef<any, Props>(
         enablePanDownToClose
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        keyboardBehavior="interactive"
-        keyboardBlurBehavior="restore"
+        keyboardBehavior="extend" // "extend" or "fillParent" prevents the hovering bug
+        keyboardBlurBehavior="none" // Change this from "restore" to "none"
         // enableContentPanningGesture={false}
         handleIndicatorStyle={styles.handle}
+
         backgroundStyle={styles.sheetBg}
-        style={{ zIndex: 9999 }}
+        style={{ zIndex: 99 }}
 
       >
         {/* {enableScroll ? (
@@ -90,7 +95,17 @@ const AppBottomSheet = forwardRef<any, Props>(
             (title || withCloseBtn) && <View style={styles.bottomSheetHeader}>
               <Text style={styles.bottomSheetHeaderText}>{title}</Text>
 
-              {withCloseBtn && <TouchableOpacity onPress={() => ref?.current?.close()}>
+              {withCloseBtn && <TouchableOpacity onPress={() => {
+                Keyboard.dismiss(); // 👈 Dismiss the keyboard first
+                if (isKeyboardOpen) {
+                  setTimeout(() => {
+                    ref?.current?.close();
+                  }, 250);
+                } else {
+                  ref?.current?.close();
+                }
+
+              }}>
                 <X color={Colors.text_primary} strokeWidth={1.4} />
               </TouchableOpacity>}
             </View>

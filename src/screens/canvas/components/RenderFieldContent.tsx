@@ -8,6 +8,7 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
   const config = FIELD_CONFIG[field.field_name] || {};
 
 
+
   const type = field.field_name;
 
   switch (type) {
@@ -72,6 +73,8 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
     case 'email':
       return <Text
         style={{
+          paddingHorizontal: 2, // Added breathing room
+          // paddingVertical: 2,
           fontSize: field.font_size,
           color: isSelected ? field?.recipient_color : '#fff',
           borderWidth: 1,
@@ -132,6 +135,8 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
     case "plain_text":
       return <Text style={{
         fontSize: field.font_size,
+        paddingHorizontal: 3,
+        paddingVertical: 3,
         borderWidth: 1,
         borderStyle: isSelected ? 'dashed' : 'solid',
         borderColor: field?.recipient_color || '#000',
@@ -167,8 +172,10 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
           <Text
             style={{
               fontSize: field.font_size,
+
               color: isSelected ? field.recipient_color : '#fff',
             }}
+            numberOfLines={1}
           >
             {field?.field_data?.split(',')[0]}
           </Text>
@@ -203,6 +210,8 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
               fontSize: field.font_size,
               color: isSelected ? field.recipient_color : '#fff',
             }}
+            numberOfLines={1}
+
           >
             {config.label}
           </Text>

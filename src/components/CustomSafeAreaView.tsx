@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import React, {FC, ReactNode} from 'react';
 import {Colors, wp} from '@utils/Constants';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 interface CustomSafeAreaViewProps {
   children: ReactNode;
@@ -16,10 +17,11 @@ interface CustomSafeAreaViewProps {
 }
 
 const CustomSafeAreaView: FC<CustomSafeAreaViewProps> = ({children, style}) => {
+  const insets = useSafeAreaInsets();
   return (
     <View style={[styles.container, style]}>
       <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
-     <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{flex: 1, paddingTop: insets.top}}>
         {children}
       </SafeAreaView>
     </View>

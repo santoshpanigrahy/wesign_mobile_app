@@ -132,6 +132,9 @@ const envelopeSlice = createSlice({
         setEnableWritingID: (state, action) => {
              state.enable_writing_id = action.payload;
         },
+        setIamSigner: (state, action) => {
+          state.im_signer = action.payload  
+        },
 
         setExpiryDate: (state, action) => {
             state.expiryDate = action.payload;
@@ -212,7 +215,8 @@ export const {
     setRecipientsBulk,
     deleteDocumentByIndex,
     removeErrorDocuments,
-    setField,setAllFields
+    setField, setAllFields,
+    setIamSigner
 } = envelopeSlice.actions;
 
 export default envelopeSlice.reducer;

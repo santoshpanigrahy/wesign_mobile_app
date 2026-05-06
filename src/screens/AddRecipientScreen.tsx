@@ -23,6 +23,8 @@ import api from '@utils/api';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import { useKeyboard } from '@utils/documentService'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import RecipientEmailField from '@components/RecipientEmailField'
+import RecipientNameField from '@components/RecipientNameField'
 
 const typeOptions = [
   { label: "Email", value: "email" },
@@ -80,12 +82,12 @@ const DraggableRecipientItem = memo(({ item, drag, isActive, onMenuOpen, onEdit 
 });
 
 // --- 2. Isolated Form Component (Stops Main Screen Re-renders) ---
-const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressBook }, ref) => {
+const RecipientFormModal = forwardRef(({ onClose, onSave, onSaveAndReset, editData, openAddressBook, recipientsList }, ref) => {
   const [countries, setCountries] = useState([]);
   const [showSecurity, setShowSecurity] = useState(false);
   const [isPhoneNumberFocus, setPhoneNumberFocus] = useState(false);
 
-  const { control, handleSubmit, watch, formState: { errors }, setValue } = useForm({
+  const { control, handleSubmit, watch, formState: { errors }, reset, setValue } = useForm({
     defaultValues: editData || {
       method: 'email',
       action: 'needs_to_sign',
@@ -143,6 +145,11 @@ const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressB
     }
   }));
 
+  const saveAndReset = (data) => {
+    onSaveAndReset(data);
+    reset()
+  }
+
   return (
     <Animated.View entering={FadeIn.duration(150).easing(Easing.out(Easing.quad))} exiting={FadeOut.duration(100)} style={styles.overlay}>
       <View style={styles.modalHeaderRow}>
@@ -157,7 +164,17 @@ const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressB
         </TouchableOpacity>
       </View>
 
-      <KeyboardAwareScrollView contentContainerStyle={{ paddingBottom: 50 }} enableOnAndroid={true} extraScrollHeight={150}>
+
+
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ paddingBottom: 50 }}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+        enableOnAndroid={true}
+        extraScrollHeight={150}
+        showsVerticalScrollIndicator={false}>
+
+
         <View style={styles.formContainer}>
           <Controller control={control} name="method" render={({ field: { onChange, value } }) => (
             <View>
@@ -183,11 +200,20 @@ const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressB
             )} />
           )}
 
-          <Controller control={control} name="recepient_name" rules={{ required: 'Name is required' }} render={({ field: { onChange, value }, fieldState: { error } }) => (
-            <AppInput label="Name" placeholder="Enter your name" value={value} onChangeText={onChange} error={error?.message} leftIcon={User} onRightIconPress={openAddressBook} rightIcon={BookUser} />
-          )} />
+          <RecipientNameField method={method} control={control} recipientsList={recipientsList} onSelectedRecipient={(data) => {
+            ref?.current?.populateFromAddressBook(data)
+          }} openAddressBook={openAddressBook} />
 
-          {(method === "email_and_sms" || method === "email") && (
+          {/* <Controller control={control} name="recepient_name" rules={{ required: 'Name is required' }} render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <AppInput label="Name" placeholder="Enter your name" value={value} onChangeText={onChange} error={error?.message} leftIcon={User} onRightIconPress={openAddressBook} rightIcon={BookUser} />
+          )} /> */}
+
+          <RecipientEmailField method={method} control={control} recipientsList={recipientsList} onSelectedRecipient={(data) => {
+            ref?.current?.populateFromAddressBook(data)
+          }} />
+
+
+          {/* {(method === "email_and_sms" || method === "email") && (
             <Controller control={control} name="recepient_email" rules={{
               required: 'Email is required', pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -196,7 +222,7 @@ const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressB
             }} render={({ field: { onChange, value }, fieldState: { error } }) => (
               <AppInput label="Email" placeholder="Enter your email" value={value} onChangeText={onChange} error={error?.message} leftIcon={Mail} />
             )} />
-          )}
+          )} */}
 
           {(method === "email_and_sms" || method === "sms") && (
             <View>
@@ -272,6 +298,16 @@ const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressB
           </View>
         </View>
       </KeyboardAwareScrollView>
+
+      {
+        !editData && <View style={{ paddingTop: hp(1), backgroundColor: Colors.white }}>
+
+          <AppButton onPress={handleSubmit(saveAndReset)} title='Save & Add New Recipient' />
+        </View>
+      }
+
+
+
     </Animated.View>
   );
 });
@@ -280,7 +316,7 @@ const RecipientFormModal = forwardRef(({ onClose, onSave, editData, openAddressB
 // --- 3. Main Screen ---
 const AddRecipientScreen = ({ navigation }) => {
   const envelopeDocuments = useAppSelector(state => state.envelope.envelopeDocuments);
-  const userId = useAppSelector(state => state.auth.user?.id);
+  const userId = useAppSelector(state => state.auth.user);
   const dispatch = useAppDispatch();
   const recipients = useAppSelector(state => state?.envelope?.addRecipientsBox);
   const enableSigningOrder = useAppSelector(state => state?.envelope?.set_signing_order);
@@ -377,6 +413,8 @@ const AddRecipientScreen = ({ navigation }) => {
   const editRef = useRef(null);
   const formModalRef = useRef(null);
 
+  const [recipientsList, setRecipientsList] = useState([]);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState(null); // Used for Action Sheet
   const [editData, setEditData] = useState(null); // Used for Modal Form
@@ -402,6 +440,24 @@ const AddRecipientScreen = ({ navigation }) => {
     }
     setModalVisible(false);
     setEditData(null);
+  };
+
+  const handleSaveToReduxAndReset = (data) => {
+
+
+
+    const usedColors = recipients.map((r) => r.meta_info?.recepient_color);
+    const availableColors = RECIPIENT_COLORS.filter((c) => !usedColors.includes(c?.recepient_color));
+    const selectedColor = availableColors.length > 0 ? availableColors[0] : RECIPIENT_COLORS[Math.floor(Math.random() * RECIPIENT_COLORS.length)];
+
+    dispatch(setRecipients({ ...data, id: Date.now().toString(), meta_info: selectedColor }));
+
+    Toast.show({
+      type: 'success',
+      text1: 'Recipient Added'
+    })
+
+
   };
 
   const handleSaveEnvelope = async () => {
@@ -584,6 +640,10 @@ const AddRecipientScreen = ({ navigation }) => {
 
   }
 
+  if (!recipients) {
+    return null;
+  }
+
   return (
     <CustomSafeAreaView>
       <View style={styles.header}>
@@ -645,6 +705,8 @@ const AddRecipientScreen = ({ navigation }) => {
           ref={formModalRef}
           onClose={() => setModalVisible(false)}
           onSave={handleSaveToRedux}
+          onSaveAndReset={handleSaveToReduxAndReset}
+          recipientsList={recipientsList}
           openAddressBook={() => recipientRef.current?.snapToIndex(0)}
 
         />
@@ -652,7 +714,7 @@ const AddRecipientScreen = ({ navigation }) => {
 
       <AppBottomSheet ref={recipientRef} title={'Address Book'} snapPoints={['100%']}>
         {/* Pass your logic for handling selection back from AddressBook to RecipientFormModal via ref or global state if needed */}
-        <AddressBook onSelectRecipient={(data) => {
+        <AddressBook setRecipientsList={setRecipientsList} onSelectRecipient={(data) => {
           formModalRef.current?.populateFromAddressBook(data);
           if (isKeyboardOpen) {
             setTimeout(() => {

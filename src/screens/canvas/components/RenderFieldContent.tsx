@@ -1,9 +1,12 @@
+import { useAppSelector } from "@redux/hooks";
 import { Colors } from "@utils/Constants";
 import { FIELD_CONFIG } from "@utils/fieldConstants";
 import { Check } from "lucide-react-native";
 import { Image, Text, View } from "react-native";
 
 const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
+
+  const im_signer = useAppSelector(state => state.envelope.im_signer)
 
   const config = FIELD_CONFIG[field.field_name] || {};
 
@@ -70,6 +73,8 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
     case 'my_email':
     case 'my_company':
     case 'full_name':
+    case 'first_name':
+    case 'last_name':
     case 'email':
       return <Text
         style={{
@@ -135,6 +140,8 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
     case "plain_text":
       return <Text style={{
         fontSize: field.font_size,
+        width: '100%',
+        height: '100%',
         paddingHorizontal: 3,
         paddingVertical: 3,
         borderWidth: 1,
@@ -183,6 +190,83 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
       );
 
 
+    case "signature":
+    case "initial":
+    case "stamp":
+
+      if (im_signer) {
+
+
+        return (
+          <View style={{
+            flex: 1,
+            borderWidth: 1,
+            borderStyle: isSelected ? 'dashed' : 'solid',
+            borderColor: field?.recipient_color || '#000',
+            backgroundColor: isSelected
+              ? field?.recipient_color + '40'
+              : field?.recipient_color
+          }} >
+
+
+
+            <Image source={{ uri: field.image_base_64 }} style={{ width: '100%', height: '100%', }} resizeMode="contain" onLoad={(e) => {
+              const { width, height } = e.nativeEvent.source;
+
+              const imgAR = width / height;
+              const boxW = field.width;
+              const boxH = field.height;
+              const boxAR = boxW / boxH;
+
+              let finalW, finalH;
+
+              if (imgAR > boxAR) {
+                finalH = boxH;
+                finalW = boxH * imgAR;
+              } else {
+                finalW = boxW;
+                finalH = boxW / imgAR;
+              }
+
+              onUpdate(field.id, {
+                width: finalW,
+                height: finalH,
+              });
+            }} />
+
+          </View>
+        );
+
+      }
+
+
+    case 'date_signed':
+    case 'company':
+    case 'title':
+
+      if (im_signer) {
+        return <Text
+          style={{
+            paddingHorizontal: 2, // Added breathing room
+            // paddingVertical: 2,
+            fontSize: field.font_size,
+            color: isSelected ? field?.recipient_color : '#fff',
+            borderWidth: 1,
+            borderStyle: isSelected ? 'dashed' : 'solid',
+            borderColor: field?.recipient_color || '#000',
+            backgroundColor: isSelected
+              ? field?.recipient_color + '40'
+              : field?.recipient_color,
+          }}
+        >
+          {field?.field_data}
+        </Text>
+      }
+
+
+
+
+
 
     default:
       return (
@@ -191,7 +275,7 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
           alignItems: 'center',
           flexDirection: 'row',
           flex: 1,
-          gap: 5,
+          gap: 2,
           borderWidth: 1,
           borderStyle: isSelected ? 'dashed' : 'solid',
           borderColor: field?.recipient_color || '#000',

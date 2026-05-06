@@ -90,6 +90,13 @@ const CanvasFieldBox = ({
     'my_date_signed', 'my_full_name', 'my_email',
     'my_company', 'full_name', 'email', 'plain_text'
   ];
+
+  const noResizeFields = [
+    'my_date_signed', 'my_full_name', 'my_email',
+    'my_company', 'full_name', 'email', 'plain_text'
+  ];
+
+  const isNoSizedField = noResizeFields.includes(field.field_name);
   const isAutoSized = autoSizeFields.includes(field.field_name);
 
   const handleLayout = (event) => {
@@ -182,14 +189,12 @@ const CanvasFieldBox = ({
     };
   });
   return (
-    <Animated.View
-      onLayout={handleLayout}
-      style={[animatedStyle, { zIndex: isSelected ? 10 : 1 }]}
+    <Animated.View onLayout={handleLayout} style={[animatedStyle, { zIndex: isSelected ? 10 : 1 }]}
       pointerEvents="box-none"
     >
 
       <GestureDetector gesture={composedGesture}>
-        <View style={{ flex: 1 }} pointerEvents="auto">
+        <View style={{ flex: 1 }} pointerEvents="auto" >
           <RenderFieldContent isSelected={isSelected} field={field} onUpdate={onUpdate} />
         </View>
       </GestureDetector>
@@ -233,14 +238,22 @@ const CanvasFieldBox = ({
               <Text style={styles.toolBarBtnText}>Duplicate</Text>
             </View>
           </GestureDetector>
-          <View style={styles.hr} />
+
+          {
+            !isNoSizedField && <>
 
 
-          <GestureDetector gesture={resizeTap}>
-            <View hitSlop={10} style={styles.toolBarButton}>
-              <Text style={styles.toolBarBtnText}>Resize</Text>
-            </View>
-          </GestureDetector>
+              <View style={styles.hr} />
+
+
+              <GestureDetector gesture={resizeTap}>
+                <View hitSlop={10} style={styles.toolBarButton}>
+                  <Text style={styles.toolBarBtnText}>Resize</Text>
+                </View>
+              </GestureDetector>
+            </>
+          }
+
         </Animated.View>
       )}
     </Animated.View>

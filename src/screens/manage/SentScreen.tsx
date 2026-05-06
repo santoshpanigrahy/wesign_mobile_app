@@ -102,7 +102,7 @@ const SentScreen = ({ navigation }) => {
     const user = useAppSelector(state => state?.auth?.user);
     const dispatch = useAppDispatch();
 
-    const { id: userId, email } = user;
+    const { id: userId, email } = user || {};
     const [modalVisible, setModalVisible] = useState(false);
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
@@ -550,10 +550,10 @@ const SentScreen = ({ navigation }) => {
                 )}
             </View>
 
-            <AppBottomSheet ref={actionRef} snapPoints={['25%']} withCloseBtn={false}>
+            <AppBottomSheet ref={actionRef} snapPoints={['20%']} withCloseBtn={false}>
 
                 <View style={{ flex: 1 }}>
-                    <AppActionButton btnText='Copy' icon={Copy} onPress={() => console.log('Copy Pressed')} />
+                    {/* <AppActionButton btnText='Copy' icon={Copy} onPress={() => console.log('Copy Pressed')} /> */}
                     {/* <AppActionButton btnText='Download' icon={Download} onPress={() => { actionRef?.current?.close(); setModalVisible(true); }} /> */}
                     <AppActionButton btnText='Email Download' icon={MailOpen} onPress={emailDownload} />
                     <AppActionButton btnText='Void' icon={Ban} onPress={() => voidEnvelope()} />

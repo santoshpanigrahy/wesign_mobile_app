@@ -1,4 +1,4 @@
-import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Dimensions, Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import { getDocumentListing, getDocumentUrl, getSnapshots } from '@utils/documentService';
 import CanvasBottomFieldsBar from './components/CanvasBottomFieldsBar';
-import { ALL_COLORS, BASIC_COLORS, FIELD_META_COMPONENTS, getFieldDefaults, getFieldLabel, PREFILLED_FIELDS, TEXT_STYLE_ELIGIBLE } from '@utils/fieldConstants';
+import { ALL_COLORS, BASIC_COLORS, FIELD_META_COMPONENTS, getFieldDefaults, getFieldLabel, IAMSIGNER_FIELDS, PREFILLED_FIELDS, TEXT_STYLE_ELIGIBLE } from '@utils/fieldConstants';
 import CanvasPage from './components/CanvasPage';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Slider } from 'react-native-awesome-slider';
@@ -31,6 +31,10 @@ import FastImage from 'react-native-fast-image';
 import { FlatList } from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { useFocusEffect } from '@react-navigation/native';
+import CreateRadioFieldModal from './components/CreateRadioFieldModal';
+import SwipeHint from '@components/SwipeHint';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CanvasIamSignerFields from './components/CanvasIamSignerFields';
 
 const screenWidth = Dimensions.get('window').width;
 const MemoTopSheet = React.memo(TopSheet);
@@ -39,9 +43,29 @@ const CanvasScreen = ({ navigation }) => {
   const user = useAppSelector(state => state.auth.user);
   const dispatch = useAppDispatch();
 
+  const im_signer = useAppSelector(state => state?.envelope?.im_signer);
+
+  const [showHint, setShowHint] = useState(false);
+
+
+  const checkFirstVisit = async () => {
+    try {
+      const alreadyShown = await AsyncStorage.getItem('pager_swipe_hint');
+
+      if (!alreadyShown) {
+        setShowHint(true);
+
+
+        await AsyncStorage.setItem('pager_swipe_hint', 'true');
+      }
+    } catch (error) {
+      console.log('Storage error', error);
+    }
+  };
+
   const reduxFields = useAppSelector(state => state?.envelope?.allFields);
 
-  const { id, first_name, last_name, email, company_name } = user;
+  const { id, first_name, last_name, email, company_name, job_title } = user;
   const fullName = first_name + " " + last_name;
   const initial = first_name?.slice(0, 1) + last_name?.slice(0, 1);
 
@@ -51,13 +75,14 @@ const CanvasScreen = ({ navigation }) => {
   const [showPrefilledStampModal, setShowPrefilledStampModal] = useState(false);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showFieldMetaModal, setShowFieldMetaModal] = useState(false);
+  const [showRadioButtonCreateModal, setShowRadioButtonCreateModal] = useState(false);
 
   const [pendingField, setPendingField] = useState(null);
 
   // Animation Values
   const widthProgress = useSharedValue(0);
   const heightProgress = useSharedValue(0);
-  const min = useSharedValue(30);
+  const min = useSharedValue(20);
   const max = useSharedValue(300);
   const rotate = useSharedValue(0);
 
@@ -92,6 +117,19 @@ const CanvasScreen = ({ navigation }) => {
     my_company: company_name
   });
 
+  const [iamSignerData, setIamSignerData] = useState({
+    signature: null,
+    initial: null,
+    stamp: null,
+    date_signed: moment().format('MM/DD/YYYY'),
+    full_name: fullName,
+    first_name: first_name,
+    last_name: last_name,
+    email: email,
+    company: company_name,
+    title: job_title,
+  });
+
   const documentData = useAppSelector(state => state?.envelope?.envelopeDocuments);
   const recipients = useAppSelector(state => state?.envelope?.addRecipientsBox);
   const allNonRecipients = recipients?.filter((recp) => recp?.action !== 'receive_copy');
@@ -107,14 +145,31 @@ const CanvasScreen = ({ navigation }) => {
   const MetaComponent = FIELD_META_COMPONENTS[tempField?.field_name];
   const snap = (val) => Math.round(val / 10) * 10;
 
-  useEffect(() => {
-    if (allNonRecipients?.length === 0 && isAllRecipientReceiveCopy) {
-      setEnablePrefilled(true);
-    } else {
+  // useEffect(() => {
+  //   if (allNonRecipients?.length === 0 && isAllRecipientReceiveCopy) {
+  //     setEnablePrefilled(true);
+  //   } else {
 
-      setSelectedRecipient(allNonRecipients[0]);
-    }
-    loadCanvas();
+  //     setSelectedRecipient(allNonRecipients[0]);
+  //   }
+  //   loadCanvas();
+  // }, []);
+
+  useEffect(() => {
+    dispatch(showLoader('Loading Documents'))
+    const timer = setTimeout(() => {
+      if (allNonRecipients?.length === 0 && isAllRecipientReceiveCopy) {
+        setEnablePrefilled(true);
+      } else {
+        setSelectedRecipient(allNonRecipients[0]);
+      }
+
+      loadCanvas();
+      dispatch(hideLoader())
+
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -159,6 +214,12 @@ const CanvasScreen = ({ navigation }) => {
     my_stamp: fetchStamp,
   };
 
+  const IAMSIGNER_API_MAP = {
+    signature: fetchSignature,
+    initial: fetchInitial,
+    stamp: fetchStamp,
+  };
+
   const loadCanvas = async () => {
     dispatch(showLoader('Loading Documents'))
     try {
@@ -178,12 +239,14 @@ const CanvasScreen = ({ navigation }) => {
     } catch (e) {
       Alert.alert('Error', e.message);
     } finally {
+      checkFirstVisit();
       dispatch(hideLoader())
     }
   };
 
   const mapUrlsToPages = async (urls, doc, order) => {
     const signed_urls = urls?.signed_urls || [];
+    // console.log("hehke++", urls?.documents?.[0]?.doc_width)
     const docWidth = urls?.documents?.[0]?.doc_width;
     const docHeight = urls?.documents?.[0]?.doc_height;
     return signed_urls.map((url, index) => ({
@@ -228,7 +291,7 @@ const CanvasScreen = ({ navigation }) => {
   const createField = (type, x, y, page_no, document_key, document_order, recipient, prefillData = null, isPrefilled = false) => {
     const defaults = getFieldDefaults(type);
     let field = {
-      id: Date.now().toString(),
+      id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type, x, y, top: y, left: x,
       width: defaults.width,
       height: defaults.height,
@@ -241,7 +304,7 @@ const CanvasScreen = ({ navigation }) => {
       element_id: makeid(type), field_name: type,
     };
 
-    if (isPrefilled && prefillData) {
+    if (isPrefilled && prefillData && !im_signer) {
       field.is_prefilled_field = true;
       if (['my_signature', 'my_initial', 'my_stamp'].includes(type)) {
         field.field_data = prefillData?.id;
@@ -252,24 +315,59 @@ const CanvasScreen = ({ navigation }) => {
         field.recipient_color = Colors.prefilled;
       }
     }
-    if (type === 'full_name') field.field_data = recipient?.recepient_name;
-    if (type === 'email') field.field_data = recipient?.recepient_email;
+    console.log(isPrefilled, prefillData, im_signer)
+
+    if (im_signer) {
+      field.recipient_color = Colors.iamSigner;
+
+    }
+
+    if (prefillData && im_signer) {
+      field.is_prefilled_field = true;
+      if (['signature', 'initial', 'stamp'].includes(type)) {
+        field.field_data = prefillData?.id;
+        field.image_base_64 = prefillData?.base_url;
+        field.recipient_color = Colors.iamSigner;
+      } else {
+        field.field_data = prefillData;
+        field.recipient_color = Colors.iamSigner;
+      }
+    }
+
+    if (type === 'checkbox' && im_signer) field.is_checked = true;
+    if (type === 'full_name' && !im_signer) field.field_data = recipient?.recepient_name;
+    if (type === 'email' && !im_signer) field.field_data = recipient?.recepient_email;
     if (type === 'plain_text') field.field_data = '';
     if (type === 'dropdown') field.field_data = 'Dropdown';
-    if (type === 'radio') {
-      field.group = "group_" + Date.now();
-      field.selected = false;
-      field.value = "Option";
-    }
+
     return field;
   };
 
-  const createRadioGroup = (x, y, page, document_key, recipient) => {
-    const groupId = "group_" + Date.now();
-    return [
-      { ...createField('radio', x, y, page, document_key, recipient), group_id: groupId, value: "Option 1", selected: false },
-      { ...createField('radio', x + 80, y, page, document_key, recipient), group_id: groupId, value: "Option 2", selected: false },
-    ];
+  const createRadioGroup = (data) => {
+
+    console.log(data)
+
+    const groupName = data?.groupName;
+    const radioOptions = data?.radioOptions;
+
+    const { x, y, page, selectedRecipient } = pendingField;
+
+
+    const radioFields = radioOptions?.map((option, index) => {
+      const fieldValue = `${groupName}@-@-@${option}`;
+      const space = (index + 1) * 50;
+      return { ...createField('radio', x + space, y, page?.page_no, page.document_key, page.document_order, selectedRecipient), group: groupName, field_data: fieldValue, selected: false }
+    })
+
+    setFields(prev => [...prev, ...radioFields]);
+
+    console.log("Radio Fields =========> ", radioFields);
+
+    setShowRadioButtonCreateModal(false);
+
+    setPendingField(null)
+
+
   };
 
   const handlePrefillSaved = (data) => {
@@ -319,6 +417,10 @@ const CanvasScreen = ({ navigation }) => {
     const originalY = locationY / baseScale;
 
     const isPrefillType = PREFILLED_FIELDS.includes(selectedFieldType);
+    const isIamSignerType = IAMSIGNER_FIELDS.includes(selectedFieldType);
+
+    console.log("Is Iam Signer Type", isIamSignerType, im_signer, selectedFieldType);
+
     let prefillValue = null;
     let prefilledError = null;
 
@@ -362,9 +464,57 @@ const CanvasScreen = ({ navigation }) => {
 
     if (prefilledError) return;
 
+
+
+    if (isIamSignerType && im_signer) {
+      if (!iamSignerData[selectedFieldType]) {
+        dispatch(showLoader('Fetching'));
+        try {
+          const apiFn = IAMSIGNER_API_MAP[selectedFieldType];
+          if (apiFn) {
+            const res = await apiFn();
+            let fieldData = {};
+
+            if (selectedFieldType === 'signature') {
+              if (res?.signature?.signature_id && res?.signature?.signature) {
+                fieldData.id = res.signature?.signature_id; fieldData.base_url = res.signature?.signature;
+              } else { setShowPrefilledSignatureModal(true); }
+            } else if (selectedFieldType === 'initial') {
+              if (res?.initial?.initial_id && res?.initial?.initial) {
+                fieldData.id = res.initial?.initial_id; fieldData.base_url = res.initial?.initial;
+              } else { setShowPrefilledInitialModal(true); }
+            } else if (selectedFieldType === 'stamp') {
+              if (res?.stamps[0]?.stamp_id && res?.stamps[0]?.stamp) {
+                fieldData.id = res.stamps[0]?.stamp_id; fieldData.base_url = res.stamps[0]?.stamp;
+              } else { setShowPrefilledStampModal(true); }
+            }
+
+            if (fieldData?.id && fieldData?.base_url) {
+              prefillValue = fieldData;
+              setIamSignerData(prev => ({ ...prev, [selectedFieldType]: prefillValue }));
+            } else {
+              prefilledError = true;
+              setPendingField({ x: originalX, y: originalY, page, selectedFieldType, selectedRecipient });
+            }
+          }
+        } catch (err) { console.log(`${selectedFieldType} fetch failed`, err); }
+        dispatch(hideLoader());
+      } else {
+        prefillValue = iamSignerData[selectedFieldType];
+      }
+    }
+
+    if (prefilledError) return;
+
+
+
     if (selectedFieldType === 'radio') {
-      const radioFields = createRadioGroup(originalX, originalY, page.page, page.document_key, selectedRecipient);
-      setFields(prev => [...prev, ...radioFields]);
+
+      setShowRadioButtonCreateModal(true);
+
+      setPendingField({ x: originalX, y: originalY, page, selectedFieldType, selectedRecipient });
+      setSelectedFieldType(null);
+
       return;
     }
 
@@ -381,9 +531,15 @@ const CanvasScreen = ({ navigation }) => {
 
     console.log(fields);
 
-    if (recipientsWithoutFields.length > 0) {
+    if (recipientsWithoutFields.length > 0 && !im_signer) {
       dispatch(hideLoader());
       Toast.show({ type: 'error', text1: `Please add fields for: ${recipientsWithoutFields.join(", ")}` });
+      return;
+    }
+
+    if (fields?.length === 0 && im_signer) {
+      dispatch(hideLoader());
+      Toast.show({ type: 'error', text1: `Please add at least one field` });
       return;
     }
 
@@ -430,7 +586,13 @@ const CanvasScreen = ({ navigation }) => {
 
     dispatch(hideLoader());
 
-    navigate('Finish');
+
+    if (im_signer) {
+      navigate('IamSignerFinish')
+    } else {
+
+      navigate('Finish');
+    }
   };
 
   // --- MEMOIZED RENDERERS ---
@@ -503,31 +665,34 @@ const CanvasScreen = ({ navigation }) => {
             initialNumToRender={3} maxToRenderPerBatch={3} windowSize={3} removeClippedSubviews
           />
         </MemoTopSheet>
+        {
+          !im_signer && <View style={styles.recipientsWrapper}>
+            <Pressable onPress={() => {
+              setSelectedField(null); setEnableResize(false); setSelectedFieldType(null);
+              if (!isAllRecipientReceiveCopy) {
+                setEnablePrefilled(prev => !prev);
+              }
+            }}>
+              <View style={[styles.prefillToggleBtn, { borderColor: enablePrefilled ? Colors.prefilled : Colors.border, backgroundColor: enablePrefilled ? (Colors.prefilled + "20") : 'transparent' }]}>
+                <UserPen color={enablePrefilled ? Colors.prefilled : Colors.black} size={fp(2)} />
+                <Text style={[styles.prefillToggleText, { color: enablePrefilled ? Colors.prefilled : Colors.text_secondary }]}>Pre Filled</Text>
+              </View>
+            </Pressable>
+            {
+              !isAllRecipientReceiveCopy && <>
+                <View style={styles.verticalDivider} />
+                <CanvasRecipients recipients={allNonRecipients} selectedRecipient={selectedRecipient} setSelectedRecipient={setSelectedRecipient} />
 
-        <View style={styles.recipientsWrapper}>
-          <Pressable onPress={() => {
-            setSelectedField(null); setEnableResize(false); setSelectedFieldType(null);
-            if (!isAllRecipientReceiveCopy) {
-              setEnablePrefilled(prev => !prev);
+
+              </>
             }
-          }}>
-            <View style={[styles.prefillToggleBtn, { borderColor: enablePrefilled ? Colors.prefilled : Colors.border, backgroundColor: enablePrefilled ? (Colors.prefilled + "20") : 'transparent' }]}>
-              <UserPen color={enablePrefilled ? Colors.prefilled : Colors.black} size={fp(2)} />
-              <Text style={[styles.prefillToggleText, { color: enablePrefilled ? Colors.prefilled : Colors.text_secondary }]}>Pre Filled</Text>
-            </View>
-          </Pressable>
-          {
-            !isAllRecipientReceiveCopy && <>
-              <View style={styles.verticalDivider} />
-              <CanvasRecipients recipients={allNonRecipients} selectedRecipient={selectedRecipient} setSelectedRecipient={setSelectedRecipient} />
 
+          </View>
+        }
 
-            </>
-          }
-
-        </View>
 
         <View style={styles.pagerWrapper}>
+          {!isZoomed && showHint && <SwipeHint setShowHint={setShowHint} />}
           <PagerView ref={flatListRef} style={styles.pagerWrapper} initialPage={0} scrollEnabled={!isZoomed} overdrag={false}>
             {documents.map((page, index) => (
               <View key={page.id} style={styles.pageWrapper} collapsable={false}>
@@ -545,37 +710,58 @@ const CanvasScreen = ({ navigation }) => {
           {selectedField && enableResize && (
             <View style={styles.sliderContainer}>
               <View style={styles.sliderRow}>
-                <Text style={styles.sliderLabel}>HORIZONTAL</Text><Text>{widthValue}px</Text>
+                <Text style={styles.sliderLabel}>{
+
+                  (selectedField?.field_name === 'checkbox' || selectedField?.field_name === 'radio') ? 'SCALE' : 'HORIZONTAL'
+
+                }</Text><Text>{widthValue}px</Text>
               </View>
               <Slider
                 progress={widthProgress} minimumValue={min} maximumValue={max}
                 onValueChange={(val) => { if (typeof val === 'number') widthProgress.value = snap(val); }}
                 onSlidingComplete={(val) => {
                   const snapped = snap(val);
-                  setWidthValue(snapped);
-                  updateField(selectedField.id, { width: snapped });
+                  if (selectedField?.field_name === 'checkbox' || selectedField?.field_name === 'radio') {
+                    setWidthValue(snapped);
+                    setHeightValue(snapped)
+                    updateField(selectedField.id, { width: snapped, height: snapped });
+                  } else {
+
+
+                    setWidthValue(snapped);
+                    updateField(selectedField.id, { width: snapped });
+
+                  }
                 }}
                 theme={{ minimumTrackTintColor: '#007AFF', maximumTrackTintColor: '#ddd', bubbleBackgroundColor: '#007AFF' }}
               />
 
-              <View style={styles.sliderRowVertical}>
-                <Text style={styles.sliderLabel}>VERTICAL</Text><Text>{heightValue}px</Text>
-              </View>
-              <Slider
-                progress={heightProgress} minimumValue={min} maximumValue={max}
-                onValueChange={(val) => { if (typeof val === 'number') heightProgress.value = snap(val); }}
-                onSlidingComplete={(val) => {
-                  const snapped = snap(val);
-                  setHeightValue(snapped);
-                  updateField(selectedField.id, { height: snapped });
-                }}
-                theme={{ minimumTrackTintColor: '#007AFF', maximumTrackTintColor: '#ddd', bubbleBackgroundColor: '#007AFF' }}
-              />
+              {
+                (selectedField?.field_name !== 'checkbox' && selectedField?.field_name !== 'radio') && <>
+
+                  <View style={styles.sliderRowVertical}>
+                    <Text style={styles.sliderLabel}>VERTICAL</Text><Text>{heightValue}px</Text>
+                  </View>
+                  <Slider
+                    progress={heightProgress} minimumValue={min} maximumValue={max}
+                    onValueChange={(val) => { if (typeof val === 'number') heightProgress.value = snap(val); }}
+                    onSlidingComplete={(val) => {
+                      const snapped = snap(val);
+                      setHeightValue(snapped);
+                      updateField(selectedField.id, { height: snapped });
+                    }}
+                    theme={{ minimumTrackTintColor: '#007AFF', maximumTrackTintColor: '#ddd', bubbleBackgroundColor: '#007AFF' }}
+                  />
+
+                </>
+              }
+
             </View>
           )}
 
-          {!enablePrefilled && !enableResize && <CanvasBottomFieldsBar selectedType={selectedFieldType} onSelect={setSelectedFieldType} selectedRecipient={selectedRecipient} />}
-          {enablePrefilled && <CanvasPrefilledFields selectedType={selectedFieldType} onSelect={setSelectedFieldType} selectedRecipient={selectedRecipient} />}
+          {!im_signer && !enablePrefilled && !enableResize && <CanvasBottomFieldsBar selectedType={selectedFieldType} onSelect={setSelectedFieldType} selectedRecipient={selectedRecipient} />}
+          {!im_signer && enablePrefilled && <CanvasPrefilledFields selectedType={selectedFieldType} onSelect={setSelectedFieldType} selectedRecipient={selectedRecipient} />}
+          {im_signer && !enableResize && <CanvasIamSignerFields selectedType={selectedFieldType} onSelect={setSelectedFieldType} selectedRecipient={selectedRecipient} />}
         </View>
       </View>
 
@@ -609,17 +795,23 @@ const CanvasScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.metaBody}>
-            <View>
-              <Text style={styles.metaLabel}>Assign To</Text>
-              <Pressable onPress={() => recipientRef.current?.snapToIndex(0)} style={styles.metaAssignBox}>
-                <View style={styles.metaAssignRow}>
-                  <Text style={styles.metaAssignText}>{tempField?.recipient_id}</Text>
-                  <ChevronDown color={Colors.text_primary} size={fp(2.3)} />
+            {
+              !im_signer && <>
+                <View>
+                  <Text style={styles.metaLabel}>Assign To</Text>
+                  <Pressable onPress={() => recipientRef.current?.snapToIndex(0)} style={styles.metaAssignBox}>
+                    <View style={styles.metaAssignRow}>
+                      <Text style={styles.metaAssignText}>{tempField?.recipient_id}</Text>
+                      <ChevronDown color={Colors.text_primary} size={fp(2.3)} />
+                    </View>
+                  </Pressable>
                 </View>
-              </Pressable>
-            </View>
 
-            <View style={styles.metaDivider} />
+                <View style={styles.metaDivider} />
+
+              </>
+            }
+
             {MetaComponent && (
               <MetaComponent field={tempField} setField={setTempField} updateFieldValue={updateFieldValue} openDateFormatPicker={() => dateRef.current?.snapToIndex(0)} />
             )}
@@ -637,10 +829,16 @@ const CanvasScreen = ({ navigation }) => {
         </View>
       )}
 
+      <CreateRadioFieldModal visible={showRadioButtonCreateModal} onSave={(data) => {
+        createRadioGroup(data);
+      }} setVisible={setShowRadioButtonCreateModal} />
+
+
+
       {/* Bottom Sheets */}
       <AppBottomSheet ref={recipientRef} title={'Choose Recipient'} snapPoints={['60%']}>
         <BottomSheetFlatList
-          data={recipients} keyExtractor={(item, index) => index.toString()} renderItem={renderRecipientItem}
+          data={allNonRecipients} keyExtractor={(item, index) => index.toString()} renderItem={renderRecipientItem}
           keyboardShouldPersistTaps="handled" contentContainerStyle={styles.recipientListContent}
           ListEmptyComponent={() => (<Text style={styles.empty}>No recipients</Text>)}
         />
@@ -706,7 +904,7 @@ const styles = StyleSheet.create({
   // Global & Wrappers
   pageWrapper: { flex: 1, width: screenWidth, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1, backgroundColor: Colors.background_light, position: 'relative' },
-  pagerWrapper: { flex: 1 },
+  pagerWrapper: { flex: 1, position: 'relative' },
   overlay: { position: 'absolute', top: 0, left: 0, height: hp(100), backgroundColor: Colors.white, width: wp(100), padding: wp(5) },
   verticalDivider: { height: '80%', width: 1, backgroundColor: Colors.border },
 

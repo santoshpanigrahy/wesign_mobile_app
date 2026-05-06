@@ -102,7 +102,7 @@ const InboxScreen = ({ navigation }) => {
     const user = useAppSelector(state => state?.auth?.user);
     const dispatch = useAppDispatch();
 
-    const { id: userId, email } = user;
+    const { id: userId, email } = user || {};
     const [modalVisible, setModalVisible] = useState(false);
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 

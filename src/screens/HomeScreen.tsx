@@ -6,15 +6,19 @@ import {
   Clock,
   Timer,
   CheckCircle2,
-  FileSignature, ArrowRight
+  FileSignature, ArrowRight,
+  UserCheck,
+  BadgeCheck,
+  Signature
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DrawerHeader from '@components/DrawerHeader';
-import { useAppSelector } from '@redux/hooks';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
 
 import api from '@utils/api';
 import Skeleton from '@components/Skeleton';
 import { navigate } from '@utils/NavigationUtils';
+import { setIamSigner } from '@redux/slices/envelopeSlice';
 
 const Gradients = {
   green: ['#22C55E', '#16A34A'],
@@ -47,6 +51,7 @@ const HomeScreen = ({ navigation }) => {
 
   const userId = useAppSelector(state => state.auth.user?.id);
   const userName = useAppSelector(state => state.auth.user?.first_name);
+  const dispatch = useAppDispatch();
 
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
@@ -79,6 +84,11 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     fetchDashboard();
   }, [userId]);
+
+  const handleSelfSigning = () => {
+    dispatch(setIamSigner(true));
+    navigate('Upload')
+  }
 
 
   return (
@@ -153,6 +163,34 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.title}>Get Started</Text>
                   <Text style={styles.subtitle}>
                     Request signatures quickly & securely
+                  </Text>
+                </View>
+              </View>
+
+
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={handleSelfSigning}
+          >
+            <LinearGradient
+              colors={['#f65c80', '#ed3a5b']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.getStartedBtn}
+            >
+
+              <View style={styles.left}>
+                <View style={styles.iconBox}>
+                  <Signature size={fp(3)} color="#fff" />
+                </View>
+
+                <View>
+                  <Text style={styles.title}>Self Signing</Text>
+                  <Text style={styles.subtitle}>
+                    Securely sign documents for personal use
                   </Text>
                 </View>
               </View>

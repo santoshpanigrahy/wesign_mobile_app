@@ -21,30 +21,28 @@ import {
   Palette,
   Paperclip
 } from 'lucide-react-native';
-import { Fonts, fp, hp, wp } from '@utils/Constants';
+import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 
 const fields = [
   { type: 'signature', label: 'Sign', icon: Signature },
   { type: 'initial', label: 'Initial', icon: CaseUpper },
   { type: 'stamp', label: 'Stamp', icon: Stamp },
   { type: 'date_signed', label: 'Date', icon: CalendarDays },
-  { type: 'full_name', label: 'Name', icon: User },
+  { type: 'full_name', label: 'Full Name', icon: User },
+  { type: 'first_name', label: 'First Name', icon: User },
+  { type: 'last_name', label: 'Last Name', icon: User },
   { type: 'email', label: 'Email', icon: Mail },
   { type: 'company', label: 'Company', icon: Building2 },
   { type: 'title', label: 'Title', icon: CheckSquare },
-  { type: 'comment_text', label: 'Text', icon: Heading },
   { type: 'plain_text', label: 'Note', icon: NotepadText },
   { type: 'checkbox', label: 'Checkbox', icon: SquareCheck },
-  { type: 'dropdown', label: 'Dropdown', icon: SquareChevronDown },
-  { type: 'radio', label: 'Radio', icon: CircleDot },
-  { type: 'drawing', label: 'Drawing', icon: Palette },
-  { type: 'attachment', label: 'Attachment', icon: Paperclip },
+  //  { type: 'plain_text', label: 'Note', icon: NotepadText },
 ];
 
-const CanvasBottomFieldsBar = ({ selectedType, onSelect, selectedRecipient }) => {
+const CanvasIamSignerFields = ({ selectedType, onSelect, selectedRecipient }) => {
 
-  const recpBgColor = selectedRecipient?.meta_info?.recepient_color + "40";
-  const recpBorderColor = selectedRecipient?.meta_info?.recepient_border_color;
+  const recpBgColor = Colors.iamSigner + "40";
+  const recpBorderColor = Colors.iamSigner;
   return (
     <View style={{
 
@@ -64,9 +62,9 @@ const CanvasBottomFieldsBar = ({ selectedType, onSelect, selectedRecipient }) =>
               key={item.type}
               onPress={() => {
                 if (selectedType === item.type) {
-                  onSelect(null); // toggle OFF
+                  onSelect(null);
                 } else {
-                  onSelect(item.type); // toggle ON
+                  onSelect(item.type);
                 }
               }}
               style={{
@@ -102,4 +100,4 @@ const CanvasBottomFieldsBar = ({ selectedType, onSelect, selectedRecipient }) =>
   );
 };
 
-export default CanvasBottomFieldsBar;
+export default CanvasIamSignerFields;

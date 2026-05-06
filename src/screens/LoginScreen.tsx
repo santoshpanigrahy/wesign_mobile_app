@@ -20,18 +20,23 @@ import {loginUser, setUser, updateToken, updateUser} from '@slices/authSlice';
 
 import {Mail, Lock} from 'lucide-react-native';
 import {useAppSelector} from '@redux/hooks';
-// import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 import api from '@utils/api';
 import {navigate, resetAndNavigate} from '@utils/NavigationUtils';
 import {useFocusEffect} from '@react-navigation/native';
 import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
+import appleAuth, {
+  AppleButton,
+} from '@invertase/react-native-apple-authentication';
 
-// GoogleSignin.configure({
-//   scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-//   webClientId: '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
-
-// });
+GoogleSignin.configure({
+  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+  webClientId:
+    '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
+  iosClientId:
+    '396564745764-pg61tt1q905j1sol45agoj7kb1htc28a.apps.googleusercontent.com',
+});
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
@@ -59,17 +64,40 @@ const LoginScreen = () => {
   };
 
   const signInWithGoogle = async () => {
-    // try {
-    //   await GoogleSignin.hasPlayServices();
-    //   const userInfo = await GoogleSignin.signIn();
-    //   const idToken = userInfo?.data?.idToken;
-    //   if (!idToken) return;
-    //   loginWithGoogle(idToken);
-    // } catch (error) {
-    //   console.log('Google Login Error:', error);
-    //   Toast.show({ type: 'error', text1: error?.message });
-    // }
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log('Google Sign-In Success:', userInfo);
+      const idToken = userInfo?.data?.idToken;
+      if (!idToken) return;
+      loginWithGoogle(idToken);
+    } catch (error) {
+      console.log('Google Login Error:', error);
+      Toast.show({type: 'error', text1: error?.message});
+    }
   };
+
+  async function onAppleButtonPress() {
+    // performs login request
+    const appleAuthRequestResponse = await appleAuth.performRequest({
+      requestedOperation: appleAuth.Operation.LOGIN,
+      // Note: it appears putting FULL_NAME first is important, see issue #293
+      requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+    });
+
+    // get current authentication state for user
+    // /!\ This method must be tested on a real device. On the iOS simulator it always throws an error.
+    const credentialState = await appleAuth.getCredentialStateForUser(
+      appleAuthRequestResponse.user,
+    );
+    console.log(
+      'Apple Credential State:',
+      appleAuthRequestResponse.identityToken,
+    );
+    const idToken = appleAuthRequestResponse?.identityToken;
+    if (!idToken) return;
+    loginWithApple(idToken);
+  }
 
   const loginWithGoogle = async idToken => {
     dispatch(showLoader('Loading'));
@@ -81,7 +109,7 @@ const LoginScreen = () => {
       const response = await api.post(`/auth/google/verify`, requestData);
 
       const data = response.data;
-
+      console.log('Google Login API Response:', data);
       if (data.status === true) {
         await GoogleSignin.signOut();
 
@@ -110,6 +138,49 @@ const LoginScreen = () => {
       }
     } catch (error) {
       console.log('Login API Error:', error);
+      Toast.show({type: 'error', text1: 'Something went wrong'});
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
+  const loginWithApple = async idToken => {
+    dispatch(showLoader('Loading'));
+    try {
+      const requestData = {
+        token: idToken,
+      };
+
+      const response = await api.post(`/auth/apple/verify`, requestData);
+
+      const data = response.data;
+      console.log('Apple Login API Response:', data);
+      if (data.status === true) {
+        if (data.is_user_registered) {
+          const loginSuccessResponse = {
+            user: data.user,
+            token: data.token,
+            subscription: data.subscription,
+          };
+
+          console.log(data.user, data.token);
+
+          dispatch(setUser(data.user));
+          dispatch(updateToken(data.token));
+
+          // setTimeout(() => {
+          navigate('Drawer');
+          // }, 100);
+
+          // Navigate Dashboard
+        } else {
+          Toast.show({type: 'error', text1: 'User not logged in'});
+        }
+      } else {
+        Toast.show({type: 'error', text1: data.message});
+      }
+    } catch (error) {
+      console.log('Login API Error:', error, error.message);
       Toast.show({type: 'error', text1: 'Something went wrong'});
     } finally {
       dispatch(hideLoader());
@@ -202,7 +273,17 @@ const LoginScreen = () => {
               <Text style={styles.socialText}>Continue with Google</Text>
             </View>
           </TouchableOpacity>
-
+          <View>
+            <AppleButton
+              buttonStyle={AppleButton.Style.WHITE}
+              buttonType={AppleButton.Type.SIGN_IN}
+              style={{
+                width: 160, // You must specify a width
+                height: 45, // You must specify a height
+              }}
+              onPress={() => onAppleButtonPress()}
+            />
+          </View>
           {/* <TouchableOpacity style={styles.socialBtn}>
             <View style={styles.socialBtnWrapper}>
               <Image source={require('@assets/icons/apple.png')} alt='apple' style={styles.socialIcon} />

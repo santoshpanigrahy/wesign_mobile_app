@@ -1,6 +1,7 @@
 #import "AppDelegate.h"
-
+#import <GoogleSignIn/GoogleSignIn.h>
 #import <React/RCTBundleURLProvider.h>
+#import <React/RCTLinkingManager.h>
 
 @implementation AppDelegate
 
@@ -12,6 +13,23 @@
   self.initialProps = @{};
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+- (BOOL)application:(UIApplication *)application 
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
+  // Handle Google Sign-In
+  if ([GIDSignIn.sharedInstance handleURL:url]) {
+    return YES;
+  }
+  
+  // Handle AppAuth authorization flow
+  if ([self.authorizationFlowManagerDelegate resumeExternalUserAgentFlowWithURL:url]) {
+    return YES;
+  }
+  
+  // Handle other deep links
+  return [RCTLinkingManager application:application openURL:url options:options];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge

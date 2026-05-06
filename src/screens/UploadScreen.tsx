@@ -33,7 +33,7 @@ import {
   MenuOption,
   MenuTrigger,
 } from 'react-native-popup-menu';
-// import { authorize } from 'react-native-app-auth';
+import {authorize} from 'react-native-app-auth';
 
 const validTypes = [
   'image/gif',
@@ -85,7 +85,10 @@ const FILE_TYPE_MAP = {
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
 };
 
-// import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import RNFS from 'react-native-fs';
 import {
   deleteDocumentByIndex,
@@ -103,14 +106,17 @@ import Toast from 'react-native-toast-message';
 import {launchImageLibrary} from 'react-native-image-picker';
 
 const configureGoogleDrive = () => {
-  // GoogleSignin.configure({
-  //   // This scope is MANDATORY to read files from Drive
-  //   scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-  //   // You get this ID from the Google Cloud Console
-  //   // webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
-  //   webClientId: '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
-  //   offlineAccess: true,
-  // });
+  GoogleSignin.configure({
+    // This scope is MANDATORY to read files from Drive
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    // You get this ID from the Google Cloud Console
+    // webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
+    webClientId:
+      '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
+    iosClientId:
+      '396564745764-pg61tt1q905j1sol45agoj7kb1htc28a.apps.googleusercontent.com',
+    offlineAccess: true,
+  });
 };
 
 const dropboxAuthConfig = {
@@ -165,50 +171,49 @@ const UploadScreen = () => {
   };
 
   const fetchGoogleDrivePDFs = async () => {
-    // try {
-    //   // 1. Ensure the device supports Google Play Services (Android)
-    //   await GoogleSignin.hasPlayServices();
-    //   // 2. Prompt the user to log in and authorize wesign
-    //   const userInfo = await GoogleSignin.signIn();
-    //   // 3. Get the access token to use with the Drive API
-    //   const tokens = await GoogleSignin.getTokens();
-    //   const accessToken = tokens.accessToken;
-    //   if (!accessToken) {
-    //     throw new Error('No access token received');
-    //   }
-    //   setGoogleAccessToken(accessToken)
-    //   const response = await fetch(
-    //     'https://www.googleapis.com/drive/v3/files?q=mimeType="application/pdf"&fields=files(id,name,mimeType)',
-    //     {
-    //       method: 'GET',
-    //       headers: {
-    //         Authorization: `Bearer ${accessToken}`,
-    //         Accept: 'application/json',
-    //       },
-    //     }
-    //   );
-    //   const data = await response.json();
-    //   if (data.files && data.files.length > 0) {
-    //     console.log('Found PDFs:', data.files);
-    //     return data.files;
-    //   } else {
-    //     console.log('No PDFs found in this Drive.');
-    //     GoogleSignin.signOut();
-    //     return [];
-    //   }
-    // } catch (error) {
-    //   if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-    //     console.log('User cancelled the login flow');
-    //   } else if (error.code === statusCodes.IN_PROGRESS) {
-    //     console.log('Sign in is already in progress');
-    //   } else {
-    //     console.error('Error fetching from Google Drive:', error);
-    //   }
-    // }
+    try {
+      // 1. Ensure the device supports Google Play Services (Android)
+      await GoogleSignin.hasPlayServices();
+      // 2. Prompt the user to log in and authorize wesign
+      const userInfo = await GoogleSignin.signIn();
+      // 3. Get the access token to use with the Drive API
+      const tokens = await GoogleSignin.getTokens();
+      const accessToken = tokens.accessToken;
+      if (!accessToken) {
+        throw new Error('No access token received');
+      }
+      setGoogleAccessToken(accessToken);
+      const response = await fetch(
+        'https://www.googleapis.com/drive/v3/files?q=mimeType="application/pdf"&fields=files(id,name,mimeType)',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        },
+      );
+      const data = await response.json();
+      if (data.files && data.files.length > 0) {
+        console.log('Found PDFs:', data.files);
+        return data.files;
+      } else {
+        console.log('No PDFs found in this Drive.');
+        GoogleSignin.signOut();
+        return [];
+      }
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('User cancelled the login flow');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('Sign in is already in progress');
+      } else {
+        console.error('Error fetching from Google Drive:', error);
+      }
+    }
   };
 
   const handleDriveLogin = async () => {
-    return;
     sheetRef?.current?.close();
     try {
       // if (googleDriveFiles?.length === 0 && !googleAccessToken) {
@@ -320,39 +325,43 @@ const UploadScreen = () => {
   const [dropboxFiles, setDropboxFiles] = useState([]);
   const dropboxRef = useRef(null);
   const connectAndFetchDropbox = async () => {
-    // sheetRef?.current?.close();
-    // dispatch(showLoader('Loading'));
-    // try {
-    //   const authState = await authorize(dropboxAuthConfig);
-    //   const token = authState.accessToken;
-    //   setDropboxAccessToken(token);
-    //   const response = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Authorization': `Bearer ${token}`,
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       path: "", // Root directory
-    //       recursive: true, // Set to true to find PDFs inside subfolders
-    //       include_media_info: false,
-    //     })
-    //   });
-    //   const data = await response.json();
-    //   if (data.entries && data.entries.length > 0) {
-    //     const pdfFiles = data.entries.filter(file =>
-    //       file['.tag'] === 'file' && file.name.toLowerCase().endsWith('.pdf')
-    //     );
-    //     setDropboxFiles(pdfFiles);
-    //     dropboxRef?.current?.snapToIndex(0);
-    //   } else {
-    //     setDropboxFiles([]);
-    //   }
-    // } catch (error) {
-    //   console.error('Dropbox Auth/Fetch Error:', error);
-    // } finally {
-    //   dispatch(hideLoader());
-    // }
+    sheetRef?.current?.close();
+    dispatch(showLoader('Loading'));
+    try {
+      const authState = await authorize(dropboxAuthConfig);
+      const token = authState.accessToken;
+      setDropboxAccessToken(token);
+      const response = await fetch(
+        'https://api.dropboxapi.com/2/files/list_folder',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            path: '', // Root directory
+            recursive: true, // Set to true to find PDFs inside subfolders
+            include_media_info: false,
+          }),
+        },
+      );
+      const data = await response.json();
+      if (data.entries && data.entries.length > 0) {
+        const pdfFiles = data.entries.filter(
+          file =>
+            file['.tag'] === 'file' && file.name.toLowerCase().endsWith('.pdf'),
+        );
+        setDropboxFiles(pdfFiles);
+        dropboxRef?.current?.snapToIndex(0);
+      } else {
+        setDropboxFiles([]);
+      }
+    } catch (error) {
+      console.error('Dropbox Auth/Fetch Error:', error);
+    } finally {
+      dispatch(hideLoader());
+    }
   };
 
   const handleDropboxFileSelect = async file => {

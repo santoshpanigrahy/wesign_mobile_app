@@ -181,8 +181,8 @@ const styles = StyleSheet.create({
 
     },
     closeButton: {
-        width: wp(6),
-        height: wp(6),
+        width: wp(7),
+        height: wp(7),
         borderRadius: wp(4),
         backgroundColor: Colors.border,
         justifyContent: 'center',

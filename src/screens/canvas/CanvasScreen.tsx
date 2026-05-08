@@ -167,7 +167,7 @@ const CanvasScreen = ({ navigation }) => {
       loadCanvas();
       dispatch(hideLoader())
 
-    }, 5000);
+    }, 7000);
 
     return () => clearTimeout(timer);
   }, []);

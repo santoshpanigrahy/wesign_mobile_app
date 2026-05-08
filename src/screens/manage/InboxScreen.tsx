@@ -520,7 +520,7 @@ const InboxScreen = ({ navigation }) => {
                 </View>
 
                 {
-                    !firstLoading && data.length === 0 && <NoDataFound />
+                    !firstLoading && data.length === 0 && <NoDataFound message="You'll Find Envelopes Sent To You Here" />
                 }
 
 

@@ -520,7 +520,7 @@ const SentScreen = ({ navigation }) => {
                 </View>
 
                 {
-                    !firstLoading && data.length === 0 && <NoDataFound />
+                    !firstLoading && data.length === 0 && <NoDataFound message="You Did Not Send An Envelope To Anyone" />
                 }
 
 

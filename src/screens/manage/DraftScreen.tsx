@@ -206,6 +206,7 @@ const DraftScreen = ({ navigation }) => {
                 last_changed: item.last_changed
             }));
 
+            // setData([])
 
             setData(prev => {
 
@@ -520,7 +521,7 @@ const DraftScreen = ({ navigation }) => {
 
 
                 {
-                    !firstLoading && data.length === 0 && <NoDataFound />
+                    !firstLoading && data.length === 0 && <NoDataFound onRetry={() => navigate('Upload')} message='You Did Not Save Any Envelope' buttonText='Create Envelope' />
                 }
 
                 {firstLoading && data.length === 0 ? (

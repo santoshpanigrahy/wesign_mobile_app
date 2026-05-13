@@ -38,7 +38,7 @@ const RecipientItem = memo(({ item, onSelectRecipient }) => {
   );
 });
 
-const AddressBook = ({ onSelectRecipient }) => {
+const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
   const userId = useAppSelector(state => state.auth.user?.id);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -52,6 +52,7 @@ const AddressBook = ({ onSelectRecipient }) => {
       const res = await api.get(`/api/recepient/list?user=${userId}`);
       setData(res.data?.recipients || []);
       setFilteredData(res.data?.recipients || []);
+      setRecipientsList(res.data?.recipients || [])
     } catch (error) {
       console.log('API ERROR:', error);
     } finally {
@@ -111,10 +112,10 @@ const AddressBook = ({ onSelectRecipient }) => {
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
 
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews={true}
+        initialNumToRender={15}
+        maxToRenderPerBatch={15}
+        windowSize={15}
+        removeClippedSubviews={false}
         // refreshControl={
         //   <RefreshControl refreshing={refreshing} onRefresh={fetchDashboard} />
         // }

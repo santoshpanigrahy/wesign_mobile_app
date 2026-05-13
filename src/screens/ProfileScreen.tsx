@@ -119,12 +119,29 @@ const AssetCard = memo(({ title, icon: Icon, imageUrl, onEdit, onDelete }) => (
 const ProfilePagerScreen = ({ navigation }) => {
 
     const user = useAppSelector(state => state?.auth?.user);
+
     const dispatch = useAppDispatch();
 
-    const { id, first_name, last_name, phone, email, company_name, banner_link, logo_link, job_title, country, state, time_zone, zip, address, city } = user;
-    // console.log(user)
-    const fullName = first_name + " " + last_name;
-    const initial = first_name?.slice(0, 1) + last_name?.slice(0, 1);
+    const {
+        id,
+        first_name = "",
+        last_name = "",
+        phone,
+        email,
+        company_name,
+        banner_link,
+        logo_link,
+        job_title,
+        country,
+        state,
+        time_zone,
+        zip,
+        address,
+        city
+    } = user || {};
+
+    const fullName = first_name && last_name ? `${first_name} ${last_name}` : "";
+    const initial = (first_name?.slice(0, 1) || "") + (last_name?.slice(0, 1) || "");
     const pagerRef = useRef(null);
     const bottomSheetRef = useRef(null);
     const timezoneRef = useRef(null);
@@ -198,6 +215,7 @@ const ProfilePagerScreen = ({ navigation }) => {
 
 
     const fetchAllAssetsAtOnce = async () => {
+        if (!user) return
         dispatch(showLoader('Fetching'));
 
 
@@ -613,6 +631,10 @@ const ProfilePagerScreen = ({ navigation }) => {
     const renderBackdrop = useCallback(props => (
         <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.5} />
     ), []);
+
+    if (!user) {
+        return null;
+    }
 
     return (
         <SafeAreaView style={styles.container}>

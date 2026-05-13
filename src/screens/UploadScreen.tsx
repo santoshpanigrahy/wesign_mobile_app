@@ -51,6 +51,8 @@ const validTypes = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'text/plain',
   'text/csv',
+  'application/vnd.ms-excel',
+  'text/x-Algol68',
   'text/html',
   'image/jpg',
   'image/jpeg',
@@ -60,6 +62,12 @@ const validTypes = [
   'application/ms-doc',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/csv',
+  'application/csv',
+  'text/comma-separated-values',
+  'application/vnd.ms-excel',
+  'application/octet-stream',
+  'text/plain',
 ];
 
 const FILE_ICONS = {
@@ -132,7 +140,7 @@ const UploadScreen = () => {
   const userId = useAppSelector(state => state.auth.user?.id);
   const [googleDriveFiles, setGoogleDriveFiles] = useState([]);
   // const dispatch = useAppDispatch()
-
+  const im_signer = useAppSelector(state => state?.envelope?.im_signer);
   useEffect(() => {
     configureGoogleDrive();
   }, []);
@@ -777,7 +785,11 @@ const UploadScreen = () => {
       const data = response.data;
 
       if (data?.status === true) {
-        navigate('Recipient', {keys: requestData});
+        if (im_signer) {
+          navigate('Canvas');
+        } else {
+          navigate('Recipient', {keys: requestData});
+        }
       }
     } catch (err) {
       console.log(err);

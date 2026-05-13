@@ -4,6 +4,7 @@ import DateMeta from '@screens/canvas/components/fieldMeta/DateMeta';
 import DropdownMeta from '@screens/canvas/components/fieldMeta/DropdownMeta';
 import InitialMeta from '@screens/canvas/components/fieldMeta/InitialMeta';
 import NoteMeta from '@screens/canvas/components/fieldMeta/NoteMeta';
+import RadioMeta from '@screens/canvas/components/fieldMeta/RadioMeta';
 import SignatureMeta from '@screens/canvas/components/fieldMeta/SignatureMeta';
 import TextMeta from '@screens/canvas/components/fieldMeta/TextMeta';
 import {
@@ -41,8 +42,8 @@ export const FIELD_CONFIG = {
   stamp: {
     label: "Stamp",
     icon: Stamp,
-    width: 100,
-    height: 30,
+    width: 65,
+    height: 65,
   },
   date_signed: {
     label: "Date",
@@ -90,7 +91,7 @@ export const FIELD_CONFIG = {
   checkbox: {
     label: "Checkbox",
     icon: CheckSquare,
-    width: 20, // 🔥 slightly bigger for UX
+    width: 20,
     height: 20,
   },
   dropdown: {
@@ -102,8 +103,8 @@ export const FIELD_CONFIG = {
   radio: {
     label: "Radio",
     icon: CircleDot,
-    width: 50,
-    height: 50,
+    width: 20,
+    height: 20,
   },
   drawing: {
     label: "Drawing",
@@ -143,7 +144,8 @@ export const FIELD_META_COMPONENTS = {
   plain_text: NoteMeta,
   checkbox: CheckboxMeta,
   dropdown: DropdownMeta,
-  attachment: AttachmentMeta
+  attachment: AttachmentMeta,
+  radio: RadioMeta
 };
 
 
@@ -258,5 +260,6 @@ export const ALL_COLORS = [
 
 export const TEXT_STYLE_ELIGIBLE = ['date_signed', 'name', 'email', 'company', 'title', 'comment_text', 'plain_text'];
 
-export const PREFILLED_FIELDS = ['my_signature', 'my_initial', 'my_stamp', 'my_date_signed', 'my_full_name', 'my_email', 'my_company', 'plain_text']
+export const PREFILLED_FIELDS = ['my_signature', 'my_initial', 'my_stamp', 'my_date_signed', 'my_full_name', 'my_email', 'my_company', 'plain_text'];
+export const IAMSIGNER_FIELDS = ['signature', 'initial', 'stamp', 'date_signed', 'full_name', 'first_name', 'last_name', 'email', 'company', 'title'];
 

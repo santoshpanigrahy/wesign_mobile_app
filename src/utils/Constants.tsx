@@ -35,6 +35,7 @@ export const Colors = {
   error: '#EF4444',
   warning: '#F59E0B',
   prefilled: "#FFC300",
+  iamSigner: '#cafa7d',
 
   // 🧩 Extras
   white: '#FFFFFF',

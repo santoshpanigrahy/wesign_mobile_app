@@ -30,6 +30,7 @@ import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
 import appleAuth, {
   AppleButton,
 } from '@invertase/react-native-apple-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 GoogleSignin.configure({
   scopes: ['https://www.googleapis.com/auth/drive.readonly'],
@@ -126,7 +127,8 @@ const LoginScreen = () => {
 
           dispatch(setUser(data.user));
           dispatch(updateToken(data.token));
-
+          await AsyncStorage.setItem('user', JSON.stringify(data.user));
+          await AsyncStorage.setItem('token', data.token);
           // setTimeout(() => {
           navigate('Drawer');
           // }, 100);
@@ -158,6 +160,7 @@ const LoginScreen = () => {
       const data = response.data;
       console.log('Apple Login API Response:', data);
       if (data.status === true) {
+        console.log('Apple Login', data.is_user_registered);
         if (data.is_user_registered) {
           const loginSuccessResponse = {
             user: data.user,
@@ -168,14 +171,18 @@ const LoginScreen = () => {
           console.log(data.user, data.token);
 
           dispatch(setUser(data.user));
+          console.log('171');
           dispatch(updateToken(data.token));
-
+          console.log('173');
+          await AsyncStorage.setItem('user', JSON.stringify(data.user));
+          await AsyncStorage.setItem('token', data.token);
           // setTimeout(() => {
           navigate('Drawer');
           // }, 100);
 
           // Navigate Dashboard
         } else {
+          console.log('179');
           Toast.show({
             type: 'error',
             text1: 'You need to register before you can sign in.',

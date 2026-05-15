@@ -1,45 +1,39 @@
-import React, {
-  forwardRef,
-  useMemo,
-  useCallback,
-} from "react";
-import { StyleSheet, TouchableOpacity, View, Text, Keyboard } from "react-native";
+import React, {forwardRef, useMemo, useCallback} from 'react';
+import {StyleSheet, TouchableOpacity, View, Text, Keyboard} from 'react-native';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
   BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
+} from '@gorhom/bottom-sheet';
 
-import { X } from "lucide-react-native";
-import { Colors, Fonts, fp, wp } from "@utils/Constants";
-import { useKeyboard } from "@utils/documentService";
+import {X} from 'lucide-react-native';
+import {Colors, Fonts, fp, wp} from '@utils/Constants';
+import {useKeyboard} from '@utils/documentService';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type Props = {
   children: React.ReactNode;
   snapPoints?: (string | number)[];
   enableScroll?: boolean;
-  title?: String,
-  withCloseBtn?: boolean,
-
+  title?: String;
+  withCloseBtn?: boolean;
 };
 
 const AppBottomSheet = forwardRef<any, Props>(
   (
     {
       children,
-      snapPoints = ["25%", "50%", "90%"],
+      snapPoints = ['25%', '50%', '90%'],
       enableScroll = false,
       title = null,
       withCloseBtn = true,
-      containerStyle = {}
+      containerStyle = {},
     },
-    ref
+    ref,
   ) => {
-
     const isKeyboardOpen = useKeyboard();
 
     const memoSnapPoints = useMemo(() => snapPoints, []);
-
 
     const renderBackdrop = useCallback(
       (props: any) => (
@@ -51,9 +45,9 @@ const AppBottomSheet = forwardRef<any, Props>(
           opacity={0.3} // ✅ rgba(0,0,0,0.3)
         />
       ),
-      []
+      [],
     );
-
+    const inset = useSafeAreaInsets();
     return (
       <BottomSheet
         ref={ref}
@@ -66,11 +60,8 @@ const AppBottomSheet = forwardRef<any, Props>(
         keyboardBlurBehavior="none" // Change this from "restore" to "none"
         // enableContentPanningGesture={false}
         handleIndicatorStyle={styles.handle}
-
         backgroundStyle={styles.sheetBg}
-        style={{ zIndex: 99 }}
-
-      >
+        style={{zIndex: 99}}>
         {/* {enableScroll ? (
           <BottomSheetScrollView
             contentContainerStyle={styles.content}
@@ -89,48 +80,49 @@ const AppBottomSheet = forwardRef<any, Props>(
         ) : ( */}
         {/* <BottomSheetView style={styles.content}> */}
 
-        <View style={[styles.content, containerStyle]}>
-
-          {
-            (title || withCloseBtn) && <View style={styles.bottomSheetHeader}>
+        <View
+          style={[
+            styles.content,
+            containerStyle,
+            {paddingTop: snapPoints[0] === '100%' ? inset.top : 0},
+          ]}>
+          {(title || withCloseBtn) && (
+            <View style={styles.bottomSheetHeader}>
               <Text style={styles.bottomSheetHeaderText}>{title}</Text>
 
-              {withCloseBtn && <TouchableOpacity onPress={() => {
-                Keyboard.dismiss(); // 👈 Dismiss the keyboard first
-                if (isKeyboardOpen) {
-                  setTimeout(() => {
-                    ref?.current?.close();
-                  }, 250);
-                } else {
-                  ref?.current?.close();
-                }
-
-              }}>
-                <X color={Colors.text_primary} strokeWidth={1.4} />
-              </TouchableOpacity>}
+              {withCloseBtn && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Keyboard.dismiss(); // 👈 Dismiss the keyboard first
+                    if (isKeyboardOpen) {
+                      setTimeout(() => {
+                        ref?.current?.close();
+                      }, 250);
+                    } else {
+                      ref?.current?.close();
+                    }
+                  }}>
+                  <X color={Colors.text_primary} strokeWidth={1.4} />
+                </TouchableOpacity>
+              )}
             </View>
-          }
+          )}
 
-
-          <View style={{ flex: 1 }}>
-            {children}
-          </View>
-
+          <View style={{flex: 1}}>{children}</View>
         </View>
-
 
         {/* </BottomSheetView> */}
         {/* )} */}
       </BottomSheet>
     );
-  }
+  },
 );
 
 export default AppBottomSheet;
 
 const styles = StyleSheet.create({
   sheetBg: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     // borderTopLeftRadius: 20,
     // borderTopRightRadius: 20,
   },
@@ -142,10 +134,10 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: "#ccc",
-    alignSelf: "center",
+    backgroundColor: '#ccc',
+    alignSelf: 'center',
     borderRadius: 2,
-    display: 'none'
+    display: 'none',
   },
   bottomSheetHeader: {
     flexDirection: 'row',
@@ -154,7 +146,6 @@ const styles = StyleSheet.create({
   bottomSheetHeaderText: {
     fontFamily: Fonts.Regular,
     fontSize: fp(2),
-    color: Colors.text_primary
-
-  }
+    color: Colors.text_primary,
+  },
 });

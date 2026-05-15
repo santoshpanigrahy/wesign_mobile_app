@@ -1,24 +1,32 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
 import {
   Rocket,
   Clock,
   Timer,
   CheckCircle2,
-  FileSignature, ArrowRight,
+  FileSignature,
+  ArrowRight,
   UserCheck,
   BadgeCheck,
-  Signature
+  Signature,
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DrawerHeader from '@components/DrawerHeader';
-import { useAppDispatch, useAppSelector } from '@redux/hooks';
+import {useAppDispatch, useAppSelector} from '@redux/hooks';
 
 import api from '@utils/api';
 import Skeleton from '@components/Skeleton';
-import { navigate } from '@utils/NavigationUtils';
-import { setIamSigner } from '@redux/slices/envelopeSlice';
+import {navigate} from '@utils/NavigationUtils';
+import {setIamSigner} from '@redux/slices/envelopeSlice';
 
 const Gradients = {
   green: ['#22C55E', '#16A34A'],
@@ -29,26 +37,29 @@ const Gradients = {
   teal: ['#14B8A6', '#0D9488'],
 };
 
-
-const GradientCard = ({ icon: Icon, value, label, colors }: any) => {
+const GradientCard = ({icon: Icon, value, label, colors}: any) => {
   return (
     <LinearGradient
       colors={colors}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradientCard}
-    >
-      <Icon size={fp(3)} color="#fff" strokeWidth={1.6} />
+      start={{x: 0, y: 0}}
+      end={{x: 1, y: 1}}
+      style={styles.gradientCard}>
+      <View style={styles.gradientcardinner}>
+        <Icon size={fp(3)} color="#fff" strokeWidth={1.6} />
 
-      <View>
-        <Text style={styles.gradientValue}>{value}</Text>
-        <Text style={styles.gradientLabel}>{label}</Text>
+        <View style={{flex: 1}}>
+          <Text style={styles.gradientValue} numberOfLines={1}>
+            {value}
+          </Text>
+          <Text style={styles.gradientLabel} numberOfLines={2}>
+            {label}
+          </Text>
+        </View>
       </View>
     </LinearGradient>
   );
 };
-const HomeScreen = ({ navigation }) => {
-
+const HomeScreen = ({navigation}) => {
   const userId = useAppSelector(state => state.auth.user?.id);
   const userName = useAppSelector(state => state.auth.user?.first_name);
   const dispatch = useAppDispatch();
@@ -56,16 +67,13 @@ const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
 
-
   const fetchDashboard = async () => {
     setRefreshing(true);
     try {
-      const res = await api.get(
-        `/api/dashboard/information?user=${userId}`
-      );
+      const res = await api.get(`/api/dashboard/information?user=${userId}`);
 
       setData(res.data);
-      console.log(res.data)
+      console.log(res.data);
     } catch (error) {
       console.log('API ERROR:', error);
     } finally {
@@ -73,13 +81,9 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-
   const onRefresh = useCallback(async () => {
-
     await fetchDashboard();
-
   }, [userId]);
-
 
   useEffect(() => {
     fetchDashboard();
@@ -87,30 +91,29 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSelfSigning = () => {
     dispatch(setIamSigner(true));
-    navigate('Upload')
-  }
-
+    navigate('Upload');
+  };
 
   return (
     <ScrollView
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{flexGrow: 1}}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+      }>
       <View style={styles.container}>
         <DrawerHeader navigation={navigation} title="Home" />
         <View style={styles.inner}>
-
           <Text style={styles.heading}>Hello, {userName}!</Text>
 
-          {
-            refreshing ? <View style={styles.cardRow}>
+          {refreshing ? (
+            <View style={styles.cardRow}>
               <Skeleton style={styles.skeletonCard} />
               <Skeleton style={styles.skeletonCard} />
               <Skeleton style={styles.skeletonCard} />
               <Skeleton style={styles.skeletonCard} />
-            </View> : <View style={styles.cardRow}>
+            </View>
+          ) : (
+            <View style={styles.cardRow}>
               <GradientCard
                 icon={Rocket}
                 value={data?.action_required || 0}
@@ -128,7 +131,6 @@ const HomeScreen = ({ navigation }) => {
               <GradientCard
                 icon={Timer}
                 value={data?.expiring_soon || 0}
-
                 label="Expiring Soon"
                 colors={Gradients.orange}
               />
@@ -136,24 +138,20 @@ const HomeScreen = ({ navigation }) => {
               <GradientCard
                 icon={CheckCircle2}
                 value={data?.completed || 0}
-
                 label="Completed"
                 colors={Gradients.green}
               />
             </View>
-          }
+          )}
 
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => navigate('Upload')}
-          >
+            onPress={() => navigate('Upload')}>
             <LinearGradient
               colors={['#3B82F6', '#2563EB']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.getStartedBtn}
-            >
-
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.getStartedBtn}>
               <View style={styles.left}>
                 <View style={styles.iconBox}>
                   <FileSignature size={fp(3)} color="#fff" />
@@ -166,22 +164,15 @@ const HomeScreen = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
-
-
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={handleSelfSigning}
-          >
+          <TouchableOpacity activeOpacity={0.9} onPress={handleSelfSigning}>
             <LinearGradient
               colors={['#f65c80', '#ed3a5b']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.getStartedBtn}
-            >
-
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
+              style={styles.getStartedBtn}>
               <View style={styles.left}>
                 <View style={styles.iconBox}>
                   <Signature size={fp(3)} color="#fff" />
@@ -194,17 +185,10 @@ const HomeScreen = ({ navigation }) => {
                   </Text>
                 </View>
               </View>
-
-
             </LinearGradient>
           </TouchableOpacity>
-
-
-
         </View>
-
       </View>
-
     </ScrollView>
   );
 };
@@ -218,7 +202,7 @@ const styles = StyleSheet.create({
     // padding: wp(5),
   },
   inner: {
-    padding: wp(5)
+    padding: wp(5),
   },
 
   heading: {
@@ -279,23 +263,32 @@ const styles = StyleSheet.create({
   skeletonCard: {
     width: '48%',
     borderRadius: wp(1),
-    height: hp(10)
+    height: hp(10),
   },
   gradientCard: {
     width: '48%',
     borderRadius: wp(1),
-    padding: wp(4),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
+    // padding: wp(4),
     marginBottom: hp(0.5),
+    // minHeight: hp(11),
+    overflow: 'hidden',
 
     shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 5,
   },
-
+  gradientcardinner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
   gradientValue: {
     fontSize: fp(2.6),
     fontFamily: Fonts.Bold,
@@ -306,12 +299,12 @@ const styles = StyleSheet.create({
     fontSize: fp(1.6),
     color: '#E5E7EB',
     fontFamily: Fonts.Regular,
+    flexWrap: 'wrap',
   },
 
   getStartedBtn: {
     width: '100%',
     borderRadius: wp(1),
-    padding: wp(5),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -324,6 +317,7 @@ const styles = StyleSheet.create({
   },
 
   left: {
+    padding: wp(5),
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(3),

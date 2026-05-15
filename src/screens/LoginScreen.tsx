@@ -90,10 +90,11 @@ const LoginScreen = () => {
     const credentialState = await appleAuth.getCredentialStateForUser(
       appleAuthRequestResponse.user,
     );
-    console.log(
-      'Apple Credential State:',
-      appleAuthRequestResponse.identityToken,
-    );
+    // console.log(
+    //   'Apple Credential State:',
+    //   appleAuthRequestResponse.identityToken,
+    // );
+    console.log('Apple Credential State:', appleAuthRequestResponse);
     const idToken = appleAuthRequestResponse?.identityToken;
     if (!idToken) return;
     loginWithApple(idToken);
@@ -151,7 +152,7 @@ const LoginScreen = () => {
         token: idToken,
       };
 
-      const response = await api.post(`/auth/apple/verify`, requestData);
+      const response = await api.post(`/auth/apple/verify/mobile`, requestData);
 
       const data = response.data;
       console.log('Apple Login API Response:', data);
@@ -174,13 +175,16 @@ const LoginScreen = () => {
 
           // Navigate Dashboard
         } else {
-          Toast.show({type: 'error', text1: 'User not logged in'});
+          Toast.show({
+            type: 'error',
+            text1: 'You need to register before you can sign in.',
+          });
         }
       } else {
         Toast.show({type: 'error', text1: data.message});
       }
     } catch (error) {
-      console.log('Login API Error:', error, error.message);
+      console.log('Login API Error:', error, error.response?.data);
       Toast.show({type: 'error', text1: 'Something went wrong'});
     } finally {
       dispatch(hideLoader());

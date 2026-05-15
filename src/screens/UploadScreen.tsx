@@ -488,7 +488,8 @@ const UploadScreen = () => {
     try {
       const results = await pick({
         allowMultiSelection: true,
-        type: ['*/*'],
+        type: ['public.content', 'public.data'],
+        // type: ['*/*'],
       });
 
       sheetRef?.current.close();

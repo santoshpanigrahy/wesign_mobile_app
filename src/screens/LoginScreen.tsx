@@ -9,6 +9,7 @@ import {
   StatusBar,
   BackHandler,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import {useForm, Controller} from 'react-hook-form';
 import {useDispatch} from 'react-redux';
@@ -277,17 +278,19 @@ const LoginScreen = () => {
               <Text style={styles.socialText}>Continue with Google</Text>
             </View>
           </TouchableOpacity>
-          <View>
-            <AppleButton
-              buttonStyle={AppleButton.Style.WHITE}
-              buttonType={AppleButton.Type.SIGN_IN}
-              style={{
-                width: 160, // You must specify a width
-                height: 45, // You must specify a height
-              }}
-              onPress={() => onAppleButtonPress()}
-            />
-          </View>
+          {Platform.OS === 'ios' && (
+            <View>
+              <AppleButton
+                buttonStyle={AppleButton.Style.WHITE}
+                buttonType={AppleButton.Type.SIGN_IN}
+                style={{
+                  width: 160, // You must specify a width
+                  height: 45, // You must specify a height
+                }}
+                onPress={() => onAppleButtonPress()}
+              />
+            </View>
+          )}
           {/* <TouchableOpacity style={styles.socialBtn}>
             <View style={styles.socialBtnWrapper}>
               <Image source={require('@assets/icons/apple.png')} alt='apple' style={styles.socialIcon} />

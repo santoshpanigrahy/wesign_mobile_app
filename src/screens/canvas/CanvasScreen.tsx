@@ -259,6 +259,59 @@ const CanvasScreen = ({navigation}) => {
     stamp: fetchStamp,
   };
 
+  // Helper function to call getDocumentUrl with retry logic for empty signed_urls
+  const getDocumentUrlWithRetry = async (document_key, maxRetries = 50) => {
+    let attempts = 0;
+
+    // Different messages to show at different intervals
+    const getProgressMessage = attemptNum => {
+      if (attemptNum <= 3) {
+        return 'Processing your document...';
+      } else if (attemptNum <= 8) {
+        return 'Your document is being prepared...';
+      } else if (attemptNum <= 15) {
+        return 'Large documents take a bit longer...';
+      } else if (attemptNum <= 25) {
+        return 'Almost there, please wait...';
+      } else if (attemptNum <= 35) {
+        return 'Still processing, thanks for your patience...';
+      } else if (attemptNum <= 45) {
+        return 'Finalizing your document...';
+      } else {
+        return 'Just a few more moments...';
+      }
+    };
+
+    while (attempts < maxRetries) {
+      const urls = await getDocumentUrl(document_key);
+
+      // Check if signed_urls is empty
+      if (urls?.signed_urls && urls.signed_urls.length > 0) {
+        console.log(
+          `Document URLs fetched successfully on attempt ${attempts + 1}`,
+        );
+        return urls;
+      }
+
+      attempts++;
+      console.log(
+        `signed_urls  empty, retrying... (attempt ${attempts}/${maxRetries})`,
+      );
+
+      // Update loader message with contextual progress message
+      dispatch(showLoader(getProgressMessage(attempts)));
+
+      // Wait 4 seconds before next retry
+      if (attempts < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 4000));
+      }
+    }
+
+    // Return last result even if empty (let existing error handling manage it)
+    console.warn(`Max retries reached for document ${document_key}`);
+    return await getDocumentUrl(document_key);
+  };
+
   const loadCanvas = async () => {
     dispatch(showLoader('Loading Documents'));
     try {
@@ -267,7 +320,7 @@ const CanvasScreen = ({navigation}) => {
       let allPages = [];
       for (let i = 0; i < docs.length; i++) {
         const doc = docs[i];
-        const urls = await getDocumentUrl(doc.document_key);
+        const urls = await getDocumentUrlWithRetry(doc.document_key);
         console.log('Document URLs', urls);
         const pages = await mapUrlsToPages(urls, doc, i + 1);
         allPages = [...allPages, ...pages];

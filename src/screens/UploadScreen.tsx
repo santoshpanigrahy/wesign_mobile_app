@@ -8,6 +8,7 @@ import {
   Image,
   BackHandler,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   ArrowLeft,
@@ -488,7 +489,8 @@ const UploadScreen = () => {
     try {
       const results = await pick({
         allowMultiSelection: true,
-        type: ['public.content', 'public.data'],
+        type:
+          Platform.OS === 'ios' ? ['public.content', 'public.data'] : ['*/*'],
         // type: ['*/*'],
       });
 

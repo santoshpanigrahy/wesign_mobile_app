@@ -11,22 +11,22 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
-import {useDispatch} from 'react-redux';
+import { useForm, Controller } from 'react-hook-form';
+import { useDispatch } from 'react-redux';
 
 import AppInput from '@components/AppInput';
 import AppButton from '@components/AppButton';
-import {Colors, wp, hp, fp, Fonts} from '@utils/Constants';
-import {loginUser, setUser, updateToken, updateUser} from '@slices/authSlice';
+import { Colors, wp, hp, fp, Fonts } from '@utils/Constants';
+import { loginUser, setUser, updateToken, updateUser } from '@slices/authSlice';
 
-import {Mail, Lock} from 'lucide-react-native';
-import {useAppSelector} from '@redux/hooks';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import { Mail, Lock } from 'lucide-react-native';
+import { useAppSelector } from '@redux/hooks';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 import api from '@utils/api';
-import {navigate, resetAndNavigate} from '@utils/NavigationUtils';
-import {useFocusEffect} from '@react-navigation/native';
-import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
+import { navigate, resetAndNavigate } from '@utils/NavigationUtils';
+import { useFocusEffect } from '@react-navigation/native';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import appleAuth, {
   AppleButton,
 } from '@invertase/react-native-apple-authentication';
@@ -42,8 +42,8 @@ GoogleSignin.configure({
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
-  const {error} = useAppSelector(state => state.auth);
-  const {control, handleSubmit} = useForm();
+  const { error } = useAppSelector(state => state.auth);
+  const { control, handleSubmit } = useForm();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -75,7 +75,7 @@ const LoginScreen = () => {
       loginWithGoogle(idToken);
     } catch (error) {
       console.log('Google Login Error:', error);
-      Toast.show({type: 'error', text1: error?.message});
+      Toast.show({ type: 'error', text1: error?.message });
     }
   };
 
@@ -135,14 +135,14 @@ const LoginScreen = () => {
 
           // Navigate Dashboard
         } else {
-          Toast.show({type: 'error', text1: 'User not logged in'});
+          Toast.show({ type: 'error', text1: 'User not logged in' });
         }
       } else {
-        Toast.show({type: 'error', text1: data.message});
+        Toast.show({ type: 'error', text1: data.message });
       }
     } catch (error) {
       console.log('Login API Error:', error);
-      Toast.show({type: 'error', text1: 'Something went wrong'});
+      Toast.show({ type: 'error', text1: 'Something went wrong' });
     } finally {
       dispatch(hideLoader());
     }
@@ -189,11 +189,11 @@ const LoginScreen = () => {
           });
         }
       } else {
-        Toast.show({type: 'error', text1: data.message});
+        Toast.show({ type: 'error', text1: data.message });
       }
     } catch (error) {
       console.log('Login API Error:', error, error.response?.data);
-      Toast.show({type: 'error', text1: 'Something went wrong'});
+      Toast.show({ type: 'error', text1: 'Something went wrong' });
     } finally {
       dispatch(hideLoader());
     }
@@ -203,7 +203,7 @@ const LoginScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar
         barStyle="dark-content"
-        // backgroundColor="#fff"
+      // backgroundColor="#fff"
       />
 
       {/* <Text style={styles.title}>Sign</Text> */}
@@ -221,12 +221,12 @@ const LoginScreen = () => {
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Sign in to continue to WeSign</Text>
 
-        <View style={{gap: hp(2)}}>
+        <View style={{ gap: hp(2) }}>
           <Controller
             control={control}
             name="email"
-            rules={{required: 'Email is required'}}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
+            rules={{ required: 'Email is required' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
               <AppInput
                 label="Email"
                 placeholder="Enter your email"
@@ -241,8 +241,8 @@ const LoginScreen = () => {
           <Controller
             control={control}
             name="password"
-            rules={{required: 'Password is required'}}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
+            rules={{ required: 'Password is required' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
               <AppInput
                 label="Password"
                 placeholder="Enter password"
@@ -264,7 +264,7 @@ const LoginScreen = () => {
 
         <AppButton
           title="Login"
-          style={{marginTop: hp(3)}}
+          style={{ marginTop: hp(3) }}
           onPress={handleSubmit(onSubmit)}
         />
 

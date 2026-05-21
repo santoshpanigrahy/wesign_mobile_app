@@ -1,6 +1,10 @@
 import React, { useState, useRef, memo, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Share, Image } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, Platform, PermissionsAndroid } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import RNFS from 'react-native-fs';
+import notifee, { AndroidImportance } from '@notifee/react-native';
+import FileViewer from 'react-native-file-viewer';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import PagerView from 'react-native-pager-view';
 import {
     ArrowLeft, FileText, History, Trash2,
@@ -11,20 +15,28 @@ import {
     CheckCircle2,
     Copy,
     OctagonX,
-    CircleAlert
+    CircleAlert,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react-native';
+import { Buffer } from 'buffer';
+import Share from 'react-native-share';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 import { Colors, Fonts, formatDate, fp, hp, wp } from '@utils/Constants';
 import { goBack } from '@utils/NavigationUtils';
 import LinearGradient from 'react-native-linear-gradient';
 import BackHeader from '@components/BackHeader';
-import { useAppDispatch } from '@redux/hooks';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import api from '@utils/api';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import AppBottomSheet from '@components/AppBottomSheet';
+import EnvelopeHistorySheet from '@screens/canvas/components/EnvelopeHistorySheet';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { getSnapshots } from '@utils/documentService';
+import CONFIG from '@utils/Config';
 
 const ACTION_ICON_SIZE = wp(5.5);
 
@@ -298,21 +310,57 @@ const SummaryScene = ({ recipients, handleCopyEnvelopeLink, handleEnvelopeQrCode
     </ScrollView>
 );
 
-const DocumentsScene = ({ docNames }) => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scenePadding}>
-        <Text style={styles.sectionTitle}>Uploaded Files</Text>
-        {
-            docNames?.map((doc, index) => {
-                return <TouchableOpacity activeOpacity={0.8} style={styles.fileCard} key={index}>
-                    <FileText color={Colors.grey} size={wp(7)} />
-                    <Text style={[styles.titleText, { flex: 1 }]}>{doc}</Text>
-                    <Clapperboard color={Colors.blue} size={wp(5.5)} />
-                </TouchableOpacity>
-            })
-        }
+const DocumentsScene = ({ docNames }) => {
 
-    </ScrollView>
-);
+    const [expandedIndices, setExpandedIndices] = useState([]);
+
+    const toggleExpand = (index) => {
+        if (expandedIndices.includes(index)) {
+            // If it's already open, remove this index from the array to close it
+            setExpandedIndices(expandedIndices.filter((i) => i !== index));
+        } else {
+            // If it's closed, add this index to the array to open it
+            setExpandedIndices([...expandedIndices, index]);
+        }
+    };
+    return (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scenePadding}>
+            <Text style={styles.sectionTitle}>Uploaded Files</Text>
+            {
+                docNames?.map((doc, index) => {
+
+                    const isExpanded = expandedIndices.includes(index);
+
+                    return <View key={index} style={{ marginTop: hp(1) }}>
+
+                        <TouchableOpacity activeOpacity={0.8}
+                            style={styles.fileCard}
+                            onPress={() => toggleExpand(index)} >
+                            <FileText color={Colors.grey} size={wp(7)} />
+                            <Text style={[styles.titleText, { flex: 1 }]} numberOfLines={1}>{doc.documentName}</Text>
+                            {isExpanded ? (
+                                <ChevronUp color={Colors.blue} size={wp(5.5)} />
+                            ) : (
+                                <ChevronDown color={Colors.blue} size={wp(5.5)} />
+                            )}
+
+                        </TouchableOpacity>
+
+                        {isExpanded && doc?.urls?.map((urlj, imgIndex) => {
+                            return (
+                                <TouchableOpacity activeOpacity={0.8} style={[styles.fileCard, { marginTop: hp(1) }]} key={imgIndex}>
+                                    <Image source={{ uri: urlj?.url }} resizeMode='contain' style={{ width: '100%', height: hp(45) }} />
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </View>
+                })
+            }
+
+        </ScrollView>
+    );
+}
+
 
 // ------------------------------------------------------------------
 // MAIN COMPONENT
@@ -321,11 +369,21 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
     const envelopeId = route.params.id;
     const qrCodeRef = useRef(null);
+    const historyRef = useRef(null);
     const dispatch = useAppDispatch();
+
+    const [documentImages, setDocumentImages] = useState([])
+
+    const user = useAppSelector(state => state?.auth?.user);
+    const { id, first_name, last_name, email } = user;
+    const fullName = first_name + ' ' + last_name;
+
 
 
     const [envelopeDetails, setEnvelopeDetails] = useState();
+    const [historyDetails, setHistoryDetails] = useState({})
     const [recipients, setRecipients] = useState([]);
+    const [historyList, setHistoryList] = useState([]);
     const [documentNames, setDocumentNames] = useState([]);
     const [holderId, setHolderId] = useState(null);
     const [links, setLinks] = useState([]);
@@ -339,6 +397,193 @@ const EnvelopeDetailsScreen = ({ route }) => {
             text1: 'Envelope Link Copied to Clipboard!',
         });
     };
+
+    const getHistory = async () => {
+        try {
+
+            dispatch(showLoader('Loading'))
+
+            const response = await api.get(`/api/envelope/history`, {
+                params: {
+                    envelope: envelopeId
+                }
+            });
+
+            const data = response.data;
+
+
+            if (data.status === true) {
+                setHistoryList(data.history);
+                historyRef?.current?.snapToIndex(0);
+
+
+            } else {
+                Toast.show({ type: 'error', text1: data?.message });
+            }
+
+        } catch (error) {
+
+            console.error('Error fetching history:', error);
+            Toast.show({ type: 'error', text1: error.response?.data?.message });
+
+        } finally {
+
+            dispatch(hideLoader());
+        }
+    };
+
+    const handleHistory = () => {
+        if (historyList?.length > 0) {
+            historyRef?.current?.snapToIndex(0);
+        } else {
+            getHistory()
+        }
+    }
+
+
+
+
+
+
+    const onDownloadCertificate = async () => {
+
+        const subject = historyDetails?.subject || 'Certificate';
+
+
+        const subjectName = subject.length > 20
+            ? subject.substring(0, 20)
+            : subject;
+
+
+        const safeSubjectName = subjectName.replace(/[:\\/]|\s/g, '_');
+        const fileName = `${safeSubjectName}.pdf`;
+
+
+        let baseDirectory = '';
+        if (Platform.OS === 'android') {
+            baseDirectory = RNFS.DownloadDirectoryPath;
+        } else {
+            baseDirectory = RNFS.DocumentDirectoryPath;
+        }
+
+        const folderPath = `${baseDirectory}/wesign`;
+        const targetPath = `${folderPath}/${fileName}`;
+        let notificationId = null;
+
+        const requestData = {
+            envelope: envelopeId,
+        };
+
+        try {
+
+            if (Platform.OS === 'android') {
+                if (Platform.Version >= 33) {
+                    const hasNotification = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+                    );
+                    if (hasNotification !== PermissionsAndroid.RESULTS.GRANTED) {
+                        throw new Error('Notification permission denied');
+                    }
+                } else {
+                    const granted = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+                    );
+                    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                        throw new Error('Storage permission denied');
+                    }
+                }
+            } else {
+                await notifee.requestPermission();
+            }
+
+            dispatch(showLoader('Downloading Certificate'));
+
+
+            await RNFS.mkdir(folderPath);
+
+
+            if (Platform.OS === 'android') {
+                const channelId = await notifee.createChannel({
+                    id: 'downloads',
+                    name: 'File Downloads',
+                    importance: AndroidImportance.HIGH,
+                });
+
+                notificationId = await notifee.displayNotification({
+                    title: 'Downloading Certificate...',
+                    body: fileName,
+                    android: {
+                        channelId,
+                        ongoing: true,
+                        progress: { max: 10, current: 5, indeterminate: true },
+                    },
+                });
+            }
+
+
+            const response = await api.post(`/download/certificate`,
+                requestData,
+                {
+                    responseType: 'arraybuffer',
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+
+
+            const contentType = response.headers['content-type'] || '';
+            if (contentType.includes('application/json')) {
+                const jsonString = Buffer.from(response.data).toString('utf8');
+                const parsedError = JSON.parse(jsonString);
+                throw new Error(parsedError?.message || 'Server failed to build certificate payload.');
+            }
+
+
+            const base64Data = Buffer.from(response.data, 'binary').toString('base64');
+            await RNFS.writeFile(targetPath, base64Data, 'base64');
+
+
+            if (Platform.OS === 'android') {
+                await RNFS.scanFile(targetPath);
+
+                await notifee.displayNotification({
+                    id: notificationId,
+                    title: 'Certificate Downloaded! 📄',
+                    body: `Saved to Downloads/wesign/${fileName}`,
+                    android: {
+                        channelId: 'downloads',
+                        ongoing: false,
+                        clearable: true,
+                    },
+                });
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Download Complete!',
+                text2: Platform.OS === 'android' ? 'Saved to Downloads/wesign/' : 'Saved to wesign folder in Files app!'
+            });
+
+        } catch (error) {
+            console.error('Certificate process failure:', error);
+
+            Toast.show({
+                type: 'error',
+                text1: 'Download Failed',
+                text2: error.message || 'Check network configurations.'
+            });
+
+            if (notificationId) {
+                await notifee.cancelNotification(notificationId);
+            }
+        } finally {
+            dispatch(hideLoader());
+        }
+    };
+
+    const onExportActivity = () => {
+
+    }
+
 
     const handleEnvelopeQrCode = (qr_code) => {
         setQrCode(qr_code);
@@ -394,6 +639,120 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
 
 
+
+    const downloadEnvelope = async () => {
+        const subject = envelopeDetails?.subject || 'Documents';
+        const subjectName = subject.length > 20 ? subject.substring(0, 20) : subject;
+        const fileName = `${subjectName.replace(/[^a-zA-Z0-9]/g, '_')}.zip`;
+
+        let baseDirectory = '';
+        if (Platform.OS === 'android') {
+            baseDirectory = RNFS.DownloadDirectoryPath;
+        } else {
+            baseDirectory = RNFS.DocumentDirectoryPath;
+        }
+
+        const folderPath = `${baseDirectory}/wesign`;
+        const targetPath = `${folderPath}/${fileName}`;
+
+        let notificationId = null;
+
+        try {
+            if (Platform.OS === 'android') {
+                if (Platform.Version >= 33) {
+                    const hasNotification = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+                    );
+                    if (hasNotification !== PermissionsAndroid.RESULTS.GRANTED) {
+                        throw new Error('Notification permission denied');
+                    }
+                } else {
+                    const granted = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+                    );
+                    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                        throw new Error('Storage permission denied');
+                    }
+                }
+            } else {
+                await notifee.requestPermission();
+            }
+
+            dispatch(showLoader('Downloading'));
+
+            console.log("Creating folder configuration at:", folderPath);
+            await RNFS.mkdir(folderPath);
+
+            if (Platform.OS === 'android') {
+                const channelId = await notifee.createChannel({
+                    id: 'downloads',
+                    name: 'File Downloads',
+                    importance: AndroidImportance.HIGH,
+                });
+
+                notificationId = await notifee.displayNotification({
+                    title: 'Downloading to wesign folder...',
+                    body: fileName,
+                    android: {
+                        channelId,
+                        ongoing: true,
+                        progress: { max: 10, current: 5, indeterminate: true },
+                    },
+                });
+            }
+
+            Toast.show({ type: 'info', text1: 'Download Started', text2: 'Creating your zip package...' });
+
+            const response = await api.post(`/download/documents`,
+                { envelope: envelopeDetails.envelopeId, user: id, all_in_one: false },
+                { responseType: 'arraybuffer', headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const base64Data = Buffer.from(response.data, 'binary').toString('base64');
+            await RNFS.writeFile(targetPath, base64Data, 'base64');
+
+            if (Platform.OS === 'android') {
+                await RNFS.scanFile(targetPath);
+
+                await notifee.displayNotification({
+                    id: notificationId,
+                    title: 'Download Complete!',
+                    body: `Saved to: Downloads/wesign/${fileName}`,
+                    android: {
+                        channelId: 'downloads',
+                        ongoing: false,
+                        clearable: true,
+                    },
+                });
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Download Complete!',
+                text2: Platform.OS === 'android' ? 'Saved to Downloads/wesign/' : 'Saved to wesign folder in Files app!'
+            });
+
+        } catch (error) {
+            console.error('Download folder process exception:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Download Failed',
+                text2: error.message
+            });
+
+            if (notificationId) {
+                await notifee.cancelNotification(notificationId);
+            }
+        } finally {
+            dispatch(hideLoader());
+        }
+    };
+
+
+
+
+
+
     const getDocDetails = async () => {
         try {
             dispatch(showLoader('Loading'));
@@ -422,10 +781,13 @@ const EnvelopeDetailsScreen = ({ route }) => {
                     signedStatus: envelope.signed_status
                 }
 
+
+
                 setEnvelopeDetails(envelopeDetailsData);
 
                 const links = envelope?.links || [];
                 const resp = envelope?.envelope_recepients || []
+
 
                 const mappedRecipients = resp.map((recipient, index) => {
                     const linkData = links[index]; // index-based mapping
@@ -446,13 +808,54 @@ const EnvelopeDetailsScreen = ({ route }) => {
                     return doc?.document_name;
                 });
 
+                let doc_array = []
+                if (envelope_documents) {
+                    for (let index = 0; index < envelope_documents.length; index++) {
+                        const document_key = envelope_documents[index]["document_key"];
+                        const document_name =
+                            envelope_documents[index]["document_name"];
+
+                        const urls = await getSnapshots(document_key);
+
+                        console.log(urls?.images);
+
+                        const documentData = {
+                            documentName: document_name,
+                            urls: urls?.images
+                        }
+
+                        doc_array.push(documentData)
+
+                    }
+                }
+
                 setDocumentNames(documentNames);
 
-                console.log(documentNames)
+                setDocumentImages(doc_array);
+
+                console.log("Document Arrray =========> ", doc_array)
 
 
 
+                const histroyRecpNames = resp?.map(item => {
+                    return item?.recepient_name || '';
+                })
 
+                let historyData = {
+                    holder: fullName,
+                    subject: envelope?.subject,
+                    envelopeId: envelope?.envelope_id,
+                    sent: envelope?.sent_on,
+
+                    created: envelope?.created_on,
+
+                    location: envelope?.location,
+                    recipients: histroyRecpNames?.toString(),
+                    status: envelope?.document_status
+                }
+
+
+                setHistoryDetails(historyData)
 
 
 
@@ -479,19 +882,7 @@ const EnvelopeDetailsScreen = ({ route }) => {
         }
     };
 
-    const envelopeData = {
-        title: "Test Envelope",
-        sentOn: "20th April 2026 01:32 PM",
-        thumbnailUrl: "https://via.placeholder.com/300x400.png?text=ResumeDebashish.pdf",
-        recipients: [
-            { name: "krishnal skreddy", email: "dev@gmail.com", viewedAt: "20th April 2026 01:38 PM" },
-            { name: "Ram skreddy", email: "dev@gmail.com", viewedAt: "20th April 2026 01:38 PM" },
-            { name: "Syam skreddy", email: "dev@gmail.com", viewedAt: "20th April 2026 01:38 PM" }
-        ],
 
-
-        docName: "resumeDebashish.pdf"
-    };
 
 
 
@@ -519,7 +910,7 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
             <View style={styles.infoOverlapCard}>
                 <View style={styles.row}>
-                    <Text style={styles.title}>{envelopeDetails?.subject}</Text>
+                    <Text style={styles.title} numberOfLines={2}>{envelopeDetails?.subject}</Text>
                     <View style={styles.metaRow}>
                         <View style={styles.statusItem}>
                             <Calendar size={wp(3.5)} color={Colors.grey} />
@@ -533,9 +924,9 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
                 <View style={styles.quickActions}>
                     <ActionButton Icon={FileText} label="Resend" onPress={() => resendEnvelope()} />
-                    <ActionButton Icon={History} disabled={true} label="History" onPress={() => console.log('history')} isOutline />
+                    <ActionButton Icon={History} label="History" onPress={() => handleHistory()} isOutline />
                     <ActionButton Icon={Printer} disabled={true} label="Print" onPress={() => console.log('qr')} isOutline />
-                    <ActionButton Icon={Download} disabled={true} label="Download" onPress={() => console.log('qr')} isOutline />
+                    <ActionButton Icon={Download} label="Download" onPress={() => downloadEnvelope()} isOutline />
                 </View>
             </View>
 
@@ -562,7 +953,7 @@ const EnvelopeDetailsScreen = ({ route }) => {
                     </View>
                     <View key="2">
 
-                        <DocumentsScene docNames={documentNames} />
+                        <DocumentsScene docNames={documentImages} />
                     </View>
                 </PagerView>
             </View>
@@ -574,9 +965,18 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
                     <Image source={{
                         uri: `data:image/png;base64,${qrCode}`,
-                    }} alt='qr' style={{ height: '100%', width: '100%', }} />
+                    }} alt='qr' style={{ height: '90%', width: '90%', }} />
 
                 </View>
+
+            </AppBottomSheet>
+
+            <AppBottomSheet ref={historyRef} title={'Envelope History'} snapPoints={['90%']}>
+
+                <BottomSheetScrollView>
+
+                    <EnvelopeHistorySheet onDownloadCertificate={onDownloadCertificate} onExportActivity={onExportActivity} details={historyDetails} historyList={historyList} />
+                </BottomSheetScrollView>
 
             </AppBottomSheet>
 

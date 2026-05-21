@@ -9,7 +9,9 @@ import {
     View,
     ActivityIndicator,
     Alert,
-    Pressable
+    Pressable,
+    Platform,
+    PermissionsAndroid
 } from 'react-native';
 import {
     Search,
@@ -26,6 +28,10 @@ import {
     Trash
 } from 'lucide-react-native';
 import moment from 'moment';
+import RNFS from 'react-native-fs';
+import notifee, { AndroidImportance } from '@notifee/react-native';
+import { Buffer } from 'buffer';
+
 
 // Project specific imports
 import { Colors, Fonts, fp, hp, STATUS_CONFIG, wp } from '@utils/Constants';
@@ -110,7 +116,209 @@ const InboxScreen = ({ navigation }) => {
         console.log("Download Options selected:", options);
         // Add logic here to download the files based on options selected
         setModalVisible(false);
+
+
+
+
+        const subject_name =
+            selectedEnvelope?.subject.length > 20
+                ? selectedEnvelope?.subject.substring(0, 20)
+                : selectedEnvelope?.subject;
+
+        let request_data = {
+            envelope: selectedEnvelope?.id,
+            user: userId,
+            all_in_one: false,
+            document: false,
+            certificate: false,
+        };
+
+        let file_name = subject_name + ".zip";
+
+        if (options.isAllChecked) {
+            // default values already set
+            downloadEnvelopeZip(request_data, file_name);
+
+        } else if (options.document) {
+            request_data.document = true;
+            downloadEnvelopeZip(request_data, file_name);
+
+        } else if (options.certificate) {
+            request_data.certificate = true;
+            downloadEnvelopeZip(request_data, file_name);
+
+        } else if (options.combinePdfs) {
+            request_data.all_in_one = true;
+
+
+            file_name = subject_name;
+
+            combinedDownload(request_data, file_name);
+
+        }
+
+
     };
+
+
+    const downloadEnvelopeZip = async (requestData, subjectName) => {
+
+        const fileName = `${subjectName.replace(/[^a-zA-Z0-9]/g, '_')}.zip`;
+
+        let baseDirectory = '';
+        if (Platform.OS === 'android') {
+            baseDirectory = RNFS.DownloadDirectoryPath;
+        } else {
+
+            baseDirectory = RNFS.DocumentDirectoryPath;
+        }
+
+        const folderPath = `${baseDirectory}/wesign`;
+        const targetPath = `${folderPath}/${fileName}`;
+
+        let notificationId = null;
+
+        try {
+
+            if (Platform.OS === 'android') {
+                if (Platform.Version >= 33) {
+                    const hasNotification = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+                    );
+                    if (hasNotification !== PermissionsAndroid.RESULTS.GRANTED) {
+                        throw new Error('Notification permission denied');
+                    }
+                } else {
+                    const granted = await PermissionsAndroid.request(
+                        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+                    );
+                    if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+                        throw new Error('Storage permission denied');
+                    }
+                }
+            } else {
+                await notifee.requestPermission();
+            }
+
+            dispatch(showLoader('Downloading'));
+
+            await RNFS.mkdir(folderPath);
+
+            if (Platform.OS === 'android') {
+                const channelId = await notifee.createChannel({
+                    id: 'downloads',
+                    name: 'File Downloads',
+                    importance: AndroidImportance.HIGH,
+                });
+
+                notificationId = await notifee.displayNotification({
+                    title: 'Downloading to wesign folder...',
+                    body: fileName,
+                    android: {
+                        channelId,
+                        ongoing: true,
+                        progress: { max: 10, current: 5, indeterminate: true },
+                    },
+                });
+            }
+
+
+
+            const response = await api.post(`/download/documents`,
+                requestData,
+                { responseType: 'arraybuffer', headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const base64Data = Buffer.from(response.data, 'binary').toString('base64');
+            await RNFS.writeFile(targetPath, base64Data, 'base64');
+
+            if (Platform.OS === 'android') {
+                await RNFS.scanFile(targetPath);
+
+                await notifee.displayNotification({
+                    id: notificationId,
+                    title: 'Download Complete!',
+                    body: `Saved to: Downloads/wesign/${fileName}`,
+                    android: {
+                        channelId: 'downloads',
+                        ongoing: false,
+                        clearable: true,
+                    },
+                });
+            }
+
+            Toast.show({
+                type: 'success',
+                text1: 'Download Complete!',
+                text2: Platform.OS === 'android' ? 'Saved to Downloads/wesign/' : 'Saved to wesign folder in Files app!'
+            });
+
+        } catch (error) {
+            console.error('Download folder process exception:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Download Failed',
+                text2: error.message
+            });
+
+            if (notificationId) {
+                await notifee.cancelNotification(notificationId);
+            }
+        } finally {
+            dispatch(hideLoader());
+        }
+    };
+
+
+    const combinedDownload = async (requestData, fileName) => {
+        try {
+
+            dispatch(showLoader('Loading'));
+
+
+            const response = await api.post(
+                `/download/documents`,
+                requestData,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+
+            const data = response.data;
+
+            if (data?.status_code === 200) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'SUCCESS',
+                    text2: data?.message || 'Combined download sequence processed.'
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: data?.message || 'Something went wrong.'
+                });
+            }
+
+        } catch (error) {
+            console.error('Combined download network failure:', error);
+
+            const errorMessage = error.response?.data?.message || 'Failed to connect to the download server.';
+
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: errorMessage
+            });
+        } finally {
+            dispatch(hideLoader());
+        }
+    };
+
+
+
 
 
     const handleDelete = async () => {
@@ -550,9 +758,10 @@ const InboxScreen = ({ navigation }) => {
                 )}
             </View>
 
-            <AppBottomSheet ref={actionRef} snapPoints={['15%']} withCloseBtn={false}>
+            <AppBottomSheet ref={actionRef} snapPoints={['21%']} withCloseBtn={false}>
 
                 <View style={{ flex: 1 }}>
+                    <AppActionButton btnText='Download' icon={Download} onPress={() => { actionRef?.current?.close(); setModalVisible(true) }} />
                     <AppActionButton btnText='Email Download' icon={MailOpen} onPress={emailDownload} />
                     <AppActionButton btnText='Delete' icon={Trash} onPress={() => { actionRef?.current?.close(); setDeleteModalVisible(true) }} />
                 </View>

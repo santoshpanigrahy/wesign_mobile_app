@@ -60,6 +60,7 @@ const DownloadModal = ({ isVisible, onClose, onDownload }) => {
             document: isDocumentChecked,
             certificate: isCertificateChecked,
             combinePdfs: isCombineChecked,
+            isAllChecked: isAllChecked
         });
     };
 

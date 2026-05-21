@@ -8,7 +8,7 @@ console.log('PDFToImage:', PdfToImage);
 
 
 
-async function loadPdfAndConvertToImages(url, key) {
+export async function loadPdfAndConvertToImages(url, key) {
   const cleanKey = key.toString().replace(/\.pdf$/i, '');
   const folderPath = cleanKey.includes('/') ? cleanKey.substring(0, cleanKey.lastIndexOf('/')) : '';
   const targetDir = `${RNFS.CachesDirectoryPath}/${folderPath}`;
@@ -25,45 +25,64 @@ async function loadPdfAndConvertToImages(url, key) {
     }).promise;
 
     if (download.statusCode !== 200) {
-      throw new Error(`Download failed with status ${download.statusCode}`);
+      throw new Error(`Download failed with HTTP status ${download.statusCode}`);
     }
 
-    // 2. STRICT VALIDATION: Check file size and header
+    // 2. Validate file size
     const fileStat = await RNFS.stat(localPath);
-    if (fileStat.size < 100) { // Tiny files are usually error messages, not PDFs
-      const content = await RNFS.readFile(localPath, 'utf8').catch(() => "");
-      console.error("File is too small. Content snippet:", content.substring(0, 100));
+    if (fileStat.size < 100) {
       throw new Error("Downloaded file is too small to be a valid PDF.");
     }
 
     // 3. Convert to Images
     const pathForNative = Platform.OS === 'android' ? `file://${localPath}` : localPath;
 
-    console.log("Attempting conversion for:", pathForNative);
-
+    // The library returns { outputFiles: string[] }
     const result = await PdfToImage.convert(pathForNative, {
       outputType: 'png',
       quality: 100,
     });
 
-    // If result exists but pages array is empty
-    if (!result || !result.pages || result.pages.length === 0) {
+    // FIX: Check 'outputFiles' instead of 'pages'
+    if (!result || !result.outputFiles || result.outputFiles.length === 0) {
       throw new Error("Native converter returned zero pages. The PDF might be encrypted or invalid.");
     }
 
+    // 4. Get dimensions from the first generated image (assuming all pages are the same size)
+    const firstImagePath = `file://${result.outputFiles[0]}`;
+
+    const dimensions = await new Promise((resolve) => {
+      Image.getSize(
+        firstImagePath,
+        (width, height) => resolve({ width, height }),
+        () => resolve({ width: 0, height: 0 }) // Fallback if size check fails
+      );
+    });
+
+    // 5. Map the results matching your original return structure
     return {
-      images: result.pages.map((path) => ({
+      images: result.outputFiles.map((path) => ({
         url: `file://${path}`,
-        width: result.width,
-        height: result.height,
+        width: dimensions.width,
+        height: dimensions.height,
       })),
-      actualWidth: result.width,
-      actualHeight: result.height,
+      actualWidth: dimensions.width,
+      actualHeight: dimensions.height,
     };
 
   } catch (err) {
     console.error("Conversion Error Details:", err);
     throw err;
+  } finally {
+    // 6. Cleanup the original PDF
+    try {
+      const exists = await RNFS.exists(localPath);
+      if (exists) {
+        await RNFS.unlink(localPath);
+      }
+    } catch (cleanupErr) {
+      console.warn("Failed to clean up temporary PDF:", cleanupErr);
+    }
   }
 }
 
@@ -114,12 +133,13 @@ export const getSnapshots = async (
     if (data?.status === true) {
       const urls = data?.url;
 
-      console.log(urls)
 
-      // call your existing RN function
       const docDetails = await loadPdfAndConvertToImages(urls, document_key);
 
       console.log("Doc Details======> ", docDetails);
+
+      return docDetails
+
 
 
 
@@ -136,7 +156,7 @@ export const getSnapshots = async (
 
 
 import { useEffect, useState } from 'react';
-import { Keyboard, Platform } from 'react-native';
+import { Image, Keyboard, Platform } from 'react-native';
 
 export const useKeyboard = () => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);

@@ -24,7 +24,7 @@ import { useAppSelector } from '@redux/hooks';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 import api from '@utils/api';
-import { navigate, resetAndNavigate } from '@utils/NavigationUtils';
+import { navigate } from '@utils/NavigationUtils';
 import { useFocusEffect } from '@react-navigation/native';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import appleAuth, {

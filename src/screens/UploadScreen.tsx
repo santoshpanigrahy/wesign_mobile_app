@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,24 +17,24 @@ import {
   Trash,
   Upload,
 } from 'lucide-react-native';
-import {pick} from '@react-native-documents/picker';
-import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
-import {useAppDispatch, useAppSelector} from '@redux/hooks';
+import { pick } from '@react-native-documents/picker';
+import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import api from '@utils/api';
-import {goBack, navigate} from '@utils/NavigationUtils';
+import { goBack, navigate } from '@utils/NavigationUtils';
 import AppBottomSheet from '@components/AppBottomSheet';
 import ConfirmExitModal from '@components/ConfirmExitModal';
-import {Portal} from '@gorhom/portal';
+import { Portal } from '@gorhom/portal';
 import AppButton from '@components/AppButton';
-import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import {
   Menu,
   MenuOptions,
   MenuOption,
   MenuTrigger,
 } from 'react-native-popup-menu';
-import {authorize} from 'react-native-app-auth';
+import { authorize } from 'react-native-app-auth';
 
 const validTypes = [
   'image/gif',
@@ -108,11 +108,11 @@ import {
   updateDocumentByIndex,
 } from '@redux/slices/envelopeSlice';
 import AppToggleButton from '@components/AppToggleButton';
-import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
-import {useFocusEffect} from '@react-navigation/native';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const configureGoogleDrive = () => {
   GoogleSignin.configure({
@@ -304,25 +304,25 @@ const UploadScreen = () => {
     }
   };
 
-  const renderGoogleDriveFileItem = ({item}) => (
+  const renderGoogleDriveFileItem = ({ item }) => (
     <TouchableOpacity
       style={styles.cloundFileWrapper}
       onPress={() => handleDriveFileSelect(item, googleAccessToken)}>
       <Image
         source={require('@assets/icons/pdf.png')}
-        style={{width: wp(8), height: wp(12)}}
+        style={{ width: wp(8), height: wp(12) }}
       />
       <Text style={styles.cloundFileName}>{item.name}</Text>
     </TouchableOpacity>
   );
 
-  const renderDropboxFileItem = ({item}) => (
+  const renderDropboxFileItem = ({ item }) => (
     <TouchableOpacity
       style={styles.cloundFileWrapper}
       onPress={() => handleDropboxFileSelect(item)}>
       <Image
         source={require('@assets/icons/pdf.png')}
-        style={{width: wp(8), height: wp(12)}}
+        style={{ width: wp(8), height: wp(12) }}
       />
       <Text style={styles.cloundFileName}>{item.name}</Text>
     </TouchableOpacity>
@@ -382,7 +382,7 @@ const UploadScreen = () => {
     console.log(`Downloading ${file.name} from Dropbox...`);
 
     const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
-    const dropboxApiArg = JSON.stringify({path: file.path_lower});
+    const dropboxApiArg = JSON.stringify({ path: file.path_lower });
 
     const options = {
       fromUrl: 'https://content.dropboxapi.com/2/files/download',
@@ -619,7 +619,7 @@ const UploadScreen = () => {
         '/converter/file/upload?ngsw-bypass=true',
         formData,
         {
-          headers: {'Content-Type': 'multipart/form-data'},
+          headers: { 'Content-Type': 'multipart/form-data' },
 
           onUploadProgress: progressEvent => {
             const percent = Math.round(
@@ -791,7 +791,7 @@ const UploadScreen = () => {
         if (im_signer) {
           navigate('Canvas');
         } else {
-          navigate('Recipient', {keys: requestData});
+          navigate('Recipient', { keys: requestData });
         }
       }
     } catch (err) {
@@ -808,13 +808,13 @@ const UploadScreen = () => {
     dispatch(removeErrorDocuments());
   };
 
-  const renderItem = ({item, index}) => {
+  const renderItem = ({ item, index }) => {
     return (
       <View style={styles.fileItem}>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-          <Image source={getFileIcon(item)} style={{width: 40, height: 40}} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
 
-          <View style={{flex: 1}}>
+          <View style={{ flex: 1 }}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
@@ -839,20 +839,20 @@ const UploadScreen = () => {
 
         {item.uploading && (
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, {width: `${item.progress}%`}]} />
+            <View style={[styles.progressFill, { width: `${item.progress}%` }]} />
           </View>
         )}
       </View>
     );
   };
 
-  const renderErrorItem = ({item, index}) => {
+  const renderErrorItem = ({ item, index }) => {
     return (
       <View style={styles.fileItemError}>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-          <Image source={getFileIcon(item)} style={{width: 40, height: 40}} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
 
-          <View style={{flex: 1}}>
+          <View style={{ flex: 1 }}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
@@ -985,7 +985,7 @@ const UploadScreen = () => {
           data={envelopeDocuments}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
-          contentContainerStyle={{paddingVertical: hp(1)}}
+          contentContainerStyle={{ paddingVertical: hp(1) }}
         />
       </View>
 
@@ -1002,7 +1002,7 @@ const UploadScreen = () => {
           <AppButton
             onPress={() => handleNext()}
             title="Next"
-            style={{width: wp(25), height: hp(5.2)}}
+            style={{ width: wp(25), height: hp(5.2) }}
           />
         </View>
       )}
@@ -1082,7 +1082,7 @@ const UploadScreen = () => {
             }}
             onPress={() => handleDeleteDocument()}>
             <Trash size={fp(2.5)} color={Colors.error} />
-            <Text style={[styles.providerText, {fontSize: fp(2)}]}>Delete</Text>
+            <Text style={[styles.providerText, { fontSize: fp(2) }]}>Delete</Text>
           </TouchableOpacity>
         </View>
       </AppBottomSheet>
@@ -1090,9 +1090,9 @@ const UploadScreen = () => {
       <AppBottomSheet
         ref={errorFileRef}
         withCloseBtn={false}
-        containerStyle={{paddingBottom: wp(4)}}
+        containerStyle={{ paddingBottom: wp(4) }}
         snapPoints={['50%']}>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <Text
             style={{
               fontFamily: Fonts.Medium,
@@ -1110,7 +1110,7 @@ const UploadScreen = () => {
 
           <BottomSheetFlatList
             data={errorFiles}
-            contentContainerStyle={{flex: 1}}
+            contentContainerStyle={{ flex: 1 }}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderErrorItem}
             keyboardShouldPersistTaps="handled"
@@ -1119,7 +1119,7 @@ const UploadScreen = () => {
           <AppButton
             title="Remove All"
             onPress={() => clearAllErrorFiles()}
-            style={{backgroundColor: Colors.error}}
+            style={{ backgroundColor: Colors.error }}
           />
         </View>
       </AppBottomSheet>
@@ -1127,9 +1127,9 @@ const UploadScreen = () => {
       <AppBottomSheet
         ref={googleDriveRef}
         title={'Google Drive Files'}
-        containerStyle={{paddingBottom: wp(4)}}
+        containerStyle={{ paddingBottom: wp(4) }}
         snapPoints={['90%']}>
-        <View style={{flex: 1, paddingTop: hp(2)}}>
+        <View style={{ flex: 1, paddingTop: hp(2) }}>
           <BottomSheetFlatList
             data={googleDriveFiles}
             // contentContainerStyle={{ flex: 1 }}
@@ -1143,9 +1143,9 @@ const UploadScreen = () => {
       <AppBottomSheet
         ref={dropboxRef}
         title={'Dropbox Files'}
-        containerStyle={{paddingBottom: wp(4)}}
+        containerStyle={{ paddingBottom: wp(4) }}
         snapPoints={['90%']}>
-        <View style={{flex: 1, paddingTop: hp(2)}}>
+        <View style={{ flex: 1, paddingTop: hp(2) }}>
           <BottomSheetFlatList
             data={dropboxFiles}
             // contentContainerStyle={{ flex: 1 }}

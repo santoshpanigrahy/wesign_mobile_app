@@ -1,10 +1,8 @@
 import React, { useState, useRef, memo, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, Platform, PermissionsAndroid } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import RNFS from 'react-native-fs';
 import notifee, { AndroidImportance } from '@notifee/react-native';
-import FileViewer from 'react-native-file-viewer';
-import ReactNativeBlobUtil from 'react-native-blob-util';
+import RNPrint from 'react-native-print';
 import PagerView from 'react-native-pager-view';
 import {
     ArrowLeft, FileText, History, Trash2,
@@ -380,6 +378,8 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
 
 
+
+
     const [envelopeDetails, setEnvelopeDetails] = useState();
     const [historyDetails, setHistoryDetails] = useState({})
     const [recipients, setRecipients] = useState([]);
@@ -583,6 +583,76 @@ const EnvelopeDetailsScreen = ({ route }) => {
     const onExportActivity = () => {
 
     }
+
+
+
+
+
+
+    const printImages = async () => {
+
+
+        try {
+            const images = documentImages.flatMap(item =>
+                item.urls?.map(urlItem => urlItem?.url)
+            );
+
+            const imageHTML = await Promise.all(
+                images.map(async (path) => {
+                    const base64 = await RNFS.readFile(
+                        path.replace('file://', ''),
+                        'base64'
+                    );
+
+                    return `
+          <div class="page">
+            <img src="data:image/png;base64,${base64}" />
+          </div>
+        `;
+                })
+            );
+
+            const html = `
+      <html>
+        <head>
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+            }
+
+            .page {
+              width: 100%;
+              height: 100vh;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              page-break-after: always;
+            }
+
+            img {
+              width: 100%;
+              max-height: 100%;
+              object-fit: contain;
+            }
+          </style>
+        </head>
+
+        <body>
+          ${imageHTML.join('')}
+        </body>
+      </html>
+    `;
+
+            await RNPrint.print({
+                html,
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+
 
 
     const handleEnvelopeQrCode = (qr_code) => {
@@ -925,7 +995,7 @@ const EnvelopeDetailsScreen = ({ route }) => {
                 <View style={styles.quickActions}>
                     <ActionButton Icon={FileText} label="Resend" onPress={() => resendEnvelope()} />
                     <ActionButton Icon={History} label="History" onPress={() => handleHistory()} isOutline />
-                    <ActionButton Icon={Printer} disabled={true} label="Print" onPress={() => console.log('qr')} isOutline />
+                    <ActionButton Icon={Printer} label="Print" onPress={() => printImages()} isOutline />
                     <ActionButton Icon={Download} label="Download" onPress={() => downloadEnvelope()} isOutline />
                 </View>
             </View>

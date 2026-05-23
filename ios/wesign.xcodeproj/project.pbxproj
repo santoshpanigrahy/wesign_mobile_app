@@ -12,17 +12,17 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		7699B88040F8A987B510C191 /* libPods-wesign-wesignTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-wesign-wesignTests.a */; };
-		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		D9AF8FF4F46DCFA47735BF55 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		A50827F0E75D46A78D3CCD0D /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C5F50846E3354FF5B157C108 /* Inter-Bold.ttf */; };
-		DD80538CA2604984B272677F /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C5F50846E3354FF5B157C108 /* Inter-Bold.ttf */; };
 		3FFEE300A25C4B1CAC7AFD0D /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1B2EE36820E64CF79CA811DA /* Inter-Medium.ttf */; };
 		541DABF5FDCF46FBB55F7E89 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1B2EE36820E64CF79CA811DA /* Inter-Medium.ttf */; };
-		AEA5E2EC1A2A4C80AB2F148B /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9749E40E889D4DA6B52372F2 /* Inter-Regular.ttf */; };
-		D4ED1A7F05F4463C96BAB574 /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9749E40E889D4DA6B52372F2 /* Inter-Regular.ttf */; };
 		6E81608749D24A95B9891B05 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C5D5175C22BE42448412B80A /* Inter-SemiBold.ttf */; };
+		7699B88040F8A987B510C191 /* libPods-wesign-wesignTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-wesign-wesignTests.a */; };
+		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A50827F0E75D46A78D3CCD0D /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C5F50846E3354FF5B157C108 /* Inter-Bold.ttf */; };
+		AEA5E2EC1A2A4C80AB2F148B /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9749E40E889D4DA6B52372F2 /* Inter-Regular.ttf */; };
 		C5268E76E4A749D78E174C7A /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C5D5175C22BE42448412B80A /* Inter-SemiBold.ttf */; };
+		D4ED1A7F05F4463C96BAB574 /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9749E40E889D4DA6B52372F2 /* Inter-Regular.ttf */; };
+		D9AF8FF4F46DCFA47735BF55 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		DD80538CA2604984B272677F /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C5F50846E3354FF5B157C108 /* Inter-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +47,7 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = wesign/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = wesign/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-wesign-wesignTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-wesign-wesignTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B2EE36820E64CF79CA811DA /* Inter-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Medium.ttf"; path = "../src/assets/fonts/Inter-Medium.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-wesign.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-wesign.debug.xcconfig"; path = "Target Support Files/Pods-wesign/Pods-wesign.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-wesign.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-wesign.release.xcconfig"; path = "Target Support Files/Pods-wesign/Pods-wesign.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-wesign-wesignTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-wesign-wesignTests.debug.xcconfig"; path = "Target Support Files/Pods-wesign-wesignTests/Pods-wesign-wesignTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -54,11 +55,10 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = wesign/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-wesign-wesignTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-wesign-wesignTests.release.xcconfig"; path = "Target Support Files/Pods-wesign-wesignTests/Pods-wesign-wesignTests.release.xcconfig"; sourceTree = "<group>"; };
 		9294AEF32FAB3C4300DCF346 /* wesign.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = wesign.entitlements; path = wesign/wesign.entitlements; sourceTree = "<group>"; };
+		9749E40E889D4DA6B52372F2 /* Inter-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Regular.ttf"; path = "../src/assets/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; };
+		C5D5175C22BE42448412B80A /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-SemiBold.ttf"; path = "../src/assets/fonts/Inter-SemiBold.ttf"; sourceTree = "<group>"; };
+		C5F50846E3354FF5B157C108 /* Inter-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Bold.ttf"; path = "../src/assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		C5F50846E3354FF5B157C108 /* Inter-Bold.ttf */ = {isa = PBXFileReference; name = "Inter-Bold.ttf"; path = "../src/assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1B2EE36820E64CF79CA811DA /* Inter-Medium.ttf */ = {isa = PBXFileReference; name = "Inter-Medium.ttf"; path = "../src/assets/fonts/Inter-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		9749E40E889D4DA6B52372F2 /* Inter-Regular.ttf */ = {isa = PBXFileReference; name = "Inter-Regular.ttf"; path = "../src/assets/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		C5D5175C22BE42448412B80A /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; name = "Inter-SemiBold.ttf"; path = "../src/assets/fonts/Inter-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -311,13 +311,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign/Pods-wesign-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign/Pods-wesign-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -376,13 +372,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign-wesignTests/Pods-wesign-wesignTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign-wesignTests/Pods-wesign-wesignTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -397,13 +389,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign/Pods-wesign-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign/Pods-wesign-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -418,13 +406,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign-wesignTests/Pods-wesign-wesignTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-wesign-wesignTests/Pods-wesign-wesignTests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -640,7 +624,10 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -709,7 +696,10 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

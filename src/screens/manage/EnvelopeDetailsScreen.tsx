@@ -787,26 +787,45 @@ const EnvelopeDetailsScreen = ({route}) => {
 
       if (Platform.OS === 'android') {
         await RNFS.scanFile(targetPath);
-      }
-      await notifee.displayNotification({
-        id: notificationId,
-        title: 'Download Complete!',
-        body: `Saved to: Downloads/wesign/${fileName}`,
-        android: {
-          channelId: 'downloads',
-          ongoing: false,
-          clearable: true,
-        },
-      });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Download Complete!',
-        text2:
-          Platform.OS === 'android'
-            ? 'Saved to Downloads/wesign/'
-            : 'Saved to wesign folder in Files app!',
-      });
+        await notifee.displayNotification({
+          id: notificationId,
+          title: 'Download Complete!',
+          body: `Saved to: Downloads/wesign/${fileName}`,
+          android: {
+            channelId: 'downloads',
+            ongoing: false,
+            clearable: true,
+          },
+        });
+
+        Toast.show({
+          type: 'success',
+          text1: 'Download Complete!',
+          text2: 'Saved to Downloads/wesign/',
+        });
+      } else {
+        // iOS: Open share dialog to let user choose where to save
+        if (notificationId) {
+          await notifee.cancelNotification(notificationId);
+        }
+
+        await Share.open({
+          url: `file://${targetPath}`,
+          type: 'application/zip',
+          subject: fileName,
+          failOnCancel: false,
+        });
+        await notifee.displayNotification({
+          id: notificationId,
+          title: 'Download Complete!',
+          body: ``,
+        });
+        Toast.show({
+          type: 'success',
+          text1: 'Download Complete!',
+        });
+      }
     } catch (error) {
       console.error('Download folder process exception:', error);
       Toast.show({

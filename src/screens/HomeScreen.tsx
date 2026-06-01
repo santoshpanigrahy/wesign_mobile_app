@@ -1,4 +1,5 @@
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -6,8 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
 import {
   Rocket,
   Clock,
@@ -21,12 +22,13 @@ import {
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DrawerHeader from '@components/DrawerHeader';
-import { useAppDispatch, useAppSelector } from '@redux/hooks';
+import {useAppDispatch, useAppSelector} from '@redux/hooks';
 
 import api from '@utils/api';
 import Skeleton from '@components/Skeleton';
-import { navigate } from '@utils/NavigationUtils';
-import { setIamSigner } from '@redux/slices/envelopeSlice';
+import {navigate} from '@utils/NavigationUtils';
+import {setIamSigner} from '@redux/slices/envelopeSlice';
+import {useIAP} from 'react-native-iap';
 
 const Gradients = {
   green: ['#22C55E', '#16A34A'],
@@ -37,17 +39,17 @@ const Gradients = {
   teal: ['#14B8A6', '#0D9488'],
 };
 
-const GradientCard = ({ icon: Icon, value, label, colors }: any) => {
+const GradientCard = ({icon: Icon, value, label, colors}: any) => {
   return (
     <LinearGradient
       colors={colors}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      start={{x: 0, y: 0}}
+      end={{x: 1, y: 1}}
       style={styles.gradientCard}>
       <View style={styles.gradientcardinner}>
         <Icon size={fp(3)} color="#fff" strokeWidth={1.6} />
 
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <Text style={styles.gradientValue} numberOfLines={1}>
             {value}
           </Text>
@@ -59,14 +61,37 @@ const GradientCard = ({ icon: Icon, value, label, colors }: any) => {
     </LinearGradient>
   );
 };
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({navigation}) => {
   const userId = useAppSelector(state => state.auth.user?.id);
   const userName = useAppSelector(state => state.auth.user?.first_name);
   const dispatch = useAppDispatch();
-
+  const {
+    connected,
+    subscriptions, //returns subscriptions for this app.
+    getSubscriptions, //Gets available subsctiptions for this app.
+  } = useIAP();
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
+  useEffect(() => {
+    if (connected) {
+      handleGetSubscriptions();
+    }
+  }, [connected]);
+  useEffect(() => {
+    console.log('Subscriptions updated:', subscriptions);
+  }, [subscriptions]);
 
+  const handleGetSubscriptions = async () => {
+    try {
+      // setloader(true);
+      let Transaction_ID: any = ['ws_personal_test'];
+      await getSubscriptions({skus: Transaction_ID});
+    } catch (error) {
+      console.log('90 error', error);
+      // setloader(false);
+      // Alert.alert('Oops', error.message);
+    }
+  };
   const fetchDashboard = async () => {
     setRefreshing(true);
     try {
@@ -96,7 +121,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <ScrollView
-      contentContainerStyle={{ flexGrow: 1 }}
+      contentContainerStyle={{flexGrow: 1}}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
@@ -149,8 +174,8 @@ const HomeScreen = ({ navigation }) => {
             onPress={() => navigate('Upload')}>
             <LinearGradient
               colors={['#3B82F6', '#2563EB']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
               style={styles.getStartedBtn}>
               <View style={styles.left}>
                 <View style={styles.iconBox}>
@@ -170,8 +195,8 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity activeOpacity={0.9} onPress={handleSelfSigning}>
             <LinearGradient
               colors={['#f65c80', '#ed3a5b']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
               style={styles.getStartedBtn}>
               <View style={styles.left}>
                 <View style={styles.iconBox}>

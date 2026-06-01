@@ -1,6 +1,6 @@
 import {
   Alert,
-  Dimensions,
+  useWindowDimensions,
   Image,
   Pressable,
   StyleSheet,
@@ -70,10 +70,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CanvasIamSignerFields from './components/CanvasIamSignerFields';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-const screenWidth = Dimensions.get('window').width;
 const MemoTopSheet = React.memo(TopSheet);
 
 const CanvasScreen = ({navigation}) => {
+  const {width: screenWidth} = useWindowDimensions();
   const user = useAppSelector(state => state.auth.user);
   const dispatch = useAppDispatch();
   const inset = useSafeAreaInsets();
@@ -991,7 +991,7 @@ const CanvasScreen = ({navigation}) => {
             {documents.map((page, index) => (
               <View
                 key={page.id}
-                style={styles.pageWrapper}
+                style={[styles.pageWrapper, {width: screenWidth}]}
                 collapsable={false}>
                 <CanvasPage
                   page={page}
@@ -1346,7 +1346,6 @@ const styles = StyleSheet.create({
   // Global & Wrappers
   pageWrapper: {
     flex: 1,
-    width: screenWidth,
     justifyContent: 'center',
     alignItems: 'center',
   },

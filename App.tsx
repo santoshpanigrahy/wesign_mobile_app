@@ -14,7 +14,6 @@ import { PortalProvider } from '@gorhom/portal';
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['CountryModal: Support for defaultProps']);
 import { MenuProvider } from 'react-native-popup-menu';
-
 const App = () => {
 
 
@@ -33,6 +32,7 @@ const App = () => {
 
 
               <AppLoader />
+
               <Navigation />
             </MenuProvider>
 

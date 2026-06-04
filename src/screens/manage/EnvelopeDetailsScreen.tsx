@@ -35,6 +35,8 @@ import EnvelopeHistorySheet from '@screens/canvas/components/EnvelopeHistoryShee
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { getSnapshots } from '@utils/documentService';
 import CONFIG from '@utils/Config';
+import CustomSafeAreaView from '@components/CustomSafeAreaView';
+
 
 const ACTION_ICON_SIZE = wp(5.5);
 
@@ -974,7 +976,7 @@ const EnvelopeDetailsScreen = ({ route }) => {
     };
 
     return (
-        <View style={styles.mainContainer}>
+        <CustomSafeAreaView style={styles.mainContainer}>
             <BackHeader screenName={'Envelope Details'} goBack={goBack} />
 
 
@@ -1051,7 +1053,7 @@ const EnvelopeDetailsScreen = ({ route }) => {
             </AppBottomSheet>
 
 
-        </View>
+        </CustomSafeAreaView>
     );
 };
 

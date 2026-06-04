@@ -4,7 +4,7 @@ import api from "./api";
 
 import RNFS from 'react-native-fs';
 import * as PdfToImage from 'react-native-pdf-to-image';
-console.log('PDFToImage:', PdfToImage);
+
 
 
 

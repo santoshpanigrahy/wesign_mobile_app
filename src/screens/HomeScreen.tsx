@@ -82,11 +82,16 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const onRefresh = useCallback(async () => {
-    await fetchDashboard();
+    if (userId) {
+
+      await fetchDashboard();
+    }
   }, [userId]);
 
   useEffect(() => {
-    fetchDashboard();
+    if (userId) {
+      fetchDashboard();
+    }
   }, [userId]);
 
   const handleSelfSigning = () => {

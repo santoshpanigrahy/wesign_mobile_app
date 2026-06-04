@@ -20,6 +20,9 @@ import InboxScreen from '@screens/manage/InboxScreen';
 import DraftScreen from '@screens/manage/DraftScreen';
 import DeletedScreen from '@screens/manage/DeletedScreen';
 import IamSignerFinishScreen from '@screens/ImSignerFinishScreen';
+import PricingScreen from '@screens/PricingScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import SubscriptionScreen from '@screens/SubscriptionScreen';
 
 
 
@@ -48,6 +51,9 @@ const Navigation = () => {
         <Stack.Screen name="Canvas" component={CanvasScreen} />
         <Stack.Screen name="Finish" component={FinishScreen} />
         <Stack.Screen name="IamSignerFinish" component={IamSignerFinishScreen} />
+        <Stack.Screen name="Pricing" component={PricingScreen} />
+        {/* <Stack.Screen name="Pricing" component={SubscriptionScreen} /> */}
+        <Stack.Screen name="Register" component={RegisterScreen} />
 
 
         <Stack.Screen name="Demo" component={BottomSheetDemo} />

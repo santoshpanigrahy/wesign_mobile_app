@@ -13,6 +13,7 @@ import React from 'react';
 import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
 import {
   CreditCard,
+  DollarSign,
   Headset,
   HeartHandshake,
   House,
@@ -134,6 +135,9 @@ const CustomDrawer = (props: any) => {
           Icon={HeartHandshake}
           link="https://wesign.com/articles/"
         />
+
+        <SectionHeader title="BILLING" />
+        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
       </ScrollView>
 
       <View style={styles.drawerFooter}>
@@ -196,8 +200,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: wp(4),
-    paddingTop: hp(2),
-    paddingBottom: hp(4),
+    // paddingTop: hp(1),
+    paddingBottom: hp(3),
   },
   sectionHeader: {
     fontSize: fp(1.4),

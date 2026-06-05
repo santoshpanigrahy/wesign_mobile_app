@@ -14,7 +14,6 @@ import {PortalProvider} from '@gorhom/portal';
 import {LogBox} from 'react-native';
 LogBox.ignoreLogs(['CountryModal: Support for defaultProps']);
 import {MenuProvider} from 'react-native-popup-menu';
-
 const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
@@ -23,6 +22,7 @@ const App = () => {
           <SafeAreaProvider>
             <MenuProvider>
               <AppLoader />
+
               <Navigation />
             </MenuProvider>
           </SafeAreaProvider>

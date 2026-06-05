@@ -445,6 +445,7 @@ const UploadScreen = () => {
   const googleDriveRef = useRef<any>(null);
 
   const openSheet = () => {
+
     sheetRef.current?.snapToIndex(0);
   };
   const [documentId, setDocumentId] = useState(null);
@@ -873,6 +874,8 @@ const UploadScreen = () => {
       </View>
     );
   };
+
+  console.log("first")
 
   return (
     <CustomSafeAreaView>

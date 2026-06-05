@@ -11,6 +11,8 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
+import DeviceInfo from "react-native-device-info";
+
 import { useForm, Controller } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 
@@ -24,7 +26,7 @@ import { useAppSelector } from '@redux/hooks';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 import api from '@utils/api';
-import { navigate } from '@utils/NavigationUtils';
+import { navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import { useFocusEffect } from '@react-navigation/native';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import appleAuth, {
@@ -135,7 +137,20 @@ const LoginScreen = () => {
 
           // Navigate Dashboard
         } else {
-          Toast.show({ type: 'error', text1: 'User not logged in' });
+          const deviceId = await DeviceInfo.getUniqueId();
+
+
+          const registerData = {
+            first_name: data?.response?.given_name,
+            last_name: data?.response?.family_name,
+            email: data?.response?.email,
+            isGoogleRegister: true,
+            isLinkedinRegister: false,
+            isAppleRegister: false,
+            // device_fingerprint: deviceId
+          }
+
+          await createAccount(registerData);
         }
       } else {
         Toast.show({ type: 'error', text1: data.message });
@@ -146,6 +161,45 @@ const LoginScreen = () => {
     } finally {
       dispatch(hideLoader());
     }
+  };
+
+  const createAccount = async (requestData: any) => {
+    console.log("Submitted Data=========> ", requestData);
+
+
+
+
+
+
+
+    try {
+      dispatch(showLoader('Loading'))
+
+
+      const response = await api.post('/auth/create/customer', requestData);
+      console.log(response?.data);
+
+      const res = response?.data;
+
+      if (res?.status && res?.status_code === 200) {
+
+        resetAndNavigate('Pricing');
+      } else {
+        Toast.show({ type: 'error', text1: res?.message })
+      }
+
+
+
+
+
+
+
+    } catch (error) {
+      Toast.show({ type: 'error', text1: error?.message })
+    } finally {
+      dispatch(hideLoader())
+    }
+
   };
 
   const loginWithApple = async idToken => {
@@ -225,7 +279,13 @@ const LoginScreen = () => {
           <Controller
             control={control}
             name="email"
-            rules={{ required: 'Email is required' }}
+            rules={{
+              required: 'Email is required',
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Please enter a valid email',
+              },
+            }}
             render={({ field: { onChange, value }, fieldState: { error } }) => (
               <AppInput
                 label="Email"
@@ -315,6 +375,11 @@ const LoginScreen = () => {
             </View>
           </TouchableOpacity> */}
         </View>
+
+        <TouchableOpacity onPress={() => navigate('Register')} style={{ marginTop: hp(4), }}>
+          <Text style={{ textAlign: 'center', fontFamily: Fonts.Regular }}>Don't have an account? <Text style={{ color: Colors.primary, fontFamily: Fonts.Medium }}>Sign Up</Text></Text>
+
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

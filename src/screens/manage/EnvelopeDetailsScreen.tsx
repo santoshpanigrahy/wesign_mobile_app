@@ -54,6 +54,7 @@ import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {getSnapshots} from '@utils/documentService';
 import CONFIG from '@utils/Config';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import CustomSafeAreaView from '@components/CustomSafeAreaView';
 
 const ACTION_ICON_SIZE = wp(5.5);
 
@@ -962,7 +963,7 @@ const EnvelopeDetailsScreen = ({route}) => {
   };
   const inset = useSafeAreaInsets();
   return (
-    <View style={[styles.mainContainer, {paddingTop: inset.top}]}>
+    <CustomSafeAreaView style={[styles.mainContainer, {paddingTop: inset.top}]}>
       <BackHeader screenName={'Envelope Details'} goBack={goBack} />
 
       <View style={styles.infoOverlapCard}>
@@ -1082,7 +1083,7 @@ const EnvelopeDetailsScreen = ({route}) => {
           />
         </BottomSheetScrollView>
       </AppBottomSheet>
-    </View>
+    </CustomSafeAreaView>
   );
 };
 

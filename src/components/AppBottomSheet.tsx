@@ -1,15 +1,15 @@
-import React, {forwardRef, useMemo, useCallback} from 'react';
-import {StyleSheet, TouchableOpacity, View, Text, Keyboard} from 'react-native';
+import React, { forwardRef, useMemo, useCallback } from 'react';
+import { StyleSheet, TouchableOpacity, View, Text, Keyboard } from 'react-native';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 
-import {X} from 'lucide-react-native';
-import {Colors, Fonts, fp, wp} from '@utils/Constants';
-import {useKeyboard} from '@utils/documentService';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { X } from 'lucide-react-native';
+import { Colors, Fonts, fp, wp } from '@utils/Constants';
+import { useKeyboard } from '@utils/documentService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   children: React.ReactNode;
@@ -33,7 +33,7 @@ const AppBottomSheet = forwardRef<any, Props>(
   ) => {
     const isKeyboardOpen = useKeyboard();
 
-    const memoSnapPoints = useMemo(() => snapPoints, []);
+    const memoSnapPoints = useMemo(() => snapPoints, [snapPoints]);
 
     const renderBackdrop = useCallback(
       (props: any) => (
@@ -41,6 +41,7 @@ const AppBottomSheet = forwardRef<any, Props>(
           {...props}
           appearsOnIndex={0}
           disappearsOnIndex={-1}
+
           pressBehavior="close" // ✅ close on outside click
           opacity={0.3} // ✅ rgba(0,0,0,0.3)
         />
@@ -55,13 +56,15 @@ const AppBottomSheet = forwardRef<any, Props>(
         snapPoints={memoSnapPoints}
         enablePanDownToClose
         enableDynamicSizing={false}
+        topInset={inset.top}
+        bottomInset={inset.bottom}
         backdropComponent={renderBackdrop}
         keyboardBehavior="extend" // "extend" or "fillParent" prevents the hovering bug
         keyboardBlurBehavior="none" // Change this from "restore" to "none"
         // enableContentPanningGesture={false}
         handleIndicatorStyle={styles.handle}
         backgroundStyle={styles.sheetBg}
-        style={{zIndex: 99}}>
+        style={{ zIndex: 99 }}>
         {/* {enableScroll ? (
           <BottomSheetScrollView
             contentContainerStyle={styles.content}
@@ -84,7 +87,7 @@ const AppBottomSheet = forwardRef<any, Props>(
           style={[
             styles.content,
             containerStyle,
-            {paddingTop: snapPoints[0] === '100%' ? inset.top : 0},
+            { paddingTop: snapPoints[0] === '100%' ? inset.top : 0 },
           ]}>
           {(title || withCloseBtn) && (
             <View style={styles.bottomSheetHeader}>
@@ -108,7 +111,7 @@ const AppBottomSheet = forwardRef<any, Props>(
             </View>
           )}
 
-          <View style={{flex: 1}}>{children}</View>
+          <View style={{ flex: 1 }}>{children}</View>
         </View>
 
         {/* </BottomSheetView> */}

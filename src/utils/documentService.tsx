@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import {Image, Keyboard, Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 // import * as PdfToImage from 'react-native-pdf-to-image';
-// console.log('PDFToImage:', PdfToImage);
+//
 import {convert} from 'react-native-pdf-to-image';
 
 export async function loadPdfAndConvertToImages(url, key) {

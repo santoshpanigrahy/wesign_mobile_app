@@ -7,11 +7,12 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  SafeAreaView
+  SafeAreaView,
 } from 'react-native';
 import React from 'react';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
 import {
+  CreditCard,
   Headset,
   HeartHandshake,
   House,
@@ -22,12 +23,12 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import { useAppDispatch } from '@redux/hooks';
-import { logout } from '@redux/slices/authSlice';
-import { navigate } from '@utils/NavigationUtils';
+import {useAppDispatch} from '@redux/hooks';
+import {logout} from '@redux/slices/authSlice';
+import {navigate} from '@utils/NavigationUtils';
 
 const CustomDrawer = (props: any) => {
-  const { state, navigation } = props;
+  const {state, navigation} = props;
   const dispatch = useAppDispatch();
 
   const handleOpenPolicy = (type: string) => {
@@ -41,8 +42,7 @@ const CustomDrawer = (props: any) => {
   if (!state) return null;
   const activeRoute = state.routeNames[state.index];
 
-
-  const DrawerItem = ({ label, Icon, route, count, link = null }: any) => {
+  const DrawerItem = ({label, Icon, route, count, link = null}: any) => {
     const isActive = activeRoute === route;
 
     return (
@@ -54,12 +54,9 @@ const CustomDrawer = (props: any) => {
           } else {
             navigation.navigate(route);
             navigation.closeDrawer();
-
           }
         }}
-        style={[styles.drawerItem, isActive && styles.activeItem]}
-      >
-
+        style={[styles.drawerItem, isActive && styles.activeItem]}>
         {isActive && <View style={styles.activeIndicator} />}
 
         <View style={styles.itemContent}>
@@ -74,10 +71,9 @@ const CustomDrawer = (props: any) => {
               styles.drawerText,
               {
                 color: isActive ? Colors.primary : Colors.text_primary,
-                fontFamily: isActive ? Fonts.SemiBold : Fonts.Medium
+                fontFamily: isActive ? Fonts.SemiBold : Fonts.Medium,
               },
-            ]}
-          >
+            ]}>
             {label}
           </Text>
         </View>
@@ -91,14 +87,12 @@ const CustomDrawer = (props: any) => {
     );
   };
 
-  const SectionHeader = ({ title }: { title: string }) => (
+  const SectionHeader = ({title}: {title: string}) => (
     <Text style={styles.sectionHeader}>{title}</Text>
   );
 
   return (
     <SafeAreaView style={styles.drawerWrapper}>
-
-
       <View style={styles.drawerTop}>
         <Image
           source={require('@assets/images/logo.png')}
@@ -107,20 +101,18 @@ const CustomDrawer = (props: any) => {
         />
         <TouchableOpacity
           style={styles.closeButton}
-          onPress={() => navigation.closeDrawer()}
-        >
+          onPress={() => navigation.closeDrawer()}>
           <X color={Colors.text_primary} strokeWidth={2} size={fp(2.6)} />
         </TouchableOpacity>
       </View>
 
-
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+        contentContainerStyle={styles.scrollContent}>
         <SectionHeader title="MAIN" />
         <DrawerItem label="Home" Icon={House} route="Home" />
         <DrawerItem label="Profile" Icon={User} route="Profile" />
+        <DrawerItem label="Subscription" Icon={CreditCard} route="Payment" />
 
         <View style={styles.separator} />
 
@@ -132,39 +124,45 @@ const CustomDrawer = (props: any) => {
         <View style={styles.separator} />
 
         <SectionHeader title="SUPPORT" />
-        <DrawerItem label="Contact Us" Icon={Headset} link='https://wesign.com/contact' />
-        <DrawerItem label="Help Center" Icon={HeartHandshake} link='https://wesign.com/articles/' />
+        <DrawerItem
+          label="Contact Us"
+          Icon={Headset}
+          link="https://wesign.com/contact"
+        />
+        <DrawerItem
+          label="Help Center"
+          Icon={HeartHandshake}
+          link="https://wesign.com/articles/"
+        />
       </ScrollView>
 
-
       <View style={styles.drawerFooter}>
-
-
         <TouchableOpacity
           activeOpacity={0.7}
           style={styles.logoutBtn}
           onPress={() => {
             dispatch(logout());
             navigate('Login');
-          }}
-        >
+          }}>
           <LogOut size={fp(2.4)} strokeWidth={2} color={Colors.error} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-
         <View style={styles.policyWrapper}>
-          <Pressable style={styles.policyBtn} onPress={() => handleOpenPolicy('term')}>
+          <Pressable
+            style={styles.policyBtn}
+            onPress={() => handleOpenPolicy('term')}>
             <Text style={styles.policyBtnText}>Terms & Conditions</Text>
           </Pressable>
 
           <View style={styles.divider} />
 
-          <Pressable style={styles.policyBtn} onPress={() => handleOpenPolicy('privacy')}>
+          <Pressable
+            style={styles.policyBtn}
+            onPress={() => handleOpenPolicy('privacy')}>
             <Text style={styles.policyBtnText}>Privacy Policy</Text>
           </Pressable>
         </View>
-
       </View>
     </SafeAreaView>
   );

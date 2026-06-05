@@ -1,6 +1,6 @@
-import axios from "axios";
-import CONFIG from "./Config";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from 'axios';
+import CONFIG from './Config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
   baseURL: CONFIG.apiEndpoint,
@@ -8,7 +8,7 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  async (request) => {
+  async request => {
     try {
       const token = await AsyncStorage.getItem('token');
 
@@ -31,12 +31,12 @@ api.interceptors.request.use(
       return request;
     }
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error),
 );
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => {
+  response => {
     // console.log('================ API RESPONSE ================');
     // console.log('URL:', response.config.url);
     // console.log('Status:', response.status);
@@ -45,7 +45,7 @@ api.interceptors.response.use(
 
     return response;
   },
-  (error) => {
+  error => {
     // console.log('================ API ERROR ==================');
     // console.log('URL:', error?.config?.url);
     // console.log('Status:', error?.response?.status);
@@ -53,8 +53,71 @@ api.interceptors.response.use(
     // console.log('=============================================');
 
     return Promise.reject(error);
-  }
+  },
 );
 
-export default api;
+// ============================================
+// Subscription API Methods
+// ============================================
 
+/**
+ * Sync subscription receipt with backend
+ */
+export const syncSubscription = async (receiptData: {
+  receipt: string;
+  productId: string;
+  transactionId: string;
+}) => {
+  try {
+    const response = await api.post('/api/subscription/sync', receiptData);
+    return response.data;
+  } catch (error) {
+    console.error('Sync subscription error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get current subscription status from backend
+ */
+export const getSubscriptionStatus = async () => {
+  try {
+    const response = await api.get('/api/subscription/status');
+    return response.data;
+  } catch (error) {
+    console.error('Get subscription status error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Cancel subscription (mark as cancelled in backend)
+ */
+export const cancelSubscription = async () => {
+  try {
+    const response = await api.post('/api/subscription/cancel');
+    return response.data;
+  } catch (error) {
+    console.error('Cancel subscription error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update subscription plan (upgrade/downgrade)
+ */
+export const updateSubscriptionPlan = async (planData: {
+  newSku: string;
+  transactionId: string;
+  receipt: string;
+}) => {
+  try {
+    const response = await api.post('/api/subscription/update', planData);
+    return response.data;
+  } catch (error) {
+    console.error('Update subscription plan error:', error);
+    throw error;
+  }
+};
+
+export default api;

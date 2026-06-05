@@ -84,7 +84,7 @@ const HomeScreen = ({navigation}) => {
   const handleGetSubscriptions = async () => {
     try {
       // setloader(true);
-      let Transaction_ID: any = ['ws_personal_test'];
+      let Transaction_ID: any = ['ws_personal_test', 'ws_business_test'];
       await getSubscriptions({skus: Transaction_ID});
     } catch (error) {
       console.log('90 error', error);

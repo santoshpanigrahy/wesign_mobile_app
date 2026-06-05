@@ -1,51 +1,46 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "@utils/api";
-import { hideLoader, showLoader } from "./loaderSlice";
-import { navigate, resetAndNavigate } from "@utils/NavigationUtils";
-
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '@utils/api';
+import {hideLoader, showLoader} from './loaderSlice';
+import {navigate, resetAndNavigate} from '@utils/NavigationUtils';
 
 export const loginUser = createAsyncThunk(
-  "auth/loginUser",
-  async (data:any, thunkAPI) => {
-    const { dispatch } = thunkAPI;
+  'auth/loginUser',
+  async (data: any, thunkAPI) => {
+    const {dispatch} = thunkAPI;
     try {
-       dispatch(showLoader("Signing in..."));
-      const res = await api.post("/auth/login", data);
+      dispatch(showLoader('Signing in...'));
+      const res = await api.post('/auth/login', data);
 
-      console.log(res)
+      console.log(res.data);
       if (!res.data.status) {
         return thunkAPI.rejectWithValue(res.data.message);
       }
 
-
-      
-      await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
-      await AsyncStorage.setItem("token", res.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+      await AsyncStorage.setItem('token', res.data.token);
 
       navigate('Drawer');
 
       return res.data;
-    } catch (err:any) {
+    } catch (err: any) {
       return thunkAPI.rejectWithValue(err.message);
     } finally {
       dispatch(hideLoader());
     }
-  }
+  },
 );
 
-
-export const loadUser = createAsyncThunk("auth/loadUser", async () => {
-  const user = await AsyncStorage.getItem("user");
-  const token = await AsyncStorage.getItem("token");
+export const loadUser = createAsyncThunk('auth/loadUser', async () => {
+  const user = await AsyncStorage.getItem('user');
+  const token = await AsyncStorage.getItem('token');
 
   if (user && token) {
-    return { user: JSON.parse(user), token };
+    return {user: JSON.parse(user), token};
   }
 
   return null;
 });
-
 
 const initialState = {
   user: null,
@@ -55,36 +50,36 @@ const initialState = {
 };
 
 const authSlice = createSlice({
-  name: "auth",
+  name: 'auth',
   initialState,
 
   reducers: {
-    logout: (state) => {
+    logout: state => {
       state.user = null;
       state.token = null;
 
-      AsyncStorage.removeItem("user");
-      AsyncStorage.removeItem("token");
+      AsyncStorage.removeItem('user');
+      AsyncStorage.removeItem('token');
     },
     setUser: (state, action) => {
       state.user = action.payload;
     },
-   updateUser: (state, action) => {
+    updateUser: (state, action) => {
       if (state.user) {
         state.user = {
           ...state.user,
-          ...action.payload
+          ...action.payload,
         };
       }
     },
     updateToken: (state, action) => {
-     state.token = action.payload
-   }
+      state.token = action.payload;
+    },
   },
 
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
-      .addCase(loginUser.pending, (state) => {
+      .addCase(loginUser.pending, state => {
         state.loading = true;
         state.error = null;
       })
@@ -95,12 +90,12 @@ const authSlice = createSlice({
         state.token = action.payload.token;
       })
 
-      .addCase(loginUser.rejected, (state:any, action) => {
+      .addCase(loginUser.rejected, (state: any, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      .addCase(loadUser.fulfilled, (state:any, action) => {
+      .addCase(loadUser.fulfilled, (state: any, action) => {
         if (action.payload) {
           state.user = action.payload.user;
           state.token = action.payload.token;
@@ -109,5 +104,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout,updateUser ,updateToken,setUser} = authSlice.actions;
+export const {logout, updateUser, updateToken, setUser} = authSlice.actions;
 export default authSlice.reducer;

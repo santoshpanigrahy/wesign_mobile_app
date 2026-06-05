@@ -1,10 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import {createDrawerNavigator} from '@react-navigation/drawer';
 
-
-import { BackHandler, ToastAndroid } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {BackHandler, ToastAndroid} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import HomeScreen from '@screens/HomeScreen';
 import CustomDrawer from '@components/CustomDrawer';
@@ -15,12 +14,11 @@ import InboxScreen from '@screens/manage/InboxScreen';
 import DraftScreen from '@screens/manage/DraftScreen';
 import DeletedScreen from '@screens/manage/DeletedScreen';
 import ProfilePagerScreen from '@screens/ProfileScreen';
+import PaymentScreen from '@screens/PaymentScreen';
 
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigation = () => {
-
-
   const navigation = useNavigation();
   const [backPressedOnce, setBackPressedOnce] = useState(false);
 
@@ -66,7 +64,6 @@ const DrawerNavigation = () => {
   //   }, [backPressedOnce])
   // );
 
-
   useFocusEffect(
     React.useCallback(() => {
       const backAction = () => {
@@ -76,19 +73,18 @@ const DrawerNavigation = () => {
 
       const subscription = BackHandler.addEventListener(
         'hardwareBackPress',
-        backAction
+        backAction,
       );
 
       return () => subscription.remove();
-    }, [])
+    }, []),
   );
   return (
     <CustomSafeAreaView>
-
       <Drawer.Navigator
         drawerContent={props => <CustomDrawer {...props} />}
         initialRouteName="Home"
-        screenOptions={{ headerShown: false }}>
+        screenOptions={{headerShown: false}}>
         <Drawer.Screen name="Home" component={HomeScreen} />
         <Drawer.Screen name="Manage" component={ManageScreen} />
         <Drawer.Screen name="Settings" component={SettingScreen} />
@@ -97,7 +93,7 @@ const DrawerNavigation = () => {
         <Drawer.Screen name="Draft" component={DraftScreen} />
         <Drawer.Screen name="Deleted" component={DeletedScreen} />
         <Drawer.Screen name="Profile" component={ProfilePagerScreen} />
-
+        <Drawer.Screen name="Payment" component={PaymentScreen} />
       </Drawer.Navigator>
     </CustomSafeAreaView>
   );

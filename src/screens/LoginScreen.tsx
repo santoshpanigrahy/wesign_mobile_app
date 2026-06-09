@@ -10,8 +10,10 @@ import {
   BackHandler,
   InteractionManager,
   Platform,
+  Keyboard,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 import {useForm, Controller} from 'react-hook-form';
 import {useDispatch} from 'react-redux';
@@ -248,112 +250,123 @@ const LoginScreen = () => {
       />
 
       {/* <Text style={styles.title}>Sign</Text> */}
-      <View style={styles.inner}>
-        <Image
-          source={require('@assets/images/logo.png')}
-          style={{
-            width: wp(60),
-            marginBottom: wp(15),
-            marginHorizontal: 'auto',
-          }}
-          resizeMode="contain"
-        />
+      <View style={{flex: 1, backgroundColor: Colors.background}}>
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+          enableOnAndroid={true}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          alwaysBounceVertical={false}
+          overScrollMode="never">
+          <View style={styles.inner}>
+            <Image
+              source={require('@assets/images/logo.png')}
+              style={{
+                width: wp(60),
+                marginBottom: wp(15),
+                marginHorizontal: 'auto',
+              }}
+              resizeMode="contain"
+            />
 
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to continue to WeSign</Text>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to continue to WeSign</Text>
 
-        <View style={{gap: hp(2)}}>
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: 'Email is required',
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: 'Please enter a valid email',
-              },
-            }}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
-              <AppInput
-                label="Email"
-                placeholder="Enter your email"
-                value={value}
-                onChangeText={onChange}
-                error={error?.message}
-                leftIcon={Mail}
+            <View style={{gap: hp(2)}}>
+              <Controller
+                control={control}
+                name="email"
+                rules={{
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Please enter a valid email',
+                  },
+                }}
+                render={({field: {onChange, value}, fieldState: {error}}) => (
+                  <AppInput
+                    label="Email"
+                    placeholder="Enter your email"
+                    value={value}
+                    onChangeText={onChange}
+                    error={error?.message}
+                    leftIcon={Mail}
+                  />
+                )}
               />
-            )}
-          />
 
-          <Controller
-            control={control}
-            name="password"
-            rules={{required: 'Password is required'}}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
-              <AppInput
-                label="Password"
-                placeholder="Enter password"
-                value={value}
-                onChangeText={onChange}
-                error={error?.message}
-                secureTextEntry
-                leftIcon={Lock}
+              <Controller
+                control={control}
+                name="password"
+                rules={{required: 'Password is required'}}
+                render={({field: {onChange, value}, fieldState: {error}}) => (
+                  <AppInput
+                    label="Password"
+                    placeholder="Enter password"
+                    value={value}
+                    onChangeText={onChange}
+                    error={error?.message}
+                    secureTextEntry
+                    leftIcon={Lock}
+                  />
+                )}
               />
-            )}
-          />
-        </View>
+            </View>
 
-        {error && <Text style={styles.error}>{error}</Text>}
+            {error && <Text style={styles.error}>{error}</Text>}
 
-        {/* <TouchableOpacity style={styles.forgot}>
+            {/* <TouchableOpacity style={styles.forgot}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity> */}
 
-        <AppButton
-          title="Login"
-          style={{marginTop: hp(3)}}
-          onPress={handleSubmit(onSubmit)}
-        />
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.or}>OR</Text>
-          <View style={styles.line} />
-        </View>
-
-        <View style={styles.socialIconsContainer}>
-          <TouchableOpacity
-            style={styles.socialIconBtn}
-            onPress={signInWithGoogle}>
-            <Image
-              source={require('@assets/icons/google.png')}
-              alt="google"
-              style={styles.socialIconLarge}
+            <AppButton
+              title="Login"
+              style={{marginTop: hp(3)}}
+              onPress={handleSubmit(onSubmit)}
             />
-          </TouchableOpacity>
-          {Platform.OS === 'ios' && (
-            <TouchableOpacity
-              style={styles.socialIconBtn}
-              onPress={() => onAppleButtonPress()}>
-              <Image
-                source={require('@assets/icons/apple.png')}
-                alt="apple"
-                style={styles.socialIconLarge}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
 
-        <TouchableOpacity
-          onPress={() => navigate('Register')}
-          style={{marginTop: hp(4)}}>
-          <Text style={{textAlign: 'center', fontFamily: Fonts.Regular}}>
-            Don't have an account?{' '}
-            <Text style={{color: Colors.primary, fontFamily: Fonts.Medium}}>
-              Sign Up
-            </Text>
-          </Text>
-        </TouchableOpacity>
+            <View style={styles.dividerContainer}>
+              <View style={styles.line} />
+              <Text style={styles.or}>OR</Text>
+              <View style={styles.line} />
+            </View>
+
+            <View style={styles.socialIconsContainer}>
+              <TouchableOpacity
+                style={styles.socialIconBtn}
+                onPress={signInWithGoogle}>
+                <Image
+                  source={require('@assets/icons/google.png')}
+                  alt="google"
+                  style={styles.socialIconLarge}
+                />
+              </TouchableOpacity>
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={styles.socialIconBtn}
+                  onPress={() => onAppleButtonPress()}>
+                  <Image
+                    source={require('@assets/icons/apple.png')}
+                    alt="apple"
+                    style={styles.socialIconLarge}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <TouchableOpacity
+              onPress={() => navigate('Register')}
+              style={{marginTop: hp(4)}}>
+              <Text style={{textAlign: 'center', fontFamily: Fonts.Regular}}>
+                Don't have an account?{' '}
+                <Text style={{color: Colors.primary, fontFamily: Fonts.Medium}}>
+                  Sign Up
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAwareScrollView>
       </View>
     </SafeAreaView>
   );

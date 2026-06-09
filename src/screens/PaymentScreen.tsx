@@ -229,6 +229,56 @@ const PaymentScreen = ({navigation, route}: any) => {
     return null;
   };
 
+  // Helper function to validate receipt with automatic environment detection
+  // Handles both sandbox (Development/TestFlight) and production receipts
+  const validateReceiptWithAutoRetry = async (receipt: string) => {
+    try {
+      console.log(
+        '🔍 Validating receipt (trying production endpoint first)...',
+      );
+
+      // Try production endpoint first
+      let response = await validateReceiptIos({
+        receiptBody: {
+          'receipt-data': receipt,
+          password: APP_SHARED_SECRET,
+        },
+        isTest: false, // Production
+      });
+
+      // Status 21007 = sandbox receipt sent to production endpoint
+      // This happens in TestFlight builds where __DEV__ is false but receipts are sandbox
+      if (response?.status === 21007) {
+        console.log(
+          '🔄 TestFlight/Sandbox receipt detected (status 21007), retrying with sandbox endpoint...',
+        );
+
+        response = await validateReceiptIos({
+          receiptBody: {
+            'receipt-data': receipt,
+            password: APP_SHARED_SECRET,
+          },
+          isTest: true, // Sandbox
+        });
+
+        console.log(
+          '✅ Receipt validated against sandbox endpoint, status:',
+          response.status,
+        );
+      } else {
+        console.log(
+          '✅ Receipt validated against production endpoint, status:',
+          response.status,
+        );
+      }
+
+      return response;
+    } catch (error) {
+      console.error('❌ Receipt validation error:', error);
+      throw error;
+    }
+  };
+
   const checkExistingPurchases = async () => {
     try {
       const purchases = await getAvailablePurchases();
@@ -245,14 +295,9 @@ const PaymentScreen = ({navigation, route}: any) => {
         // If no expiry date in purchase object, validate receipt with Apple
         if (!expiryDate && activePurchase.transactionReceipt) {
           try {
-            console.log('🔍 Validating receipt to get expiry date...');
-            const receiptValidation = await validateReceiptIos({
-              receiptBody: {
-                'receipt-data': activePurchase.transactionReceipt,
-                password: APP_SHARED_SECRET,
-              },
-              isTest: __DEV__,
-            });
+            const receiptValidation = await validateReceiptWithAutoRetry(
+              activePurchase.transactionReceipt,
+            );
 
             console.log('📝 Receipt validation response:', receiptValidation);
 
@@ -374,17 +419,10 @@ const PaymentScreen = ({navigation, route}: any) => {
       // Validate receipt with Apple
       const receipt = purchase.transactionReceipt;
       if (receipt) {
-        const isTestEnvironment = __DEV__;
-        console.log('🔍 Validating receipt with Apple...');
-
         try {
-          const appleReceiptResponse = await validateReceiptIos({
-            receiptBody: {
-              'receipt-data': receipt,
-              password: APP_SHARED_SECRET,
-            },
-            isTest: isTestEnvironment,
-          });
+          const appleReceiptResponse = await validateReceiptWithAutoRetry(
+            receipt,
+          );
 
           console.log(
             '✅ Apple receipt validation response:',

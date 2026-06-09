@@ -19,7 +19,13 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import AppInput from '@components/AppInput';
 import AppButton from '@components/AppButton';
 import {Colors, wp, hp, fp, Fonts} from '@utils/Constants';
-import {loginUser, setUser, updateToken, updateUser} from '@slices/authSlice';
+import {
+  loginUser,
+  setSubscription,
+  setUser,
+  updateToken,
+  updateUser,
+} from '@slices/authSlice';
 
 import {Mail, Lock, User} from 'lucide-react-native';
 import {useAppSelector} from '@redux/hooks';
@@ -110,6 +116,9 @@ const RegisterScreen = () => {
           console.log(data.user, data.token);
 
           dispatch(setUser(data.user));
+          dispatch(setSubscription(data?.subscription));
+
+          console.log('Subscription ========> ', data?.subscription);
           dispatch(updateToken(data.token));
           await AsyncStorage.setItem('user', JSON.stringify(data.user));
           await AsyncStorage.setItem('token', data.token);
@@ -167,6 +176,9 @@ const RegisterScreen = () => {
           console.log(data.user, data.token);
 
           dispatch(setUser(data.user));
+          dispatch(setSubscription(data?.subscription));
+
+          console.log('Subscription ========> ', data?.subscription);
           console.log('171');
           dispatch(updateToken(data.token));
           console.log('173');
@@ -218,11 +230,14 @@ const RegisterScreen = () => {
 
       if (res?.status && res?.status_code === 200) {
         dispatch(setUser(res?.user_details));
+        dispatch(updateToken(res?.token));
 
         await AsyncStorage.setItem('user', JSON.stringify(res?.user_details));
         if (Platform.OS === 'ios') {
           resetAndNavigate('Payment', {fromLogin: true});
         } else {
+          await AsyncStorage.setItem('token', res.token);
+
           resetAndNavigate('Pricing', {fromRegister: true});
         }
       } else {

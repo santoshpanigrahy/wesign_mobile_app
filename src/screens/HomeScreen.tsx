@@ -63,6 +63,9 @@ const GradientCard = ({icon: Icon, value, label, colors}: any) => {
 };
 const HomeScreen = ({navigation}) => {
   const userId = useAppSelector(state => state.auth.user?.id);
+  const subscription = useAppSelector(state => state.auth.subscription);
+
+  console.log("Subscription =====> ", subscription)
   const userName = useAppSelector(state => state.auth.user?.first_name);
   const dispatch = useAppDispatch();
   const {
@@ -120,7 +123,20 @@ const HomeScreen = ({navigation}) => {
   }, [userId]);
 
   const handleSelfSigning = () => {
+    if (!subscription || !subscription?.is_active) {
+      navigate('Pricing');
+      return
+    }
     dispatch(setIamSigner(true));
+    navigate('Upload');
+  };
+
+  const handleSigning = () => {
+    if (!subscription || !subscription?.is_active) {
+      navigate('Pricing');
+      return
+    }
+
     navigate('Upload');
   };
 
@@ -176,7 +192,7 @@ const HomeScreen = ({navigation}) => {
 
           <TouchableOpacity
             activeOpacity={0.9}
-            onPress={() => navigate('Upload')}>
+            onPress={handleSigning}>
             <LinearGradient
               colors={['#3B82F6', '#2563EB']}
               start={{x: 0, y: 0}}
@@ -338,7 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: hp(3),
+    marginTop: hp(2 ),
 
     shadowColor: '#000',
     shadowOpacity: 0.2,

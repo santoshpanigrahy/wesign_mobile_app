@@ -82,8 +82,8 @@ android {
         applicationId "com.wesign"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 5
-        versionName "2.3"
+        versionCode 10
+        versionName "2.8"
 
         manifestPlaceholders = [appAuthRedirectScheme: "com.wesign"]
         missingDimensionStrategy 'store', 'play'

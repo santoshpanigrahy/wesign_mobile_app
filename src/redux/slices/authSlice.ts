@@ -39,6 +39,10 @@ export const loginUser = createAsyncThunk(
       }
 
       await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
+      await AsyncStorage.setItem(
+        'subscription',
+        JSON.stringify(res.data.subscription),
+      );
       await AsyncStorage.setItem('token', res.data.token);
 
       navigate('Drawer');
@@ -55,9 +59,14 @@ export const loginUser = createAsyncThunk(
 export const loadUser = createAsyncThunk('auth/loadUser', async () => {
   const user = await AsyncStorage.getItem('user');
   const token = await AsyncStorage.getItem('token');
+  const subscription = await AsyncStorage.getItem('subscription');
 
   if (user && token) {
-    return {user: JSON.parse(user), token};
+    return {
+      user: JSON.parse(user),
+      token,
+      subscription: JSON.parse(subscription),
+    };
   }
 
   return null;
@@ -66,6 +75,7 @@ export const loadUser = createAsyncThunk('auth/loadUser', async () => {
 const initialState = {
   user: null,
   token: null,
+  subscription: null,
   loading: false,
   error: null,
 };
@@ -81,14 +91,26 @@ const authSlice = createSlice({
 
       AsyncStorage.removeItem('user');
       AsyncStorage.removeItem('token');
+      AsyncStorage.removeItem('subscription');
     },
     setUser: (state, action) => {
       state.user = action.payload;
+    },
+    setSubscription: (state, action) => {
+      state.subscription = action.payload;
     },
     updateUser: (state, action) => {
       if (state.user) {
         state.user = {
           ...state.user,
+          ...action.payload,
+        };
+      }
+    },
+    updateSubscriptionLocally: (state, action) => {
+      if (state.subscription) {
+        state.subscription = {
+          ...state.subscription,
           ...action.payload,
         };
       }
@@ -108,6 +130,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
+        state.subscription = action.payload.subscription;
         state.token = action.payload.token;
       })
 
@@ -119,11 +142,19 @@ const authSlice = createSlice({
       .addCase(loadUser.fulfilled, (state: any, action) => {
         if (action.payload) {
           state.user = action.payload.user;
+          state.subscription = action.payload.subscription;
           state.token = action.payload.token;
         }
       });
   },
 });
 
-export const {logout, updateUser, updateToken, setUser} = authSlice.actions;
+export const {
+  logout,
+  updateUser,
+  updateToken,
+  setUser,
+  setSubscription,
+  updateSubscriptionLocally,
+} = authSlice.actions;
 export default authSlice.reducer;

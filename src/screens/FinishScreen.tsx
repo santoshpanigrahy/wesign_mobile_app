@@ -1,4 +1,5 @@
 import {
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -235,7 +236,7 @@ const FinishScreen = ({navigation}) => {
       console.log('Requiest Data=======> ', request_data);
 
       const res = await api.post('/api/envelope/send', request_data);
-
+      Keyboard.dismiss();
       setShowSuccessModal(true);
       // Toast.show({ type: 'success', text1: "Done" });
     } catch (error) {

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@utils/api';
 import {hideLoader, showLoader} from './loaderSlice';
 import {navigate, resetAndNavigate} from '@utils/NavigationUtils';
+import {Platform} from 'react-native';
 
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
@@ -12,7 +13,27 @@ export const loginUser = createAsyncThunk(
       dispatch(showLoader('Signing in...'));
       const res = await api.post('/auth/login', data);
 
-      console.log(res.data);
+      // Handle case where user doesn't have a subscription
+      if (
+        !res.data.status &&
+        res.data.status_code === 400 &&
+        res.data.user_data
+      ) {
+        // User exists but no subscription - save user and redirect to Payment
+        const userData = res.data.user_data;
+        const token = res.data.token;
+
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+
+        if (Platform.OS === 'ios') {
+          resetAndNavigate('Payment', {fromLogin: true});
+        } else {
+          resetAndNavigate('Pricing');
+        }
+
+        return {user: userData, token: token};
+      }
+
       if (!res.data.status) {
         return thunkAPI.rejectWithValue(res.data.message);
       }

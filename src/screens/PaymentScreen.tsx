@@ -18,14 +18,18 @@ import {
   Settings,
   ArrowUp,
   ArrowDown,
+  ArrowLeft,
+  Bell,
 } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import DrawerHeader from '@components/DrawerHeader';
+import CustomSafeAreaView from '@components/CustomSafeAreaView';
+import {goBack, navigate, resetAndNavigate} from '@utils/NavigationUtils';
 import {useAppDispatch, useAppSelector} from '@redux/hooks';
 import {
   useIAP,
   validateReceiptIos,
   getAvailablePurchases,
+  clearTransactionIOS,
 } from 'react-native-iap';
 import AppButton from '@components/AppButton';
 import Skeleton from '@components/Skeleton';
@@ -58,6 +62,9 @@ import {
 } from '../utils/api';
 import moment from 'moment';
 import {APP_SHARED_SECRET} from '@env';
+import {showLoader, hideLoader} from '@redux/slices/loaderSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {logout} from '@redux/slices/authSlice';
 
 // Helper function to generate a valid UUID from userId
 // Apple requires appAccountToken to be a valid UUID format
@@ -98,9 +105,27 @@ const FeatureItem = ({text}: {text: string}) => (
   </View>
 );
 
-const PaymentScreen = ({navigation}: any) => {
+const PaymentScreen = ({navigation, route}: any) => {
   const dispatch = useAppDispatch();
   const userId = useAppSelector((state: any) => state.auth.user?.id);
+  const token = useAppSelector((state: any) => state.auth.token);
+
+  // Check if user came from login flow
+  const fromLogin = route?.params?.fromLogin || false;
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      goBack();
+    } else {
+      // If no screen to go back to, navigate based on auth state
+      if (fromLogin) {
+        navigate('Login');
+      } else {
+        navigate('Drawer');
+      }
+    }
+  };
+
   const {
     currentSubscription,
     isSubscribed,
@@ -451,18 +476,76 @@ const PaymentScreen = ({navigation}: any) => {
       const wasUpgrade =
         activePlanSku && isPlanUpgrade(activePlanSku, purchase.productId);
 
-      Alert.alert(
-        wasUpgrade ? 'Upgraded! 🎉' : 'Welcome! 🎉',
-        wasUpgrade
-          ? `Your ${planName} is now active`
-          : `Your subscription to ${planName} has been activated successfully.`,
+      // Show processing loader for 3-4 seconds
+      dispatch(showLoader('Processing your purchase...'));
+
+      await new Promise(resolve => setTimeout(resolve, 3500));
+
+      dispatch(hideLoader());
+      console.log(
+        'Purchase processing complete, showing confirmation alert',
+        fromLogin,
       );
+      // Handle post-purchase flow based on where user came from
+      if (fromLogin) {
+        // User came from login - they need to login again after purchase
+        Alert.alert(
+          'Purchase Successful! 🎉',
+          `Your ${planName} subscription is now active. Please login again to access all features.`,
+          [
+            {
+              text: 'Login Now',
+              onPress: async () => {
+                // Clear auth state and navigate to login
+                dispatch(logout());
+                await AsyncStorage.removeItem('user');
+                await AsyncStorage.removeItem('token');
+                resetAndNavigate('Login');
+              },
+            },
+          ],
+          {cancelable: false},
+        );
+      } else {
+        // Normal flow - user from registration or drawer
+        Alert.alert(
+          wasUpgrade ? 'Upgraded! 🎉' : 'Welcome! 🎉',
+          wasUpgrade
+            ? `Your ${planName} is now active`
+            : `Your subscription to ${planName} has been activated successfully.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Navigate to Drawer if they have token
+                if (token) {
+                  navigate('Drawer');
+                }
+              },
+            },
+          ],
+        );
+      }
     } catch (error) {
       console.error('Purchase processing error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to process purchase. Please contact support.',
-      );
+
+      if (fromLogin) {
+        Alert.alert(
+          'Processing Payment',
+          'Your payment is being processed. This may take a few moments. Please try logging in after some time.',
+          [
+            {
+              text: 'Go to Login',
+              onPress: () => resetAndNavigate('Login'),
+            },
+          ],
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          'Failed to process purchase. Please contact support.',
+        );
+      }
     } finally {
       dispatch(setPurchaseLoading(false));
       setSelectedPlanForPurchase(null);
@@ -611,6 +694,7 @@ const PaymentScreen = ({navigation}: any) => {
     console.log('User ID:', userId, '→ UUID:', appAccountToken);
 
     dispatch(setPurchaseLoading(true));
+    await clearTransactionIOS();
     requestSubscription({
       sku,
       andDangerouslyFinishTransactionAutomaticallyIOS: false,
@@ -851,17 +935,31 @@ const PaymentScreen = ({navigation}: any) => {
   };
 
   return (
-    <>
+    <CustomSafeAreaView>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleBack}>
+          <ArrowLeft
+            size={fp(2.8)}
+            color={Colors.text_primary}
+            strokeWidth={1.6}
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Subscription</Text>
+
+        <TouchableOpacity>
+          <Bell size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         <View style={styles.container}>
-          <DrawerHeader navigation={navigation} title="Subscription" />
-
           <View style={styles.inner}>
-            <View style={styles.header}>
+            <View style={styles.contentHeader}>
               <CreditCard
                 size={fp(3.5)}
                 color={Colors.primary}
@@ -967,13 +1065,29 @@ const PaymentScreen = ({navigation}: any) => {
         onClose={() => setShowManageModal(false)}
         onCancelSubscription={handleCancelSubscription}
       />
-    </>
+    </CustomSafeAreaView>
   );
 };
 
 export default PaymentScreen;
 
 const styles = StyleSheet.create({
+  header: {
+    height: hp(7),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: wp(6),
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: Colors.border,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: fp(2.2),
+    fontFamily: Fonts.SemiBold,
+    color: Colors.text_primary,
+    letterSpacing: 0.5,
+  },
   scrollContent: {
     flexGrow: 1,
     paddingBottom: hp(3),
@@ -987,7 +1101,7 @@ const styles = StyleSheet.create({
     paddingTop: hp(1),
     paddingBottom: hp(2),
   },
-  header: {
+  contentHeader: {
     alignItems: 'center',
     marginBottom: hp(3),
   },

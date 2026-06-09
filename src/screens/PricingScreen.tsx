@@ -3,9 +3,8 @@ import {
     View,
     Text,
     StyleSheet,
-    TouchableOpacity,
-    SafeAreaView,
-    ScrollView,
+
+
     Pressable,
     Linking,
     Platform
@@ -13,30 +12,45 @@ import {
 import api from '@utils/api';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 
-
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import LinearGradient from 'react-native-linear-gradient';
 import { ArrowLeft, CheckCircle2, Info, Link } from 'lucide-react-native';
 
-// User defined utilities
+
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import { pricingData } from '@utils/pricingData';
 import AppBottomSheet from '@components/AppBottomSheet';
 import AppNewBottomSheet from '@components/AppNewBottomSheet';
-import { goBack } from '@utils/NavigationUtils';
+import { goBack, navigate } from '@utils/NavigationUtils';
 import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import { useRoute } from '@react-navigation/native';
 
 import * as RNIap from 'react-native-iap';
 import { Alert } from 'react-native';
+import { setSubscription, updateSubscriptionLocally } from '@redux/slices/authSlice';
+import SubscriptionSuccessModal from '@components/SubscriptionSuccessModal';
 
-const SUBSCRIPTION_IDS = ['ws_personal_test', 'ws_business_test', 'ws_enterprise_test'];
+const SUBSCRIPTION_IDS = [
+    'ws_personal_test', 'ws_personal_quarterly_test', 'ws_personal_yearly_test',
+    'ws_business_test', 'ws_business_quarterly_test', 'ws_business_yearly_test',
+    'ws_enterprise_test', 'ws_enterprise_quarterly_test', 'ws_enterprise_yearly_test'
+];
 const IS_ANDROID = Platform.OS === 'android';
 
 
 const PricingScreen = () => {
     const userId = useAppSelector(state => state.auth.user?.id);
+
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [isSwiping, setIsSwiping] = useState(false);
+
+
+    const [activePlanId, setActivePlanId] = useState(null);
+    const [activeBasePlanId, setActiveBasePlanId] = useState(null);
+    const [purchaseToken, setPurchaseToken] = useState(null);
+    const [purchasePlatform, setPurchasePlatform] = useState(null);
 
 
     console.log(userId)
@@ -68,6 +82,7 @@ const PricingScreen = () => {
     }
 
     const getBadgeText = () => {
+
         if (billingCycle === 'quarterly') {
             return 'Save 20%'
         } else if (billingCycle === 'yearly') {
@@ -97,120 +112,243 @@ const PricingScreen = () => {
 
 
 
+    const getCurrentPlan = async () => {
+        try {
+            const resData = await api.get(`/auth/subscription/active?user=${userId}`);
+            console.log(resData)
+            if (resData?.data?.status) {
+
+                console.log(resData?.data?.subscription)
+                const subscription = resData?.data?.subscription;
+
+                if (subscription?.payment_method === 'Card') {
+                    setPurchasePlatform('web');
+                    setActivePlanId(subscription?.activated_plan_id + "_test");
+                }
+
+                dispatch(setSubscription(subscription));
+
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+
 
 
 
     useEffect(() => {
+
         let purchaseUpdateSubscription;
         let purchaseErrorSubscription;
 
+
         const initIAP = async () => {
+            dispatch(showLoader('Loading'));
+
             try {
+
                 await RNIap.initConnection();
+
+
                 if (IS_ANDROID) {
                     await RNIap.flushFailedPurchasesCachedAsPendingAndroid();
                 }
+
+
                 const items = await RNIap.getSubscriptions({ skus: SUBSCRIPTION_IDS });
 
+                const purchases = await RNIap.getAvailablePurchases();
 
-                const groupedItems: any = items?.map(plan => {
+                await getCurrentPlan();
 
+
+
+                if (purchases && purchases.length > 0) {
+
+                    const currentPurchase = purchases[0];
+
+
+
+                    setActivePlanId(currentPurchase?.productId);
+
+                    setPurchaseToken(currentPurchase?.purchaseToken);
+                }
+
+
+                const groupedItems = items?.map(plan => {
                     const pricingInfo = pricingData.find(
-                        item =>
-                            item.skuDataId ===
-                            plan.productId
+
+                        item => plan.productId.includes(item.skuDataId.replace('_test', ''))
                     );
-                    return { ...plan, ...pricingInfo }
-                })
+                    return { ...plan, ...pricingInfo };
+                });
+
+
                 setSubscriptions(groupedItems);
-                console.log(groupedItems)
+
             } catch (e) {
                 console.error('IAP Init Error:', e);
             } finally {
+
+                dispatch(hideLoader());
                 setLoading(false);
             }
         };
 
+
         initIAP();
+
 
         purchaseUpdateSubscription = RNIap.purchaseUpdatedListener(async purchase => {
             try {
-                const response = await fetch('https://dev.wesign.com/auth/play/verify/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: userId,
-                        purchaseToken: purchase.purchaseToken,
-                        productId: purchase.productId,
-                    }),
-                });
-
-                console.log(response)
-
-                if (!response.ok) throw new Error('Verification failed');
 
                 await RNIap.finishTransaction({ purchase, isConsumable: false });
-                Alert.alert('Success', 'Subscription activated successfully!');
+
+
+
+
+                setShowSuccessModal(true);
+
+                setActivePlanId(purchase.productId);
+                setPurchaseToken(purchase.purchaseToken);
+
+                await getCurrentPlan();
+
+
             } catch (e) {
-                Alert.alert('Verification Error', 'Failed to validate transaction.');
+                console.error('Transaction Finish Error:', e);
+
             }
         });
 
+
         purchaseErrorSubscription = RNIap.purchaseErrorListener(error => {
+
             if (error.code !== 'E_USER_CANCELLED') {
                 Alert.alert('Purchase Error', error?.message || 'Billing error encountered.');
             }
         });
 
+
         return () => {
+
             if (purchaseUpdateSubscription) purchaseUpdateSubscription.remove();
             if (purchaseErrorSubscription) purchaseErrorSubscription.remove();
+
+
             RNIap.endConnection();
         };
     }, []);
 
-    const buySubscriptionPlan = async (product, basePlanId) => {
+
+
+    const handleCancelSubscription = async (productId) => {
+
+        const packageName = 'com.wesign';
+
+        let url;
+
+        if (Platform.OS === 'android') {
+
+            url = `https://play.google.com/store/account/subscriptions?package=${packageName}&sku=${productId}`;
+        } else {
+
+            url = 'https://apps.apple.com/account/subscriptions';
+        }
+
         try {
-            const matchingOffers = product.subscriptionOfferDetails?.filter(
-                offer => offer.basePlanId.toLowerCase() === basePlanId.toLowerCase()
-            );
 
-            if (!matchingOffers || matchingOffers.length === 0) {
-                Alert.alert('Error', `No configurations found for ${basePlanId}`);
-                return;
+            const supported = await Linking.canOpenURL(url);
+
+            if (supported) {
+                await Linking.openURL(url);
+            } else {
+                Alert.alert("Error", "Could not open the subscription manager.");
             }
+        } catch (error) {
+            console.error('Deep Link Error:', error);
+        }
+    };
 
-            // Prioritize the free trial offer token
-            const trialOffer = matchingOffers.find(offer =>
+    const openWebPricing = () => {
+        Linking.openURL('https://wesign.com/pricing');
+    }
+
+
+
+    const upgradeSubscriptionPlan = async (newProduct, isWebPurchase) => {
+
+        if (isWebPurchase) {
+            openWebPricing();
+            return;
+        }
+
+        try {
+
+            const chosenOffer = newProduct?.subscriptionOfferDetails?.[0];
+            const offerToken = chosenOffer?.offerToken;
+
+            await RNIap.requestSubscription({
+                sku: newProduct.productId,
+                ...(IS_ANDROID && {
+                    subscriptionOffers: [{ sku: newProduct.productId, offerToken }],
+                    purchaseTokenAndroid: purchaseToken,
+                    replacementModeAndroid: RNIap.ReplacementModesAndroid.WITH_TIME_PRORATION,
+                }),
+                obfuscatedAccountIdAndroid: userId.toString(),
+                obfuscatedProfileIdAndroid: userId.toString(),
+            });
+
+        } catch (error) {
+            if (error.code !== 'E_USER_CANCELLED') Alert.alert('Upgrade Error', error?.message);
+        }
+    };
+
+
+    const buySubscriptionPlan = async (product, isWebPurchase) => {
+        if (isWebPurchase) {
+            openWebPricing();
+            return;
+        }
+
+        try {
+
+            const trialOffer = product?.subscriptionOfferDetails?.find(offer =>
                 offer.pricingPhases?.pricingPhaseList?.some(
                     phase => phase.priceAmountMicros === '0' || phase.priceAmountMicros === 0
                 )
             );
 
-            const chosenOffer = trialOffer || matchingOffers[0];
+            const chosenOffer = trialOffer || product?.subscriptionOfferDetails?.[0];
             const offerToken = chosenOffer?.offerToken;
+
+            if (!offerToken) return;
 
             await RNIap.requestSubscription({
                 sku: product.productId,
                 ...(IS_ANDROID && {
                     subscriptionOffers: [{ sku: product.productId, offerToken }],
                 }),
-                // obfuscatedAccountId: userId.toString(),
+                obfuscatedAccountIdAndroid: userId.toString(),
+                obfuscatedProfileIdAndroid: userId.toString(),
             });
+
         } catch (error) {
-            if (error.code !== 'E_USER_CANCELLED') {
-                Alert.alert('Checkout Error', error?.message);
-            }
+            if (error.code !== 'E_USER_CANCELLED') Alert.alert('Checkout Error', error?.message);
         }
     };
 
     return (
         <CustomSafeAreaView style={styles.safeArea}>
             <LinearGradient
-                colors={['#E5E7EB', '#D1D5DB']} // Background screen gradient
+                colors={['#E5E7EB', '#D1D5DB']}
                 style={styles.container}>
 
-                {/* Header Section */}
+
                 <View style={styles.header}>
                     {
                         !fromRegister && <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
@@ -272,7 +410,7 @@ const PricingScreen = () => {
                     </View>
                 </View>
 
-                {/* Title & Pagination Indicators */}
+
                 <View style={styles.titleRow}>
                     <Text style={styles.pageTitle}>Pricing</Text>
                     <View style={styles.paginationContainer}>
@@ -288,159 +426,228 @@ const PricingScreen = () => {
                     </View>
                 </View>
 
-                {/* PagerView for Pricing Cards */}
+
                 <PagerView
                     style={styles.pagerView}
                     initialPage={0}
-                    onPageSelected={(e) => setActivePage(e.nativeEvent.position)}>
+                    onPageSelected={(e) => setActivePage(e.nativeEvent.position)}
+                    onPageScrollStateChanged={(e) => {
+
+                        setIsSwiping(e.nativeEvent.pageScrollState !== 'idle');
+                    }}
+                >
 
                     {
-                        subscriptions?.map((plan, index) => {
+                        subscriptions?.filter(plan => {
+                            const id = plan.productId;
+                            if (billingCycle === 'monthly') return ['ws_personal_test', 'ws_business_test', 'ws_enterprise_test'].includes(id);
+                            if (billingCycle === 'quarterly') return id.endsWith('_quarterly_test');
+                            if (billingCycle === 'yearly') return id.endsWith('_yearly_test');
+                            return false;
+                        })?.map((plan, index) => {
 
-                            const activeOffers = plan?.subscriptionOfferDetails?.filter(
-                                offer => offer.basePlanId.toLowerCase() === billingCycle.toLowerCase()
+                            const standardOffer = plan?.subscriptionOfferDetails?.[0];
+
+                            const hasTrial = standardOffer?.pricingPhases?.pricingPhaseList?.some(
+                                phase => phase.priceAmountMicros === '0' || phase.priceAmountMicros === 0
                             );
-
-                            if (!activeOffers || activeOffers.length === 0) return <View></View>;
-
-                            const hasTrial = activeOffers.some(offer =>
-                                offer.pricingPhases?.pricingPhaseList?.some(
-                                    phase => phase.priceAmountMicros === '0' || phase.priceAmountMicros === 0
-                                )
-                            );
-
-                            const standardOffer = activeOffers.find(offer =>
-                                !offer.pricingPhases?.pricingPhaseList?.some(phase => phase.priceAmountMicros === '0')
-                            ) || activeOffers[0];
 
                             const standardPricePhase = standardOffer?.pricingPhases?.pricingPhaseList?.find(
                                 phase => phase.priceAmountMicros !== '0' && phase.priceAmountMicros !== 0
                             );
 
-                            const price = standardPricePhase?.formattedPrice || '$4.99'; // Fallback to image value
+                            const price = standardPricePhase?.formattedPrice || '$4.99';
 
+
+                            const isActive = plan.productId === activePlanId;
+                            const isWebPurchase = purchasePlatform === 'web';
+                            const currencyCode = standardPricePhase?.priceCurrencyCode || 'INR';
                             return (
-                                <View key={index + 1} style={styles.page}>
+                                <View key={plan.productId} style={styles.page}>
                                     <LinearGradient
-                                        colors={['#FFFFFF', '#FDF8EA']} // Subtle warm gradient for the card
-                                        style={styles.cardContainer}>
+                                        colors={isActive ? ['#e9f4fc', '#fff'] : ['#FFFFFF', '#FDF8EA']}
+                                        style={[styles.cardContainer, isActive && styles.activeSubscription]}>
 
 
                                         {/* Card Header & Badge */}
-                                        <View style={styles.cardHeader}>
-                                            <Text style={styles.planTitle}>{`${plan?.title} ${billingCycle} plan`}</Text>
-                                            <View style={styles.badgeContainer}>
-                                                <Text style={styles.badgeText}>{getBadgeText()}</Text>
-                                                <View style={styles.badgeDot} />
-                                            </View>
-                                        </View>
+                                        <View style={{ flex: 1 }} pointerEvents={isSwiping ? 'none' : 'auto'}>
 
-                                        {/* Pricing Area */}
-                                        <View style={styles.pricingRow}>
-                                            <Text style={styles.priceAmount}>{price}</Text>
-                                            <View style={styles.priceDetails}>
-                                                <Text style={styles.priceSubtext}>/ month (INR)</Text>
-                                                {/* {
+
+                                            <View style={styles.cardHeader}>
+                                                <Text style={styles.planTitle}>{`${plan?.title} ${billingCycle} plan`}</Text>
+                                                {
+                                                    isActive ? <View style={styles.activeBadgeContainer}>
+
+                                                        <Text style={styles.activeBadgeText}>Active</Text>
+                                                        <View style={styles.activeBadgeDot} />
+                                                    </View> : <View style={styles.badgeContainer}>
+                                                        <Text style={styles.badgeText}>{getBadgeText()}</Text>
+
+                                                        <View style={styles.badgeDot} />
+                                                    </View>
+                                                }
+
+                                            </View>
+
+
+                                            <View style={styles.pricingRow}>
+                                                <Text style={styles.priceAmount}>{price}</Text>
+                                                <View style={styles.priceDetails}>
+                                                    <Text style={styles.priceSubtext}>/ {billingCycle} ({currencyCode})</Text>
+                                                    {/* {
 
                                                     billingCycle !== 'monthly' && <Text style={styles.priceSubtext}>{getFinalPrice(plan?.price)?.subText}</Text>
 
                                                 } */}
-                                            </View>
-                                        </View>
-
-                                        {/* Description */}
-                                        <Text style={styles.planDescription}>
-                                            {plan?.description}
-                                        </Text>
-
-                                        {/* Dotted Divider */}
-                                        <View style={styles.divider} />
-
-                                        {/* Features List */}
-                                        <ScrollView showsVerticalScrollIndicator={false}>
-                                            <View style={[styles.featuresContainer, { marginBottom: hp(1) }]}>
-                                                {plan.features.map((feature, index) => (
-                                                    <TouchableOpacity activeOpacity={0.7} onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
-                                                        <CheckCircle2
-                                                            color="#ffffff"
-                                                            fill="#65A30D" // Solid green check background
-                                                            size={wp(5.5)}
-                                                        />
-
-                                                        <View style={styles.featureItemText}>
-
-                                                            <Text style={styles.featureText}>{feature.name}</Text>
-                                                            {
-                                                                feature?.link && <Pressable style={styles.link} onPress={(e) => { e.stopPropagation(); handleOpenLink(feature?.link) }}>
-
-                                                                    <Link
-                                                                        color="#222"
-                                                                        size={wp(3.5)}
-                                                                    />
-                                                                </Pressable>
-                                                            }
-
-                                                        </View>
-
-
-
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-
-                                            {
-                                                plan.webFeatures?.length > 0 && <View>
-
-                                                    <Text style={styles.webFeatureTitle}>Web features:</Text>
-
-                                                    <View style={styles.featuresContainer}>
-                                                        {plan.webFeatures.map((feature, index) => (
-                                                            <TouchableOpacity activeOpacity={0.7} onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
-                                                                <CheckCircle2
-                                                                    color="#ffffff"
-                                                                    fill="#65A30D" // Solid green check background
-                                                                    size={wp(5.5)}
-                                                                />
-
-                                                                <View style={styles.featureItemText}>
-
-                                                                    <Text style={styles.featureText}>{feature.name}</Text>
-                                                                    {
-                                                                        feature?.link && <Pressable style={styles.link} onPress={(e) => { e.stopPropagation(); handleOpenLink(feature?.link) }}>
-
-                                                                            <Link
-                                                                                color="#222"
-                                                                                size={wp(3.5)}
-                                                                            />
-                                                                        </Pressable>
-                                                                    }
-
-                                                                </View>
-
-
-
-                                                            </TouchableOpacity>
-                                                        ))}
-                                                    </View>
                                                 </View>
-                                            }
+                                            </View>
+
+
+                                            <Text style={styles.planDescription}>
+                                                {plan?.description}
+                                            </Text>
+
+
+                                            <View style={styles.divider} />
+
+
+                                            <ScrollView showsVerticalScrollIndicator={false}
+                                                keyboardShouldPersistTaps="always"
+                                                nestedScrollEnabled={true}>
+                                                <View style={[styles.featuresContainer, { marginBottom: hp(1) }]}>
+                                                    {plan.features.map((feature, index) => (
+                                                        <TouchableOpacity activeOpacity={0.7} delayPressIn={200} onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
+                                                            <CheckCircle2
+                                                                color="#ffffff"
+                                                                fill="#65A30D"
+                                                                size={wp(5.5)}
+                                                            />
+
+                                                            <View style={styles.featureItemText}>
+
+                                                                <Text style={styles.featureText}>{feature.name}</Text>
+                                                                {
+                                                                    feature?.link && <Pressable style={styles.link} onPress={(e) => { e.stopPropagation(); handleOpenLink(feature?.link) }}>
+
+                                                                        <Link
+                                                                            color="#222"
+                                                                            size={wp(3.5)}
+                                                                        />
+                                                                    </Pressable>
+                                                                }
+
+                                                            </View>
 
 
 
-                                        </ScrollView>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </View>
 
-                                        {/* Action Button */}
+                                                {
+                                                    plan.webFeatures?.length > 0 && <View>
 
-                                        <LinearGradient
-                                            colors={['#3d6df0', '#2f7bff']}
-                                            style={{ borderRadius: wp(8), marginTop: hp(1) }}
-                                        // Subtle warm gradient for the card
-                                        >
-                                            <TouchableOpacity style={styles.ctaButton} onPress={() => buySubscriptionPlan(plan, billingCycle)}>
-                                                <Text style={styles.ctaText}>{hasTrial ? 'Start 15-days Free Trial' : 'Subscribe Now'}</Text>
-                                            </TouchableOpacity>
+                                                        <Text style={styles.webFeatureTitle}>Web features:</Text>
 
-                                        </LinearGradient>
+                                                        <View style={styles.featuresContainer}>
+                                                            {plan.webFeatures.map((feature, index) => (
+                                                                <TouchableOpacity activeOpacity={0.7} delayPressIn={200} onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
+                                                                    <CheckCircle2
+                                                                        color="#ffffff"
+                                                                        fill="#65A30D"
+                                                                        size={wp(5.5)}
+                                                                    />
+
+                                                                    <View style={styles.featureItemText}>
+
+                                                                        <Text style={styles.featureText}>{feature.name}</Text>
+                                                                        {
+                                                                            feature?.link && <Pressable style={styles.link} onPress={(e) => { e.stopPropagation(); handleOpenLink(feature?.link) }}>
+
+                                                                                <Link
+                                                                                    color="#222"
+                                                                                    size={wp(3.5)}
+                                                                                />
+                                                                            </Pressable>
+                                                                        }
+
+                                                                    </View>
+
+
+
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                        </View>
+                                                    </View>
+                                                }
+
+
+
+                                            </ScrollView>
+
+
+                                            {isActive ? (
+
+
+                                                <View style={{ marginTop: hp(1) }}>
+
+
+                                                    <TouchableOpacity
+                                                        style={[styles.ctaButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: Colors.primary }]}
+                                                        onPress={() => {
+                                                            if (isWebPurchase) {
+
+                                                                Linking.openURL('https://wesign.com/pricing');
+                                                            } else {
+
+                                                                handleCancelSubscription(plan.productId);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Text style={[styles.ctaText, { color: Colors.primary }]}>Manage Subscription</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+
+                                            ) : (
+
+
+                                                <View style={{ marginTop: hp(1) }}>
+                                                    {/* {isWebPurchase ? (
+
+                                                    <Text style={{ textAlign: 'center', color: '#6b7280', marginTop: 10 }}>
+                                                        To change your plan, please visit our website.
+                                                    </Text>
+                                                ) : ( */}
+                                                    <LinearGradient
+                                                        colors={['#3d6df0', '#2f7bff']}
+                                                        style={{ borderRadius: wp(8) }}
+                                                    >
+                                                        <TouchableOpacity
+                                                            style={styles.ctaButton}
+                                                            onPress={() => {
+                                                                if (activePlanId) {
+
+                                                                    upgradeSubscriptionPlan(plan, isWebPurchase);
+                                                                } else {
+
+                                                                    buySubscriptionPlan(plan, isWebPurchase);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Text style={styles.ctaText}>
+                                                                {activePlanId
+                                                                    ? `Upgrade to ${billingCycle}`
+                                                                    : (hasTrial ? 'Start 15-days Free Trial' : 'Subscribe Now')
+                                                                }
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    </LinearGradient>
+                                                    {/* )} */}
+                                                </View>
+
+                                            )}
+
+                                        </View>
 
                                     </LinearGradient>
                                 </View>
@@ -463,6 +670,22 @@ const PricingScreen = () => {
                     <Text style={styles.InfoText}>{infoText}</Text>
                 </View>
             </AppNewBottomSheet>
+
+            <SubscriptionSuccessModal
+                visible={showSuccessModal}
+                onContinue={() => {
+                    setShowSuccessModal(false);
+
+                    if (fromRegister) {
+
+                        navigate('Drawer', {
+                            screen: 'Home',
+                        });
+                    } else {
+                        goBack()
+                    }
+                }}
+            />
         </CustomSafeAreaView>
     );
 
@@ -538,7 +761,7 @@ const styles = StyleSheet.create({
     },
     activeDot: {
         width: wp(4),
-        backgroundColor: '#FACC15', // Yellow accent
+        backgroundColor: '#FACC15',
     },
     inactiveDot: {
         width: wp(3),
@@ -561,11 +784,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 5,
+
+    },
+    activeSubscription: {
+        borderWidth: 1.5,
+        borderColor: "#4392ff"
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'center',
     },
     planTitle: {
         fontFamily: Fonts.Medium,
@@ -580,6 +808,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: wp(3),
         borderRadius: wp(4),
     },
+
+    activeBadgeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1a951c',
+        paddingVertical: hp(0.5),
+        paddingHorizontal: wp(2.5),
+        borderRadius: wp(4),
+    },
+    activeBadgeText: {
+        fontFamily: Fonts.Medium,
+        fontSize: fp(1.2),
+        color: '#fff',
+        marginRight: wp(1.5),
+    },
     badgeText: {
         fontFamily: Fonts.Medium,
         fontSize: fp(1.4),
@@ -591,6 +834,13 @@ const styles = StyleSheet.create({
         height: wp(1.8),
         borderRadius: wp(0.9),
         backgroundColor: '#65A30D',
+    },
+
+    activeBadgeDot: {
+        width: wp(1.5),
+        height: wp(1.5),
+        borderRadius: wp(0.9),
+        backgroundColor: '#fff',
     },
     pricingRow: {
         flexDirection: 'row',

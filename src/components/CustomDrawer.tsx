@@ -12,6 +12,7 @@ import {
 import React from 'react';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import {
+  Crown,
   DollarSign,
   Headset,
   HeartHandshake,
@@ -132,12 +133,18 @@ const CustomDrawer = (props: any) => {
 
         <View style={styles.separator} />
 
+        <SectionHeader title="BILLING" />
+        <DrawerItem label="My Subscription" Icon={Crown} route="MySubscription" />
+        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+
+        <View style={styles.separator} />
+
+
         <SectionHeader title="SUPPORT" />
         <DrawerItem label="Contact Us" Icon={Headset} link='https://wesign.com/contact' />
         <DrawerItem label="Help Center" Icon={HeartHandshake} link='https://wesign.com/articles/' />
 
-        <SectionHeader title="BILLING" />
-        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+
       </ScrollView>
 
 

@@ -23,6 +23,7 @@ import IamSignerFinishScreen from '@screens/ImSignerFinishScreen';
 import PricingScreen from '@screens/PricingScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import SubscriptionScreen from '@screens/SubscriptionScreen';
+import MySubscriptionScreen from '@screens/MySubscriptionScreen';
 
 
 
@@ -52,7 +53,7 @@ const Navigation = () => {
         <Stack.Screen name="Finish" component={FinishScreen} />
         <Stack.Screen name="IamSignerFinish" component={IamSignerFinishScreen} />
         <Stack.Screen name="Pricing" component={PricingScreen} />
-        {/* <Stack.Screen name="Pricing" component={SubscriptionScreen} /> */}
+        <Stack.Screen name="MySubscription" component={MySubscriptionScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
 
 

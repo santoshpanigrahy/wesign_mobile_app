@@ -114,7 +114,7 @@ const CustomDrawer = (props: any) => {
         <SectionHeader title="MAIN" />
         <DrawerItem label="Home" Icon={House} route="Home" />
         <DrawerItem label="Profile" Icon={User} route="Profile" />
-        <DrawerItem label="Subscription" Icon={CreditCard} route="Payment" />
+        <DrawerItem label="Subscription" Icon={CreditCard} route="Pricing" />
 
         <View style={styles.separator} />
 

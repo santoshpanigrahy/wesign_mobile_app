@@ -191,7 +191,18 @@ const PaymentScreen = ({navigation, route}: any) => {
   const handleGetSubscriptions = async () => {
     try {
       setLoading(true);
-      const skus = ['ws_personal_test', 'ws_business_test'];
+      const skus = [
+        'ws_personal',
+        'ws_personal_quarterly',
+        'ws_personal_yearly',
+        'ws_business',
+        'ws_business_quarterly',
+        'ws_business_yearly',
+        'ws_enterprise',
+        'ws_enterprise_quarterly',
+        'ws_enterprise_yearly',
+      ];
+      // const skus = ['ws_personal_test', 'ws_business_test'];
       await getSubscriptions({skus});
     } catch (error) {
       console.error('Failed to get subscriptions:', error);

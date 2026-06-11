@@ -19,7 +19,8 @@ const SubscriptionCard = ({ data }) => {
         end_date,
         total_amount = 0,
         payment_method = 'unknown',
-        currency = 'USD'
+        currency = 'USD',
+        free_trial = true
     } = data || {};
 
 
@@ -74,20 +75,35 @@ const SubscriptionCard = ({ data }) => {
                     <View style={styles.iconContainer}>
                         <Crown color="#EAB308" size={wp(5)} />
                     </View>
-                    <Text style={styles.planTitle}>{activated_plan_description}</Text>
+                    <View>
+
+                        <Text style={styles.planTitle}>{activated_plan_description}</Text>
+                        {/* <Text style={styles.planSubTitle}>Free Trial</Text> */}
+                    </View>
                 </View>
+
                 <View style={[styles.badge, { backgroundColor: status.bg, borderColor: status.border }]}>
                     <Text style={[styles.badgeText, { color: status.text }]}>{status.label}</Text>
                 </View>
+
             </View>
 
             <View style={styles.divider} />
 
+            <View style={{ flexDirection: 'row', gap: wp(2), alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <View style={styles.amountContainer}>
-                <Text style={styles.currencySymbol}>{getCurrencySymbol(currency)}</Text>
-                <Text style={styles.amountText}>{total_amount}</Text>
-                <Text style={styles.billingPeriod}>/ total</Text>
+                <View style={styles.amountContainer}>
+                    <Text style={styles.currencySymbol}>{getCurrencySymbol(currency)}</Text>
+                    <Text style={styles.amountText}>{total_amount}</Text>
+                    <Text style={styles.billingPeriod}>/ total</Text>
+                </View>
+
+                {free_trial && (
+                    <View style={[styles.badge, { backgroundColor: '#DBEAFE', borderColor: '#BFDBFE' }]}>
+                        <Text style={[styles.badgeText, { color: '#1D4ED8' }]}>Free Trial</Text>
+                    </View>
+                )}
+
             </View>
 
 
@@ -177,6 +193,11 @@ const styles = StyleSheet.create({
         fontFamily: Fonts.SemiBold,
         fontSize: fp(2.2),
         color: '#111827',
+    },
+    planSubTitle: {
+        fontFamily: Fonts.Regular,
+        fontSize: fp(1.4),
+        color: Colors.text_secondary,
     },
     badge: {
         paddingHorizontal: wp(3),

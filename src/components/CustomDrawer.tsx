@@ -24,13 +24,15 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import { useAppDispatch } from '@redux/hooks';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { logout } from '@redux/slices/authSlice';
 import { navigate } from '@utils/NavigationUtils';
 
 const CustomDrawer = (props: any) => {
   const { state, navigation } = props;
   const dispatch = useAppDispatch();
+
+  const isPrimaryUser = useAppSelector((state) => state?.auth?.user?.primary_user);
 
   const handleOpenPolicy = (type: string) => {
     if (type === 'term') {
@@ -130,12 +132,18 @@ const CustomDrawer = (props: any) => {
         <DrawerItem label="Inbox" Icon={Inbox} route="Inbox" />
         <DrawerItem label="Sent" Icon={Send} route="Sent" />
         <DrawerItem label="Drafts" Icon={SquarePen} route="Draft" />
+        {
+          isPrimaryUser && <>
 
-        <View style={styles.separator} />
+            <View style={styles.separator} />
 
-        <SectionHeader title="BILLING" />
-        <DrawerItem label="My Subscription" Icon={Crown} route="MySubscription" />
-        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+            <SectionHeader title="BILLING" />
+            <DrawerItem label="My Subscription" Icon={Crown} route="MySubscription" />
+            <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+          </>
+        }
+
+
 
         <View style={styles.separator} />
 

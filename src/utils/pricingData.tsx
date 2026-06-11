@@ -3,7 +3,7 @@ export const pricingData = [
 
         title: 'Personal',
         isPopular: true,
-        skuDataId: 'ws_personal_test',
+        skuDataId: 'ws_personal',
 
         description: 'Easy digital signing for individuals to send, track, and manage documents securely from anywhere online.',
         features: [
@@ -51,7 +51,7 @@ export const pricingData = [
 
         title: 'Business',
         isPopular: false,
-        skuDataId: 'ws_business_test',
+        skuDataId: 'ws_business',
 
 
         description: 'Powerful eSignature platform for growing teams with branding, payment collection, multichannel delivery, and advanced collaboration features.',
@@ -86,7 +86,7 @@ export const pricingData = [
 
         title: 'Enterprise',
         isPopular: false,
-        skuDataId: 'ws_enterprise_test',
+        skuDataId: 'ws_enterprise',
 
 
         description: 'Scalable enterprise platform with API integrations, advanced security, permissions, and high-volume document workflow management capabilities.',

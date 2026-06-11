@@ -33,11 +33,16 @@ import { setSubscription, updateSubscriptionLocally } from '@redux/slices/authSl
 import SubscriptionSuccessModal from '@components/SubscriptionSuccessModal';
 
 const SUBSCRIPTION_IDS = [
-    'ws_personal_test', 'ws_personal_quarterly_test', 'ws_personal_yearly_test',
-    'ws_business_test', 'ws_business_quarterly_test', 'ws_business_yearly_test',
-    'ws_enterprise_test', 'ws_enterprise_quarterly_test', 'ws_enterprise_yearly_test'
+    'ws_personal', 'ws_personal_quarterly', 'ws_personal_yearly',
+    'ws_business', 'ws_business_quarterly', 'ws_business_yearly',
+    'ws_enterprise', 'ws_enterprise_quarterly', 'ws_enterprise_yearly'
 ];
 const IS_ANDROID = Platform.OS === 'android';
+const order = [
+    'ws_personal',
+    'ws_business',
+    'ws_enterprise',
+];
 
 
 const PricingScreen = () => {
@@ -53,12 +58,12 @@ const PricingScreen = () => {
     const [purchasePlatform, setPurchasePlatform] = useState(null);
 
 
-    console.log(userId)
+
 
     const route = useRoute();
 
     const { fromRegister } = route.params || {};
-    console.log('From Register=======> ', fromRegister)
+
 
     const [plans, setPlans] = useState([])
     const [groupedPlans, setGroupedPlans] = useState([]);
@@ -123,7 +128,13 @@ const PricingScreen = () => {
 
                 if (subscription?.payment_method === 'Card') {
                     setPurchasePlatform('web');
-                    setActivePlanId(subscription?.activated_plan_id + "_test");
+                    let plan = subscription?.activated_plan_id || '';
+
+                    plan = plan
+                        .replace('_free', '')
+                        .replace('_reactivate', '');
+
+                    setActivePlanId(plan);
                 }
 
                 dispatch(setSubscription(subscription));
@@ -182,7 +193,7 @@ const PricingScreen = () => {
                 const groupedItems = items?.map(plan => {
                     const pricingInfo = pricingData.find(
 
-                        item => plan.productId.includes(item.skuDataId.replace('_test', ''))
+                        item => plan.productId.includes(item.skuDataId)
                     );
                     return { ...plan, ...pricingInfo };
                 });
@@ -440,10 +451,18 @@ const PricingScreen = () => {
                     {
                         subscriptions?.filter(plan => {
                             const id = plan.productId;
-                            if (billingCycle === 'monthly') return ['ws_personal_test', 'ws_business_test', 'ws_enterprise_test'].includes(id);
-                            if (billingCycle === 'quarterly') return id.endsWith('_quarterly_test');
-                            if (billingCycle === 'yearly') return id.endsWith('_yearly_test');
+                            if (billingCycle === 'monthly') return ['ws_personal', 'ws_business', 'ws_enterprise'].includes(id);
+                            if (billingCycle === 'quarterly') return id.endsWith('_quarterly');
+                            if (billingCycle === 'yearly') return id.endsWith('_yearly');
                             return false;
+                        })?.sort((a, b) => {
+                            const getBaseId = id =>
+                                id.replace('_quarterly', '').replace('_yearly', '');
+
+                            return (
+                                order.indexOf(getBaseId(a.productId)) -
+                                order.indexOf(getBaseId(b.productId))
+                            );
                         })?.map((plan, index) => {
 
                             const standardOffer = plan?.subscriptionOfferDetails?.[0];
@@ -474,7 +493,7 @@ const PricingScreen = () => {
 
 
                                             <View style={styles.cardHeader}>
-                                                <Text style={styles.planTitle}>{`${plan?.title} ${billingCycle} plan`}</Text>
+                                                <Text style={styles.planTitle}>{`${plan?.title}`}</Text>
                                                 {
                                                     isActive ? <View style={styles.activeBadgeContainer}>
 

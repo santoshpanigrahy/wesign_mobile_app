@@ -64,8 +64,18 @@ const SUBSCRIPTION_IDS = [
   'ws_enterprise',
   'ws_enterprise_quarterly',
   'ws_enterprise_yearly',
+  'ws_personal',
+  'ws_personal_quarterly',
+  'ws_personal_yearly',
+  'ws_business',
+  'ws_business_quarterly',
+  'ws_business_yearly',
+  'ws_enterprise',
+  'ws_enterprise_quarterly',
+  'ws_enterprise_yearly',
 ];
 const IS_ANDROID = Platform.OS === 'android';
+const order = ['ws_personal', 'ws_business', 'ws_enterprise'];
 
 const PricingScreen = () => {
   const userId = useAppSelector((state: any) => state.auth.user?.id);
@@ -248,7 +258,7 @@ const PricingScreen = () => {
 
         const groupedItems = items?.map(plan => {
           const pricingInfo = pricingData.find(item =>
-            plan.productId.includes(item.skuDataId.replace('_test', '')),
+            plan.productId.includes(item.skuDataId),
           );
           return {...plan, ...pricingInfo};
         });
@@ -942,10 +952,7 @@ const PricingScreen = () => {
                       }}>
                       {/* Card Header & Badge */}
                       <View style={styles.cardHeader}>
-                        <Text
-                          style={
-                            styles.planTitle
-                          }>{`${plan?.title} ${billingCycle} plan`}</Text>
+                        <Text style={styles.planTitle}>{`${plan?.title}`}</Text>
                         {isActive ? (
                           <View style={styles.activeBadgeContainer}>
                             <Text style={styles.activeBadgeText}>Active</Text>

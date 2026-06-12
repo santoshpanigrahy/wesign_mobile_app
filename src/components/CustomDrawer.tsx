@@ -25,13 +25,17 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import {useAppDispatch} from '@redux/hooks';
+import {useAppDispatch, useAppSelector} from '@redux/hooks';
 import {logout} from '@redux/slices/authSlice';
 import {navigate} from '@utils/NavigationUtils';
 
 const CustomDrawer = (props: any) => {
   const {state, navigation} = props;
   const dispatch = useAppDispatch();
+
+  const isPrimaryUser = useAppSelector(
+    state => state?.auth?.user?.primary_user,
+  );
 
   const handleOpenPolicy = (type: string) => {
     if (type === 'term') {
@@ -115,9 +119,7 @@ const CustomDrawer = (props: any) => {
         <DrawerItem label="Home" Icon={House} route="Home" />
         <DrawerItem label="Profile" Icon={User} route="Profile" />
         {/* <DrawerItem label="Subscription" Icon={CreditCard} route="Pricing" /> */}
-
         <View style={styles.separator} />
-
         <SectionHeader title="MAILBOX" />
         <DrawerItem label="Inbox" Icon={Inbox} route="Inbox" />
         <DrawerItem label="Sent" Icon={Send} route="Sent" />
@@ -128,31 +130,33 @@ const CustomDrawer = (props: any) => {
           Icon={Crown}
           route="MySubscription"
         />
-        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />{' '}
+        {isPrimaryUser && (
+          <>
+            <View style={styles.separator} />
+
+            <SectionHeader title="SUPPORT" />
+            <DrawerItem
+              label="Contact Us"
+              Icon={Headset}
+              link="https://wesign.com/contact"
+            />
+            <DrawerItem
+              label="Help Center"
+              Icon={HeartHandshake}
+              link="https://wesign.com/articles/"
+            />
+
+            <SectionHeader title="BILLING" />
+            <DrawerItem
+              label="My Subscription"
+              Icon={Crown}
+              route="MySubscription"
+            />
+            <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+          </>
+        )}
         <View style={styles.separator} />
-
-        <SectionHeader title="SUPPORT" />
-        <DrawerItem
-          label="Contact Us"
-          Icon={Headset}
-          link="https://wesign.com/contact"
-        />
-        <DrawerItem
-          label="Help Center"
-          Icon={HeartHandshake}
-          link="https://wesign.com/articles/"
-        />
-
-        <SectionHeader title="BILLING" />
-        <DrawerItem
-          label="My Subscription"
-          Icon={Crown}
-          route="MySubscription"
-        />
-        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
-
-        <View style={styles.separator} />
-
         <SectionHeader title="SUPPORT" />
         <DrawerItem
           label="Contact Us"

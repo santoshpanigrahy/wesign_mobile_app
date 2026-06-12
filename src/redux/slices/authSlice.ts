@@ -25,11 +25,11 @@ export const loginUser = createAsyncThunk(
 
         await AsyncStorage.setItem('user', JSON.stringify(userData));
 
-        if (Platform.OS === 'ios') {
-          resetAndNavigate('Payment', {fromLogin: true});
-        } else {
-          resetAndNavigate('Pricing');
-        }
+        // if (Platform.OS === 'ios') {
+        //   resetAndNavigate('Payment', {fromLogin: true});
+        // } else {
+        resetAndNavigate('Pricing', {fromRegister: true});
+        // }
 
         return {user: userData, token: token};
       }

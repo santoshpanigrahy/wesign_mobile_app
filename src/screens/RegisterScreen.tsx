@@ -233,13 +233,13 @@ const RegisterScreen = () => {
         dispatch(updateToken(res?.token));
 
         await AsyncStorage.setItem('user', JSON.stringify(res?.user_details));
-        if (Platform.OS === 'ios') {
-          resetAndNavigate('Payment', {fromLogin: true});
-        } else {
-          await AsyncStorage.setItem('token', res.token);
+        // if (Platform.OS === 'ios') {
+        //   resetAndNavigate('Payment', {fromLogin: true});
+        // } else {
+        await AsyncStorage.setItem('token', res.token);
 
-          resetAndNavigate('Pricing', {fromRegister: true});
-        }
+        resetAndNavigate('Pricing', {fromRegister: true});
+        // }
       } else {
         Toast.show({type: 'error', text1: res?.message});
       }
@@ -273,11 +273,11 @@ const RegisterScreen = () => {
         dispatch(setUser(res?.user_details));
         Keyboard.dismiss();
         await AsyncStorage.setItem('user', JSON.stringify(res?.user_details));
-        if (Platform.OS === 'ios') {
-          resetAndNavigate('Payment', {fromLogin: true});
-        } else {
-          resetAndNavigate('Pricing', {fromRegister: true});
-        }
+        // if (Platform.OS === 'ios') {
+        //   resetAndNavigate('Payment', {fromLogin: true});
+        // } else {
+        resetAndNavigate('Pricing', {fromRegister: true});
+        // }
       } else {
         Toast.show({type: 'error', text1: res?.message});
       }

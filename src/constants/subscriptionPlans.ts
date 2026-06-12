@@ -4,7 +4,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'personal',
     name: 'Personal Plan',
-    sku: 'ws_personal_test',
+    sku: 'ws_personal',
     tier: PlanTier.PERSONAL,
     tierLevel: 1,
     features: [
@@ -26,7 +26,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'business',
     name: 'Business Plan',
-    sku: 'ws_business_test',
+    sku: 'ws_business',
     tier: PlanTier.BUSINESS,
     tierLevel: 2,
     features: [

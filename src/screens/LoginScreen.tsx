@@ -185,11 +185,11 @@ const LoginScreen = () => {
       const res = response?.data;
 
       if (res?.status && res?.status_code === 200) {
-        if (Platform.OS === 'ios') {
-          resetAndNavigate('Payment', {fromLogin: true});
-        } else {
-          resetAndNavigate('Pricing');
-        }
+        // if (Platform.OS === 'ios') {
+        //   resetAndNavigate('Payment', {fromLogin: true});
+        // } else {
+        resetAndNavigate('Pricing', {fromRegister: true});
+        // }
       } else {
         Toast.show({type: 'error', text1: res?.message});
       }

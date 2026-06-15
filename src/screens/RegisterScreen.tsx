@@ -38,9 +38,8 @@ import CustomSafeAreaView from '@components/CustomSafeAreaView';
 
 
 GoogleSignin.configure({
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   webClientId:
-    '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
+    '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
   iosClientId:
     '396564745764-pg61tt1q905j1sol45agoj7kb1htc28a.apps.googleusercontent.com',
 });

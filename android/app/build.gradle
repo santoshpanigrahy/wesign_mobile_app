@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: "com.google.firebase.crashlytics"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -82,8 +83,8 @@ android {
         applicationId "com.wesign"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 18
-        versionName "3.6"
+        versionCode 22
+        versionName "4.0"
 
         manifestPlaceholders = [appAuthRedirectScheme: "com.wesign"]
         missingDimensionStrategy 'store', 'play'
@@ -113,6 +114,9 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation("androidx.browser:browser:1.8.0") {
+        version { strictly("1.8.0") }
+    }
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -120,3 +124,6 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+
+apply plugin: "com.google.gms.google-services"

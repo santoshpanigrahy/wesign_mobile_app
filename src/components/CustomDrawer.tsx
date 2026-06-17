@@ -56,7 +56,9 @@ const CustomDrawer = (props: any) => {
           if (link) {
             Linking.openURL(link);
           } else {
-            navigation.navigate(route);
+            navigation.navigate(route, {
+              reload: Date.now(),
+            });
             navigation.closeDrawer();
 
           }

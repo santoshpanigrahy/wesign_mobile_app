@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "396564745764",
+    "project_id": "wesign-311909",
+    "storage_bucket": "wesign-311909.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396564745764:android:d072e0c39dbb1b4ec592b1",
+        "android_client_info": {
+          "package_name": "com.wesign"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCx9AjHneSahLCiGSZMQuSc_UD0WiCVfY0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "396564745764-pg61tt1q905j1sol45agoj7kb1htc28a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.amcrest.wesign"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

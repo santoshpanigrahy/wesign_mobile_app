@@ -17,8 +17,8 @@ const DrawerHeader = ({ navigation, title = "Dashboard" }: any) => {
       <Text style={styles.title}>{title}</Text>
 
 
-      <TouchableOpacity style={styles.headerIconWrapper}>
-        <Bell size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} />
+      <TouchableOpacity style={styles.headerIconWrapper} disabled >
+        {/* <Bell size={fp(2.8)} color={Colors.text_primary} strokeWidth={1.6} /> */}
       </TouchableOpacity>
 
     </View>

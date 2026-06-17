@@ -46,6 +46,7 @@ import DownloadModal from './DownloadModal';
 import DeleteEnvelopeModal from './DeleteEnvelopeModal';
 import NoDataFound from '@components/NoDataFound';
 import DrawerHeader from '@components/DrawerHeader';
+import { useRoute } from '@react-navigation/native';
 
 // --- Sub-Component: Memoized List Item ---
 const EnvelopeItem = memo(({ item, onDetails, onAction }) => {
@@ -615,11 +616,27 @@ const SentScreen = ({ navigation }) => {
         }
     }, [userId]);
 
-    useEffect(() => {
-        setFirstLoading(true);
+    const route = useRoute();
 
-        fetchData(1);
-    }, []);
+    console.log("Route =======>", route)
+
+
+    useEffect(() => {
+        if (route.params?.reload) {
+            setData([])
+            setFirstLoading(true);
+
+            fetchData(1);
+        }
+    }, [route.params?.reload]);
+
+
+
+    // useEffect(() => {
+    //     setFirstLoading(true);
+
+    //     fetchData(1);
+    // }, []);
 
     const reset = () => {
         setData([]);

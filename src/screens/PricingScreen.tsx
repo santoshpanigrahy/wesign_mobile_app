@@ -5,14 +5,15 @@ import {
     StyleSheet,
 
 
-    Pressable,
+
     Linking,
-    Platform
+    Platform,
+    TouchableOpacity
 } from 'react-native';
 import api from '@utils/api';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView, Pressable } from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import LinearGradient from 'react-native-linear-gradient';
 import { ArrowLeft, CheckCircle2, Info, Link } from 'lucide-react-native';
@@ -47,6 +48,10 @@ const order = [
 
 const PricingScreen = () => {
     const userId = useAppSelector(state => state.auth.user?.id);
+    const token = useAppSelector(state => state.auth.token);
+
+    console.log("User ID==========> ", userId);
+    console.log("Token ======> ", token)
 
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [isSwiping, setIsSwiping] = useState(false);
@@ -286,7 +291,7 @@ const PricingScreen = () => {
     };
 
     const openWebPricing = () => {
-        Linking.openURL('https://wesign.com/pricing');
+        Linking.openURL(`https://wesign.com/login?user_id=${userId}&token=${token}`);
     }
 
 
@@ -310,8 +315,8 @@ const PricingScreen = () => {
                     purchaseTokenAndroid: purchaseToken,
                     replacementModeAndroid: RNIap.ReplacementModesAndroid.WITH_TIME_PRORATION,
                 }),
-                obfuscatedAccountIdAndroid: userId.toString(),
-                obfuscatedProfileIdAndroid: userId.toString(),
+                obfuscatedAccountIdAndroid: userId?.toString(),
+                obfuscatedProfileIdAndroid: userId?.toString(),
             });
 
         } catch (error) {
@@ -344,8 +349,8 @@ const PricingScreen = () => {
                 ...(IS_ANDROID && {
                     subscriptionOffers: [{ sku: product.productId, offerToken }],
                 }),
-                obfuscatedAccountIdAndroid: userId.toString(),
-                obfuscatedProfileIdAndroid: userId.toString(),
+                obfuscatedAccountIdAndroid: userId?.toString(),
+                obfuscatedProfileIdAndroid: userId?.toString(),
             });
 
         } catch (error) {
@@ -362,9 +367,9 @@ const PricingScreen = () => {
 
                 <View style={styles.header}>
                     {
-                        !fromRegister && <TouchableOpacity style={styles.backButton} onPress={() => goBack()}>
+                        !fromRegister && <Pressable style={styles.backButton} onPress={() => goBack()}>
                             <ArrowLeft color="#333" size={wp(6)} />
-                        </TouchableOpacity>
+                        </Pressable>
                     }
 
 
@@ -535,7 +540,7 @@ const PricingScreen = () => {
                                                 nestedScrollEnabled={true}>
                                                 <View style={[styles.featuresContainer, { marginBottom: hp(1) }]}>
                                                     {plan.features.map((feature, index) => (
-                                                        <TouchableOpacity activeOpacity={0.7} delayPressIn={200} onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
+                                                        <Pressable onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
                                                             <CheckCircle2
                                                                 color="#ffffff"
                                                                 fill="#65A30D"
@@ -546,7 +551,7 @@ const PricingScreen = () => {
 
                                                                 <Text style={styles.featureText}>{feature.name}</Text>
                                                                 {
-                                                                    feature?.link && <Pressable style={styles.link} onPress={(e) => { e.stopPropagation(); handleOpenLink(feature?.link) }}>
+                                                                    feature?.link && <Pressable style={styles.link} onPress={() => { handleOpenLink(feature?.link) }}>
 
                                                                         <Link
                                                                             color="#222"
@@ -559,7 +564,7 @@ const PricingScreen = () => {
 
 
 
-                                                        </TouchableOpacity>
+                                                        </Pressable>
                                                     ))}
                                                 </View>
 
@@ -570,7 +575,7 @@ const PricingScreen = () => {
 
                                                         <View style={styles.featuresContainer}>
                                                             {plan.webFeatures.map((feature, index) => (
-                                                                <TouchableOpacity activeOpacity={0.7} delayPressIn={200} onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
+                                                                <Pressable onPress={() => openInfoBottomSheet(feature?.tooltipText)} key={index} style={styles.featureItem}>
                                                                     <CheckCircle2
                                                                         color="#ffffff"
                                                                         fill="#65A30D"
@@ -581,7 +586,7 @@ const PricingScreen = () => {
 
                                                                         <Text style={styles.featureText}>{feature.name}</Text>
                                                                         {
-                                                                            feature?.link && <Pressable style={styles.link} onPress={(e) => { e.stopPropagation(); handleOpenLink(feature?.link) }}>
+                                                                            feature?.link && <Pressable style={styles.link} onPress={() => { handleOpenLink(feature?.link) }}>
 
                                                                                 <Link
                                                                                     color="#222"
@@ -594,7 +599,7 @@ const PricingScreen = () => {
 
 
 
-                                                                </TouchableOpacity>
+                                                                </Pressable>
                                                             ))}
                                                         </View>
                                                     </View>
@@ -611,7 +616,7 @@ const PricingScreen = () => {
                                                 <View style={{ marginTop: hp(1) }}>
 
 
-                                                    <TouchableOpacity
+                                                    <Pressable
                                                         style={[styles.ctaButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: Colors.primary }]}
                                                         onPress={() => {
                                                             if (isWebPurchase) {
@@ -624,7 +629,7 @@ const PricingScreen = () => {
                                                         }}
                                                     >
                                                         <Text style={[styles.ctaText, { color: Colors.primary }]}>Manage Subscription</Text>
-                                                    </TouchableOpacity>
+                                                    </Pressable>
                                                 </View>
 
                                             ) : (
@@ -641,7 +646,7 @@ const PricingScreen = () => {
                                                         colors={['#3d6df0', '#2f7bff']}
                                                         style={{ borderRadius: wp(8) }}
                                                     >
-                                                        <TouchableOpacity
+                                                        <Pressable
                                                             style={styles.ctaButton}
                                                             onPress={() => {
                                                                 if (activePlanId) {
@@ -659,7 +664,7 @@ const PricingScreen = () => {
                                                                     : (hasTrial ? 'Start 15-days Free Trial' : 'Subscribe Now')
                                                                 }
                                                             </Text>
-                                                        </TouchableOpacity>
+                                                        </Pressable>
                                                     </LinearGradient>
                                                     {/* )} */}
                                                 </View>
@@ -678,7 +683,7 @@ const PricingScreen = () => {
                 </PagerView>
             </LinearGradient>
 
-            <AppNewBottomSheet ref={infoRef} withCloseBtn={false} containerStyle={{ paddingBottom: wp(7) }}>
+            <AppNewBottomSheet ref={infoRef} autoHeight={false} withCloseBtn={false} snapPoints={['20%']} containerStyle={{ paddingBottom: wp(7) }}>
                 <View style={styles.infoWrapper}>
                     <View style={styles.infoBadge}>
                         <Info size={fp(2.5)} color={"#222"} />
@@ -798,11 +803,12 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: wp(8),
         padding: wp(6),
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
+        // shadowColor: '#000',
+        // shadowOffset: { width: 0, height: 4 },
+        // shadowOpacity: 0.1,
+        // shadowRadius: 10,
+        // elevation: 5,
+        overflow: 'hidden'
 
     },
     activeSubscription: {

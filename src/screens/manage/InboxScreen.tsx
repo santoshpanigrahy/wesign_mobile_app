@@ -31,6 +31,8 @@ import moment from 'moment';
 import RNFS from 'react-native-fs';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { Buffer } from 'buffer';
+import { useRoute } from '@react-navigation/native';
+
 
 
 // Project specific imports
@@ -616,11 +618,23 @@ const InboxScreen = ({ navigation }) => {
         }
     }, [userId]);
 
-    useEffect(() => {
-        setFirstLoading(true);
+    const route = useRoute();
 
-        fetchData(1);
-    }, []);
+
+    useEffect(() => {
+        if (route.params?.reload) {
+            setData([])
+            setFirstLoading(true);
+
+            fetchData(1);
+        }
+    }, [route.params?.reload]);
+
+    // useEffect(() => {
+    //     setFirstLoading(true);
+
+    //     fetchData(1);
+    // }, []);
 
     const reset = () => {
         setData([]);

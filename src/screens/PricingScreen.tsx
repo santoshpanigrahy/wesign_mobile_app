@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import api from '@utils/api';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import LinearGradient from 'react-native-linear-gradient';
@@ -55,15 +55,6 @@ import {RefreshCcw, Settings} from 'lucide-react-native';
 
 const SUBSCRIPTION_IDS = [
   //   'ws_personal_test',
-  'ws_personal',
-  'ws_personal_quarterly',
-  'ws_personal_yearly',
-  'ws_business',
-  'ws_business_quarterly',
-  'ws_business_yearly',
-  'ws_enterprise',
-  'ws_enterprise_quarterly',
-  'ws_enterprise_yearly',
   'ws_personal',
   'ws_personal_quarterly',
   'ws_personal_yearly',
@@ -244,17 +235,17 @@ const PricingScreen = () => {
         }
 
         const items = await RNIap.getSubscriptions({skus: SUBSCRIPTION_IDS});
-        const purchases = await RNIap.getAvailablePurchases();
+        // const purchases = await RNIap.getAvailablePurchases();
 
         await getCurrentPlan();
 
-        if (Platform.OS === 'android' && purchases && purchases.length > 0) {
-          const currentPurchase = purchases[0];
+        // if (Platform.OS === 'android' && purchases && purchases.length > 0) {
+        //   const currentPurchase = purchases[0];
 
-          setActivePlanId(currentPurchase?.productId);
+        //   setActivePlanId(currentPurchase?.productId);
 
-          setPurchaseToken(currentPurchase?.purchaseToken ?? null);
-        }
+        //   setPurchaseToken(currentPurchase?.purchaseToken ?? null);
+        // }
 
         const groupedItems = items?.map(plan => {
           const pricingInfo = pricingData.find(item =>
@@ -335,8 +326,11 @@ const PricingScreen = () => {
     }
   };
 
-  const openWebPricing = () => {
-    Linking.openURL('https://wesign.com/pricing');
+  const openWebPricing = async () => {
+    const token = await AsyncStorage.getItem('token');
+    Linking.openURL(
+      `https://wesign.com/login?token=${token}&user_id=${userId}`,
+    );
   };
 
   // Helper function to generate UUID from userId for iOS
@@ -894,6 +888,15 @@ const PricingScreen = () => {
               if (billingCycle === 'yearly') return id.endsWith('_yearly');
               return false;
             })
+            ?.sort((a, b) => {
+              const getBaseId = id =>
+                id.replace('_quarterly', '').replace('_yearly', '');
+
+              return (
+                order.indexOf(getBaseId(a.productId)) -
+                order.indexOf(getBaseId(b.productId))
+              );
+            })
             ?.map((plan, index) => {
               // Platform-specific pricing extraction
               let price;
@@ -1106,7 +1109,7 @@ const PricingScreen = () => {
                           ]}
                           onPress={() => {
                             if (isWebPurchase) {
-                              Linking.openURL('https://wesign.com/pricing');
+                              openWebPricing();
                             } else if (!IS_ANDROID) {
                               // iOS: Show manage subscription modal
                               setShowManageModal(true);
@@ -1287,7 +1290,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingTop: hp(2),
+    paddingTop: 3,
   },
   header: {
     flexDirection: 'row',

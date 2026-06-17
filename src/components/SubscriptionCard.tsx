@@ -23,8 +23,8 @@ const SubscriptionCard = ({data}) => {
     end_date,
     total_amount = 0,
     payment_method = 'unknown',
-    currency = 'USD',,
-        free_trial = true
+    currency = 'USD',
+    free_trial = true,
   } = data || {};
 
   const getStatusConfig = () => {
@@ -88,18 +88,17 @@ const SubscriptionCard = ({data}) => {
   return (
     <LinearGradient
       colors={['#FFFFFF', '#FAFAFA']}
-      style={[styles.cardContainer, {minHeight: 330}]}>
+      style={[styles.cardContainer, {minHeight: 430}]}>
       <View style={{width: Platform.OS === 'ios' ? '90%' : '100%'}}>
         <View style={styles.header}>
           <View style={styles.planInfo}>
             <View style={styles.iconContainer}>
               <Crown color="#EAB308" size={wp(5)} />
             </View>
-                    <View>
-
-                <Text style={styles.planTitle}>{activated_plan_description}</Text>
-                        {/* <Text style={styles.planSubTitle}>Free Trial</Text> */}
-                    </View>
+            <View>
+              <Text style={styles.planTitle}>{activated_plan_description}</Text>
+              {/* <Text style={styles.planSubTitle}>Free Trial</Text> */}
+            </View>
           </View>
 
           <View
@@ -111,27 +110,37 @@ const SubscriptionCard = ({data}) => {
               {status.label}
             </Text>
           </View>
-
         </View>
 
         <View style={styles.divider} />
 
-            <View style={{ flexDirection: 'row', gap: wp(2), alignItems: 'center', justifyContent: 'space-between' }}>
-            {/* <View style={styles.amountContainer}>
-              <Text style={styles.currencySymbol}>
-            {getCurrencySymbol(currency)}
-          </Text>
-              <Text style={styles.amountText}>{total_amount}</Text>
-              <Text style={styles.billingPeriod}>/ total</Text>
-                </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            gap: wp(2),
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+          <View style={styles.amountContainer}>
+            <Text style={styles.currencySymbol}>
+              {getCurrencySymbol(currency)}
+            </Text>
+            <Text style={styles.amountText}>{total_amount}</Text>
+            <Text style={styles.billingPeriod}>/ total</Text>
+          </View>
 
-                {free_trial && (
-                    <View style={[styles.badge, { backgroundColor: '#DBEAFE', borderColor: '#BFDBFE' }]}>
-                        <Text style={[styles.badgeText, { color: '#1D4ED8' }]}>Free Trial</Text>
-                    </View>
-                )}
-
-        </View> */}
+          {free_trial && (
+            <View
+              style={[
+                styles.badge,
+                {backgroundColor: '#DBEAFE', borderColor: '#BFDBFE'},
+              ]}>
+              <Text style={[styles.badgeText, {color: '#1D4ED8'}]}>
+                Free Trial
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
@@ -234,11 +243,11 @@ const styles = StyleSheet.create({
     fontSize: fp(2.2),
     color: '#111827',
   },
-    planSubTitle: {
-        fontFamily: Fonts.Regular,
-        fontSize: fp(1.4),
-        color: Colors.text_secondary,
-    },
+  planSubTitle: {
+    fontFamily: Fonts.Regular,
+    fontSize: fp(1.4),
+    color: Colors.text_secondary,
+  },
   badge: {
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.5),

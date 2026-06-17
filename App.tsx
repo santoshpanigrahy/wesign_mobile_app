@@ -3,14 +3,13 @@ import Navigation from '@navigation/Navigation';
 
 import {store} from '@redux/store';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import {Provider} from 'react-redux';
 import {withIAPContext} from 'react-native-iap';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {PortalProvider} from '@gorhom/portal';
-
 import {LogBox} from 'react-native';
 LogBox.ignoreLogs(['CountryModal: Support for defaultProps']);
 import {MenuProvider} from 'react-native-popup-menu';

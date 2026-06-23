@@ -14,6 +14,7 @@ import InboxScreen from '@screens/manage/InboxScreen';
 import DraftScreen from '@screens/manage/DraftScreen';
 import DeletedScreen from '@screens/manage/DeletedScreen';
 import ProfilePagerScreen from '@screens/ProfileScreen';
+import DeleteAccountScreen from '@screens/AccountDeletion';
 
 const Drawer = createDrawerNavigator();
 
@@ -92,6 +93,7 @@ const DrawerNavigation = () => {
         <Drawer.Screen name="Draft" component={DraftScreen} />
         <Drawer.Screen name="Deleted" component={DeletedScreen} />
         <Drawer.Screen name="Profile" component={ProfilePagerScreen} />
+        <Drawer.Screen name="AccountDelete" component={DeleteAccountScreen} />
       </Drawer.Navigator>
     </CustomSafeAreaView>
   );

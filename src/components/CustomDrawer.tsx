@@ -22,6 +22,7 @@ import {
   LogOut,
   Send,
   SquarePen,
+  Trash2,
   User,
   X,
 } from 'lucide-react-native';
@@ -146,16 +147,20 @@ const CustomDrawer = (props: any) => {
               Icon={HeartHandshake}
               link="https://wesign.com/articles/"
             />
-
-            <SectionHeader title="BILLING" />
-            <DrawerItem
-              label="My Subscription"
-              Icon={Crown}
-              route="MySubscription"
-            />
-            <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
           </>
         )}
+        <DrawerItem
+          label="Delete Account"
+          Icon={Trash2}
+          route="AccountDelete"
+        />{' '}
+        {/* <SectionHeader title="BILLING" />
+        <DrawerItem
+          label="My Subscription"
+          Icon={Crown}
+          route="MySubscription"
+        />
+        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
         <View style={styles.separator} />
         <SectionHeader title="SUPPORT" />
         <DrawerItem
@@ -169,7 +174,7 @@ const CustomDrawer = (props: any) => {
           link="https://wesign.com/articles/"
         />
         <SectionHeader title="BILLING" />
-        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
+        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" /> */}
       </ScrollView>
 
       <View style={styles.drawerFooter}>

@@ -52,6 +52,7 @@ import {
 import {SubscriptionStatus} from '../types/subscription';
 import AppButton from '@components/AppButton';
 import {RefreshCcw, Settings} from 'lucide-react-native';
+import {responsiveFontSize} from 'react-native-responsive-dimensions';
 
 const SUBSCRIPTION_IDS = [
   //   'ws_personal_test',
@@ -1178,6 +1179,25 @@ const PricingScreen = () => {
             </Text>
           </View>
         )}
+        {!IS_ANDROID && (
+          <View style={styles.footer}>
+            <Pressable
+              onPress={() =>
+                Linking.openURL(
+                  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                )
+              }>
+              <Text style={styles.termsofservice}>Terms of Service</Text>
+            </Pressable>
+            <Text>and</Text>
+            <Pressable
+              onPress={() =>
+                Linking.openURL('https://wesign.com/privacy-policy')
+              }>
+              <Text style={styles.termsofservice}>Privacy Policy</Text>
+            </Pressable>
+          </View>
+        )}
       </LinearGradient>
 
       {/* Info Modal */}
@@ -1544,6 +1564,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: hp(1.5),
     paddingHorizontal: wp(2),
+  },
+  footer: {
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginTop: -10,
+  },
+  termsofservice: {
+    color: Colors.primary,
+    fontSize: responsiveFontSize(2.2),
+    paddingHorizontal: 10,
   },
   // Info Modal styles
   infoModalOverlay: {

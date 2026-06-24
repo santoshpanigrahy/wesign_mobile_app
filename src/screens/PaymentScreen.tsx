@@ -1,5 +1,6 @@
 import {
   Alert,
+  Linking,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -1056,6 +1057,29 @@ const PaymentScreen = ({navigation, route}: any) => {
               <Text style={styles.restoreInfo}>
                 Already have a subscription? Tap to restore your purchases.
               </Text>
+            </View>
+            <View style={styles.restoreContainer}>
+              <AppButton
+                title={'Terms of Service'}
+                onPress={() =>
+                  Linking.openURL(
+                    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                  )
+                }
+                variant="outlined"
+                leftIcon={RefreshCcw}
+                style={styles.restoreButton}
+              />
+              <Text style={styles.restoreInfo}>and</Text>
+              <AppButton
+                title={'Privacy Policy'}
+                onPress={() =>
+                  Linking.openURL('https://tallvue.com/privacy-policy')
+                }
+                variant="outlined"
+                leftIcon={RefreshCcw}
+                style={styles.restoreButton}
+              />
             </View>
 
             <View style={styles.infoContainer}>

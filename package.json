@@ -15,6 +15,7 @@
     "@gorhom/bottom-sheet": "^5.0.0",
     "@gorhom/portal": "^1.0.14",
     "@invertase/react-native-apple-authentication": "^2.5.1",
+    "@microsoft/react-native-clarity": "^4.6.3",
     "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "1.21.0",
     "@react-native-clipboard/clipboard": "^1.16.3",

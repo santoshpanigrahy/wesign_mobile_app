@@ -294,6 +294,10 @@ const PricingScreen = () => {
         Linking.openURL(`https://wesign.com/login?user_id=${userId}&token=${token}`);
     }
 
+    const cancelWebSubscription = () => {
+        Linking.openURL(`https://wesign.com/login?user_id=${userId}&token=${token}&where_from=cancel`);
+    }
+
 
 
     const upgradeSubscriptionPlan = async (newProduct, isWebPurchase) => {
@@ -620,8 +624,8 @@ const PricingScreen = () => {
                                                         style={[styles.ctaButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: Colors.primary }]}
                                                         onPress={() => {
                                                             if (isWebPurchase) {
+                                                                cancelWebSubscription();
 
-                                                                Linking.openURL('https://wesign.com/pricing');
                                                             } else {
 
                                                                 handleCancelSubscription(plan.productId);

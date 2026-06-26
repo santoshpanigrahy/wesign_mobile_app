@@ -3,7 +3,7 @@ import Navigation from '@navigation/Navigation';
 
 import { store } from '@redux/store';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import { Provider } from 'react-redux';
@@ -14,9 +14,14 @@ import { PortalProvider } from '@gorhom/portal';
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['CountryModal: Support for defaultProps']);
 import { MenuProvider } from 'react-native-popup-menu';
+import * as Clarity from '@microsoft/react-native-clarity';
 const App = () => {
 
-
+  useEffect(() => {
+    Clarity.initialize('xc2p8g5zzf', {
+      logLevel: Clarity.LogLevel.None,
+    });
+  }, []);
 
 
 

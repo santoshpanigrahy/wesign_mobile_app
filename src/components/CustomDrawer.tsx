@@ -12,6 +12,7 @@ import {
 import React from 'react';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import {
+  ArrowLeftRight,
   Crown,
   DollarSign,
   Headset,
@@ -36,9 +37,13 @@ const CustomDrawer = (props: any) => {
 
   const handleOpenPolicy = (type: string) => {
     if (type === 'term') {
-      Linking.openURL('https://wesign.com/terms');
+      navigate('WebView', { url: "https://wesign.com/terms", screenName: "Terms & Conditions" });
+
+      // Linking.openURL('https://wesign.com/terms');
     } else if (type === 'privacy') {
-      Linking.openURL('https://wesign.com/privacy-policy');
+      navigate('WebView', { url: "https://wesign.com/privacy-policy", screenName: "Privacy Policy" });
+
+      // Linking.openURL('https://wesign.com/privacy-policy');
     }
   };
 
@@ -54,7 +59,8 @@ const CustomDrawer = (props: any) => {
         activeOpacity={0.7}
         onPress={() => {
           if (link) {
-            Linking.openURL(link);
+            navigation.navigate('WebView', { url: link, screenName: label });
+            navigation.closeDrawer();
           } else {
             navigation.navigate(route, {
               reload: Date.now(),
@@ -141,6 +147,7 @@ const CustomDrawer = (props: any) => {
 
             <SectionHeader title="BILLING" />
             <DrawerItem label="My Subscription" Icon={Crown} route="MySubscription" />
+            <DrawerItem label="Transactions" Icon={ArrowLeftRight} route="Transaction" />
             <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
           </>
         }

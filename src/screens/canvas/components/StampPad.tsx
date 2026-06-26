@@ -1,10 +1,10 @@
 import AppButton from '@components/AppButton';
 import AppInput from '@components/AppInput';
-import {useAppDispatch} from '@redux/hooks';
-import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
-import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
-import {Trash, Upload, X} from 'lucide-react-native';
-import {useState} from 'react';
+import { useAppDispatch } from '@redux/hooks';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import { Trash, Upload, X } from 'lucide-react-native';
+import { useState } from 'react';
 import {
   Image,
   Pressable,
@@ -16,11 +16,11 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 import api from '@utils/api';
 import Toast from 'react-native-toast-message';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const StampPad = ({
   userId,
@@ -46,14 +46,14 @@ const StampPad = ({
   };
 
   const pickImage = async () => {
-    const hasPermission = await requestPermission();
+    // const hasPermission = await requestPermission();
 
-    if (!hasPermission) {
-      console.log('Permission denied');
-      return;
-    }
+    // if (!hasPermission) {
+    //   console.log('Permission denied');
+    //   return;
+    // }
 
-    launchImageLibrary({mediaType: 'photo', selectionLimit: 1}, response => {
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, response => {
       if (response.didCancel) {
         console.log('User cancelled');
       } else if (response.errorCode) {
@@ -114,12 +114,13 @@ const StampPad = ({
   };
   const inset = useSafeAreaInsets();
   return (
-    <View style={{flex: 0.9, padding: wp(4), backgroundColor: Colors.white}}>
+    <View style={{ flex: 1, padding: wp(4), backgroundColor: Colors.white }}>
       <View
         style={{
           flexDirection: 'row',
           gap: wp(3),
           alignItems: 'center',
+          marginBottom: hp(3),
           paddingTop: fromwhere === 'canvas' ? inset.top : 0,
         }}>
         <Pressable onPress={() => onClose()}>
@@ -173,8 +174,8 @@ const StampPad = ({
                     );
                 })}
             </View> */}
-      <View style={{flex: 1}}>
-        <View style={{paddingVertical: hp(2)}}>
+      <View style={{ flex: 1 }}>
+        <View style={{ paddingVertical: hp(2) }}>
           <View style={styles.uploadBox}>
             {image && (
               <Pressable
@@ -195,9 +196,9 @@ const StampPad = ({
             )}
             {image ? (
               <Image
-                source={{uri: image?.uri}}
+                source={{ uri: image?.uri }}
                 resizeMode="contain"
-                style={{width: '80%', height: '80%'}}
+                style={{ width: '80%', height: '80%' }}
               />
             ) : (
               <TouchableOpacity

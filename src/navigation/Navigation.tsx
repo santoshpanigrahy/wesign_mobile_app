@@ -24,6 +24,9 @@ import PricingScreen from '@screens/PricingScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import SubscriptionScreen from '@screens/SubscriptionScreen';
 import MySubscriptionScreen from '@screens/MySubscriptionScreen';
+import ForgotPasswordScreen from '@screens/ForgotPasswordScreen';
+import TransactionScreen from '@screens/TransactionScreen';
+import WebViewScreen from '@screens/WebViewScreen';
 
 
 
@@ -54,7 +57,10 @@ const Navigation = () => {
         <Stack.Screen name="IamSignerFinish" component={IamSignerFinishScreen} />
         <Stack.Screen name="Pricing" component={PricingScreen} />
         <Stack.Screen name="MySubscription" component={MySubscriptionScreen} />
+        <Stack.Screen name="Transaction" component={TransactionScreen} />
+        <Stack.Screen name="WebView" component={WebViewScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="forgotPassword" component={ForgotPasswordScreen} />
 
 
         <Stack.Screen name="Demo" component={BottomSheetDemo} />

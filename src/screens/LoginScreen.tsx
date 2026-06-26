@@ -323,9 +323,9 @@ const LoginScreen = () => {
 
         {error && <Text style={styles.error}>{error}</Text>}
 
-        {/* <TouchableOpacity style={styles.forgot}>
+        <TouchableOpacity style={styles.forgot} onPress={() => navigate('forgotPassword')}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         <AppButton
           title="Login"
@@ -428,11 +428,12 @@ const styles = StyleSheet.create({
   forgot: {
     alignSelf: 'flex-end',
     marginBottom: hp(2),
+    marginTop: hp(1)
   },
 
   forgotText: {
     fontSize: fp(1.6),
-    color: Colors.primary,
+    color: Colors.text_primary,
     fontFamily: Fonts.Medium,
   },
 

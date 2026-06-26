@@ -342,7 +342,7 @@ const RegisterScreen = () => {
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Sign up to continue to WeSign</Text>
 
-            <View style={{ gap: hp(1.5) }}>
+            <View style={{ gap: hp(2) }}>
 
               <Controller
                 control={control}

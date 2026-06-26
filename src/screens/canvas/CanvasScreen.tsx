@@ -429,6 +429,12 @@ const CanvasScreen = ({ navigation }) => {
       field_name: type,
     };
 
+
+    console.log("Filedsss ==> ", field)
+    if (type === 'company' || type === 'title' || type === 'comment_text') {
+      field.font_size = 7
+    }
+
     if (isPrefilled && prefillData && !im_signer) {
       field.is_prefilled_field = true;
       if (['my_signature', 'my_initial', 'my_stamp'].includes(type)) {
@@ -505,18 +511,24 @@ const CanvasScreen = ({ navigation }) => {
     setPendingField(null);
   };
 
-  const handlePrefillSaved = data => {
+  const handlePrefillSaved = (data) => {
     setPrefillData(prev => ({ ...prev, [pendingField.selectedFieldType]: data }));
+    const isPrefilledType = true;
     const newField = createField(
       pendingField.selectedFieldType,
       pendingField.x,
       pendingField.y,
       pendingField.page.page,
       pendingField.page.document_key,
+      pendingField.page.document_order,
       pendingField.selectedRecipient,
       data,
-      true,
+      isPrefilledType
     );
+
+    console.log("shdvbsbdjk======> ", isPrefilledType)
+
+    console.log("New Fields +++>  ", newField)
     setFields(prev => [...prev, newField]);
     setPendingField(null);
   };
@@ -555,6 +567,8 @@ const CanvasScreen = ({ navigation }) => {
   const updateFieldValue = useCallback((key, value) => {
     setTempField(prev => ({ ...prev, [key]: value }));
   }, []);
+
+  console.log("Temp Fields============> ", tempField)
 
   const handleTap = async (e, page) => {
     if (!selectedFieldType) return;
@@ -722,6 +736,8 @@ const CanvasScreen = ({ navigation }) => {
       prefillValue,
       isPrefillType,
     );
+
+    console.log("Neww Fields ============> ", newField)
     setFields(prev => [...prev, newField]);
     setSelectedFieldType(null);
   };
@@ -807,12 +823,31 @@ const CanvasScreen = ({ navigation }) => {
     colorRef.current?.close();
   }, []);
 
+  console.log(tempField)
+
   const handleDateSelect = useCallback(
     format => {
+      const oldFormat = tempField?.date_format || 'MM/DD/YYYY';
+      const oldDate = tempField?.field_data;
+
+      console.log({
+        oldDate,
+        oldFormat,
+        newFormat: format,
+      });
+
+      if (oldDate && oldFormat) {
+        const newData = moment(oldDate, oldFormat, true).format(format);
+
+        if (newData !== 'Invalid date') {
+          updateFieldValue('field_data', newData);
+        }
+      }
+
       updateFieldValue('date_format', format);
       dateRef?.current?.close();
     },
-    [updateFieldValue],
+    [updateFieldValue, tempField],
   );
 
   const renderRecipientItem = useCallback(
@@ -1167,7 +1202,7 @@ const CanvasScreen = ({ navigation }) => {
 
       {/* Field Meta Edit Modal */}
       {showFieldMetaModal && (
-        <View style={styles.overlay}>
+        <View style={styles.fieldOverlay}>
           {/* <View style={{paddingTop: inset.top}}> */}
           <View style={[styles.metaHeader, { paddingTop: inset.top }]}>
             <View style={styles.metaHeaderTitleRow}>
@@ -1357,6 +1392,15 @@ const styles = StyleSheet.create({
   },
   pagerWrapper: { flex: 1, position: 'relative' },
   overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: hp(100),
+    backgroundColor: Colors.white,
+    width: wp(100),
+    // padding: wp(5),
+  },
+  fieldOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,

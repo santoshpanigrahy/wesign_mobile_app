@@ -264,6 +264,44 @@ const RenderFieldContent = ({ field, isSelected, onUpdate }) => {
       }
 
 
+    case 'title':
+    case 'comment_text':
+
+      return (
+        <View style={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
+          flex: 1,
+          gap: 2,
+          borderWidth: 1,
+          borderStyle: isSelected ? 'dashed' : 'solid',
+          borderColor: field?.recipient_color || '#000',
+          backgroundColor: isSelected
+            ? field?.recipient_color + '40'
+            : field?.recipient_color,
+        }}>
+          {config.icon && (
+            <config.icon
+              size={7}
+              color={isSelected ? field.recipient_color : '#fff'}
+            />
+          )}
+          <Text
+            style={{
+              fontSize: field.font_size,
+              color: isSelected ? field.recipient_color : '#fff',
+            }}
+            numberOfLines={1}
+
+          >
+            {config.label}
+          </Text>
+        </View>
+      );
+
+
+
 
 
 

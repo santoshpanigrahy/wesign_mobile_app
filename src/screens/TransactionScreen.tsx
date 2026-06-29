@@ -184,13 +184,13 @@ const TransactionScreen = ({ navigation }) => {
 
     const fetchData = async (pageNum = 1, isRefreshing = false) => {
         if (loading && !isRefreshing) return;
-        `auth/transaction/history/${'cus_RMoi0h7eWSx3s4'}?source=all`
+        // `auth/transaction/history/${'cus_RMoi0h7eWSx3s4'}?source=all`
 
         setLoading(true);
         try {
             // Replace with your actual endpoint
             const res = await api.get(
-                `auth/transaction/history/${'cus_RMoi0h7eWSx3s4'}?source=all`
+                `auth/transaction/history/${customer_id}?source=all`
             );
             const transactions = res?.data?.transaction || []; // using the provided JSON key
             const count = res?.data?.total_count || transactions.length;
@@ -301,9 +301,9 @@ const TransactionScreen = ({ navigation }) => {
             <BackHeader screenName='Transaction History' goBack={goBack} />
             <View style={styles.inner}>
 
-                {!firstLoading && data.length === 0 && (
+                {/* {!firstLoading && data.length === 0 && (
                     <NoDataFound message="No transactions found." />
-                )}
+                )} */}
 
                 {firstLoading && data.length === 0 ? (
                     renderSkeleton()
@@ -316,6 +316,7 @@ const TransactionScreen = ({ navigation }) => {
                         onEndReachedThreshold={0.2}
                         contentContainerStyle={styles.listContent}
                         showsVerticalScrollIndicator={false}
+                        ListEmptyComponent={<View style={{ paddingTop: hp(6) }}><NoDataFound message="No transactions found." /></View>}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={ACCENT_PURPLE} />
                         }

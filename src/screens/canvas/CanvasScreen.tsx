@@ -429,6 +429,9 @@ const CanvasScreen = ({ navigation }) => {
       field_name: type,
     };
 
+    if (type === 'date_signed' || type === 'company' || type === 'title' || type === 'comment_text' || type === 'dropdown' || type === 'drawing') {
+      field.required_field_checkbox = true;
+    }
 
     console.log("Filedsss ==> ", field)
     if (type === 'company' || type === 'title' || type === 'comment_text') {
@@ -463,6 +466,8 @@ const CanvasScreen = ({ navigation }) => {
         field.recipient_color = Colors.iamSigner;
       }
     }
+
+
 
     if (type === 'checkbox' && im_signer) field.is_checked = true;
     if (type === 'full_name' && !im_signer)

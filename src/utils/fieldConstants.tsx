@@ -1,12 +1,15 @@
 import AttachmentMeta from '@screens/canvas/components/fieldMeta/AttachmentMeta';
 import CheckboxMeta from '@screens/canvas/components/fieldMeta/CheckboxMeta';
+import CompanyMeta from '@screens/canvas/components/fieldMeta/CompanyMeta';
 import DateMeta from '@screens/canvas/components/fieldMeta/DateMeta';
+import DrawingMeta from '@screens/canvas/components/fieldMeta/DrawingMeta';
 import DropdownMeta from '@screens/canvas/components/fieldMeta/DropdownMeta';
 import InitialMeta from '@screens/canvas/components/fieldMeta/InitialMeta';
 import NoteMeta from '@screens/canvas/components/fieldMeta/NoteMeta';
 import RadioMeta from '@screens/canvas/components/fieldMeta/RadioMeta';
 import SignatureMeta from '@screens/canvas/components/fieldMeta/SignatureMeta';
 import TextMeta from '@screens/canvas/components/fieldMeta/TextMeta';
+import TitleMeta from '@screens/canvas/components/fieldMeta/TitleMeta';
 import {
   PenLine,
   Pencil,
@@ -146,6 +149,9 @@ export const FIELD_META_COMPONENTS = {
   checkbox: CheckboxMeta,
   dropdown: DropdownMeta,
   attachment: AttachmentMeta,
+  company: CompanyMeta,
+  title: TitleMeta,
+  drawing: DrawingMeta,
   radio: RadioMeta
 };
 

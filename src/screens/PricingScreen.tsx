@@ -76,6 +76,9 @@ const PricingScreen = () => {
   const [isSwiping, setIsSwiping] = useState(false);
 
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  const [userHasCancelled, setUserHasCancelled] = useState<boolean | null>(
+    null,
+  );
   const [activeBasePlanId, setActiveBasePlanId] = useState<string | null>(null);
   const [purchaseToken, setPurchaseToken] = useState<string | null>(null);
   const [purchasePlatform, setPurchasePlatform] = useState<string | null>(null);
@@ -182,9 +185,18 @@ const PricingScreen = () => {
           setActivePlanId(subscription?.activated_plan_id);
           // setActivePlanId(subscription?.activated_plan_id + '_test');
         } else {
+          console.log(
+            'Active subscription is not Card-based, using IAP platform',
+            subscription,
+          );
           // iOS/Android in-app purchase
           setPurchasePlatform(Platform.OS);
-          setActivePlanId(subscription?.activated_plan_id);
+          setUserHasCancelled(subscription?.cancelled);
+          if (subscription?.cancelled) {
+            setActivePlanId(null);
+          } else {
+            setActivePlanId(subscription?.activated_plan_id);
+          }
         }
 
         // Extract iOS-specific data for better UI
@@ -929,7 +941,11 @@ const PricingScreen = () => {
                 currencyCode = plan.currency || plan.currencyCode || 'USD';
 
                 // iOS trial detection (introductory price indicates a trial)
-                hasTrial = plan.introductoryPrice ? true : false;
+                hasTrial = plan.introductoryPrice
+                  ? userHasCancelled
+                    ? false
+                    : true
+                  : false;
               }
               const isActive = plan.productId === activePlanId;
               const isWebPurchase = purchasePlatform === 'web';

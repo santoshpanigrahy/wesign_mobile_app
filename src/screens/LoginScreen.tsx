@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   InteractionManager,
   Platform,
   Keyboard,
+  Alert,
+  Linking,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
@@ -25,6 +27,7 @@ import {
   loginUser,
   setSubscription,
   setUser,
+  setVersion,
   updateToken,
   updateUser,
 } from '@slices/authSlice';
@@ -41,6 +44,7 @@ import appleAuth, {
   AppleButton,
 } from '@invertase/react-native-apple-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CONFIG from '@utils/Config';
 
 GoogleSignin.configure({
   webClientId:
@@ -53,7 +57,9 @@ const LoginScreen = () => {
   const dispatch = useDispatch();
   const {error} = useAppSelector(state => state.auth);
   const {control, handleSubmit} = useForm();
-
+  useEffect(() => {
+    getNewVersion();
+  }, []);
   useFocusEffect(
     React.useCallback(() => {
       const backAction = () => {
@@ -70,6 +76,46 @@ const LoginScreen = () => {
     }, []),
   );
 
+  const getNewVersion = async () => {
+    dispatch(showLoader('Loading'));
+    try {
+      const res = await api.get('/info/get/conf?key=app_version_ios');
+      console.log('App Version Response:', res?.data);
+      if (res?.data?.status) {
+        dispatch(setVersion(res.data.value));
+        if (parseFloat(res.data.value) > parseFloat(CONFIG.iOSAppVersion)) {
+          dispatch(hideLoader());
+          Alert.alert(
+            'App Update Available',
+            'Kindly update the app to get latest features',
+            [
+              {
+                text: 'Cancel',
+                onPress: () => {
+                  dispatch(hideLoader());
+                },
+                style: 'cancel',
+              },
+              {
+                text: 'Update',
+                onPress: () => {
+                  Linking.openURL(
+                    'https://apps.apple.com/us/app/wesigndoc-sign-documents/id6766814551',
+                  );
+                },
+              },
+            ],
+            {cancelable: false},
+          );
+        } else {
+          dispatch(hideLoader());
+        }
+      }
+    } catch (error) {
+      dispatch(hideLoader());
+      Toast.show({type: 'error', text1: error?.message});
+    }
+  };
   const onSubmit = (data: any) => {
     dispatch(loginUser(data) as any);
   };
@@ -327,9 +373,11 @@ const LoginScreen = () => {
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-        <TouchableOpacity style={styles.forgot} onPress={() => navigate('forgotPassword')}>
-          <Text style={styles.forgotText}>Forgot Password?</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.forgot}
+              onPress={() => navigate('forgotPassword')}>
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
 
             <AppButton
               title="Login"
@@ -421,7 +469,7 @@ const styles = StyleSheet.create({
   forgot: {
     alignSelf: 'flex-end',
     marginBottom: hp(2),
-    marginTop: hp(1)
+    marginTop: hp(1),
   },
 
   forgotText: {

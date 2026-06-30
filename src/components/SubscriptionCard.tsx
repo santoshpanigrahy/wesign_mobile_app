@@ -1,5 +1,14 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Pressable, Linking, Platform, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+  Linking,
+  Platform,
+  Alert,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   Crown,
@@ -11,31 +20,27 @@ import {
 
 import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
 import {navigate} from '@utils/NavigationUtils';
-import { useAppSelector } from '@redux/hooks';
+import {useAppSelector} from '@redux/hooks';
 
-const SubscriptionCard = ({ data }) => {
+const SubscriptionCard = ({data}) => {
+  const userId = useAppSelector(state => state.auth.user?.id);
+  const token = useAppSelector(state => state.auth.token);
 
-    const userId = useAppSelector(state => state.auth.user?.id);
-    const token = useAppSelector(state => state.auth.token);
+  const {
+    activated_plan_description = 'Unknown Plan',
+    is_active = false,
+    cancelled = true,
+    cancellation_reason = 'Expired',
+    start_date,
+    nextBillingDate,
+    end_date,
+    total_amount = 0,
+    payment_method = 'unknown',
+    currency = 'USD',
+    free_trial = true,
+  } = data || {};
 
-    const {
-        activated_plan_description = 'Unknown Plan',
-        is_active = false,
-        cancelled = true,
-        cancellation_reason = 'Expired',
-        start_date,
-        nextBillingDate,
-        end_date,
-        total_amount = 0,
-        payment_method = 'unknown',
-        currency = 'USD',
-        free_trial = true,
-
-    } = data || {};
-
-    const isWebPurchase = payment_method === 'Card';
-
-
+  const isWebPurchase = payment_method === 'Card';
 
   const getStatusConfig = () => {
     if (is_active) {
@@ -95,43 +100,40 @@ const SubscriptionCard = ({ data }) => {
     return method;
   };
 
-    const handleCancelSubscription = async () => {
+  const handleCancelSubscription = async () => {
+    const packageName = 'com.wesign';
 
-        const packageName = 'com.wesign';
+    let url;
 
-        let url;
-
-        if (Platform.OS === 'android') {
-
-            url = `https://play.google.com/store/account/subscriptions?package=${packageName}`;
-        } else {
-
-            url = 'https://apps.apple.com/account/subscriptions';
-        }
-
-        try {
-
-            const supported = await Linking.canOpenURL(url);
-
-            if (supported) {
-                await Linking.openURL(url);
-            } else {
-                Alert.alert("Error", "Could not open the subscription manager.");
-            }
-        } catch (error) {
-            console.error('Deep Link Error:', error);
-        }
-    };
-
-    const openWebPricing = () => {
-        Linking.openURL(`https://wesign.com/login?user_id=${userId}&token=${token}&where_from=cancel`);
+    if (Platform.OS === 'android') {
+      url = `https://play.google.com/store/account/subscriptions?package=${packageName}`;
+    } else {
+      url = 'https://apps.apple.com/account/subscriptions';
     }
 
+    try {
+      const supported = await Linking.canOpenURL(url);
+
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Could not open the subscription manager.');
+      }
+    } catch (error) {
+      console.error('Deep Link Error:', error);
+    }
+  };
+
+  const openWebPricing = () => {
+    Linking.openURL(
+      `https://wesign.com/login?user_id=${userId}&token=${token}&where_from=cancel`,
+    );
+  };
 
   return (
     <LinearGradient
       colors={['#FFFFFF', '#FAFAFA']}
-      style={[styles.cardContainer, {minHeight: 430}]}>
+      style={[styles.cardContainer, {minHeight: 500}]}>
       <View style={{width: Platform.OS === 'ios' ? '90%' : '100%'}}>
         <View style={styles.header}>
           <View style={styles.planInfo}>
@@ -248,9 +250,31 @@ const SubscriptionCard = ({ data }) => {
             <Text style={styles.renewButtonText}>Upgrade Plan</Text>
           </TouchableOpacity>
         )}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            if (isWebPurchase) {
+              openWebPricing();
+            } else {
+              handleCancelSubscription();
+            }
+          }}
+          style={[
+            styles.renewButton,
+            ,
+            {
+              backgroundColor: '#ffffff',
+              borderWidth: 1,
+              borderColor: Colors.primary,
+              marginTop: hp(2),
+            },
+          ]}>
+          <Text style={[styles.renewButtonText, {color: Colors.primary}]}>
+            Cancel Subscription
+          </Text>
+        </TouchableOpacity>
       </View>
-
-            <Pressable
+      {/* <Pressable
                 style={[styles.ctaButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: Colors.primary }]}
                 onPress={() => {
                     if (isWebPurchase) {
@@ -263,7 +287,7 @@ const SubscriptionCard = ({ data }) => {
                 }}
             >
                 <Text style={[styles.ctaText, { color: Colors.primary }]}>Cancel Subscription</Text>
-            </Pressable>
+            </Pressable> */}
     </LinearGradient>
   );
 };
@@ -288,21 +312,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: wp(2.5),
   },
-    ctaButton: {
-        // backgroundColor: '#FCFDF6',
-        // paddingVertical: hp(2),
-        paddingVertical: hp(1.8),
-        borderRadius: wp(8),
-        alignItems: 'center',
-        marginTop: hp(1)
+  ctaButton: {
+    // backgroundColor: '#FCFDF6',
+    // paddingVertical: hp(2),
+    paddingVertical: hp(1.8),
+    borderRadius: wp(8),
+    alignItems: 'center',
+    marginTop: hp(1),
 
-        // marginTop: hp(1),
-    },
-    ctaText: {
-        fontFamily: Fonts.Medium,
-        fontSize: fp(1.8),
-        color: '#fff',
-    },
+    // marginTop: hp(1),
+  },
+  ctaText: {
+    fontFamily: Fonts.Medium,
+    fontSize: fp(1.8),
+    color: '#fff',
+  },
   iconContainer: {
     width: wp(10),
     height: wp(10),

@@ -34,18 +34,24 @@ import {navigate} from '@utils/NavigationUtils';
 const CustomDrawer = (props: any) => {
   const {state, navigation} = props;
   const dispatch = useAppDispatch();
-
+  const version = useAppSelector(state => state.auth.version);
   const isPrimaryUser = useAppSelector(
     state => state?.auth?.user?.primary_user,
   );
 
   const handleOpenPolicy = (type: string) => {
     if (type === 'term') {
-      navigate('WebView', { url: "https://wesign.com/terms", screenName: "Terms & Conditions" });
+      navigate('WebView', {
+        url: 'https://wesign.com/terms',
+        screenName: 'Terms & Conditions',
+      });
 
       // Linking.openURL('https://wesign.com/terms');
     } else if (type === 'privacy') {
-      navigate('WebView', { url: "https://wesign.com/privacy-policy", screenName: "Privacy Policy" });
+      navigate('WebView', {
+        url: 'https://wesign.com/privacy-policy',
+        screenName: 'Privacy Policy',
+      });
 
       // Linking.openURL('https://wesign.com/privacy-policy');
     }
@@ -62,7 +68,7 @@ const CustomDrawer = (props: any) => {
         activeOpacity={0.7}
         onPress={() => {
           if (link) {
-            navigation.navigate('WebView', { url: link, screenName: label });
+            navigation.navigate('WebView', {url: link, screenName: label});
             navigation.closeDrawer();
           } else {
             navigation.navigate(route, {
@@ -139,7 +145,12 @@ const CustomDrawer = (props: any) => {
           Icon={Crown}
           route="MySubscription"
         />
-        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />{' '}
+        <DrawerItem
+          label="Transactions"
+          Icon={ArrowLeftRight}
+          route="Transaction"
+        />
+        <DrawerItem label="Pricing" Icon={DollarSign} route="Pricing" />
         {isPrimaryUser && (
           <>
             <View style={styles.separator} />
@@ -212,6 +223,11 @@ const CustomDrawer = (props: any) => {
             onPress={() => handleOpenPolicy('privacy')}>
             <Text style={styles.policyBtnText}>Privacy Policy</Text>
           </Pressable>
+        </View>
+        <View style={styles.policyWrapper}>
+          <View style={styles.policyBtn}>
+            <Text style={styles.policyBtnText}>Version - {version}</Text>
+          </View>
         </View>
       </View>
     </SafeAreaView>

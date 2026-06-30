@@ -78,6 +78,7 @@ const initialState = {
   subscription: null,
   loading: false,
   error: null,
+  version: null,
 };
 
 const authSlice = createSlice({
@@ -95,6 +96,9 @@ const authSlice = createSlice({
     },
     setUser: (state, action) => {
       state.user = action.payload;
+    },
+    setVersion: (state, action) => {
+      state.version = action.payload;
     },
     setSubscription: (state, action) => {
       state.subscription = action.payload;
@@ -154,6 +158,7 @@ export const {
   updateUser,
   updateToken,
   setUser,
+  setVersion,
   setSubscription,
   updateSubscriptionLocally,
 } = authSlice.actions;

@@ -55,9 +55,8 @@ const Navigation = () => {
         <Stack.Screen name="Transaction" component={TransactionScreen} />
         <Stack.Screen name="WebView" component={WebViewScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="Payment" component={PaymentScreen} />        <Stack.Screen name="forgotPassword" component={ForgotPasswordScreen} />
-
-
+        <Stack.Screen name="Payment" component={PaymentScreen} />
+        <Stack.Screen name="forgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="Demo" component={BottomSheetDemo} />
       </Stack.Navigator>
     </NavigationContainer>

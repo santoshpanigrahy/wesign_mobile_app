@@ -43,7 +43,6 @@ import DeviceInfo from 'react-native-device-info';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 
 GoogleSignin.configure({
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   webClientId:
     '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
   iosClientId:
@@ -122,9 +121,9 @@ const RegisterScreen = () => {
           dispatch(updateToken(data.token));
           await AsyncStorage.setItem('user', JSON.stringify(data.user));
           await AsyncStorage.setItem('token', data.token);
-          // setTimeout(() => {
-          navigate('Drawer');
-          // }, 100);
+          setTimeout(() => {
+            navigate('Drawer');
+          }, 200);
 
           // Navigate Dashboard
         } else {
@@ -184,9 +183,9 @@ const RegisterScreen = () => {
           console.log('173');
           await AsyncStorage.setItem('user', JSON.stringify(data.user));
           await AsyncStorage.setItem('token', data.token);
-          // setTimeout(() => {
-          navigate('Drawer');
-          // }, 100);
+          setTimeout(() => {
+            navigate('Drawer');
+          }, 200);
 
           // Navigate Dashboard
         } else {
@@ -238,8 +237,11 @@ const RegisterScreen = () => {
         // } else {
         await AsyncStorage.setItem('token', res.token);
 
-        resetAndNavigate('Pricing', {fromRegister: true});
-        // }
+        setTimeout(() => {
+
+          resetAndNavigate('Pricing', { fromRegister: true });
+        }, 200)
+
       } else {
         Toast.show({type: 'error', text1: res?.message});
       }

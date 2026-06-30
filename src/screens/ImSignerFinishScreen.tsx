@@ -339,7 +339,7 @@ const IamSignerFinishScreen = ({ navigation }) => {
                 onGoToDashboard={() => {
                     setShowSuccessModal(false);
                     dispatch(resetEnvelope());
-                    navigation?.pop(4);
+                    navigation?.pop(3);
                 }}
             />
 

@@ -43,7 +43,6 @@ import appleAuth, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 GoogleSignin.configure({
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   webClientId:
     '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
   iosClientId:
@@ -328,9 +327,9 @@ const LoginScreen = () => {
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            {/* <TouchableOpacity style={styles.forgot}>
+        <TouchableOpacity style={styles.forgot} onPress={() => navigate('forgotPassword')}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
             <AppButton
               title="Login"
@@ -422,11 +421,12 @@ const styles = StyleSheet.create({
   forgot: {
     alignSelf: 'flex-end',
     marginBottom: hp(2),
+    marginTop: hp(1)
   },
 
   forgotText: {
     fontSize: fp(1.6),
-    color: Colors.primary,
+    color: Colors.text_primary,
     fontFamily: Fonts.Medium,
   },
 

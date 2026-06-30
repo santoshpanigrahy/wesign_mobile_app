@@ -31,7 +31,9 @@ import moment from 'moment';
 import RNFS from 'react-native-fs';
 import notifee, {AndroidImportance} from '@notifee/react-native';
 import {Buffer} from 'buffer';
-import Share from 'react-native-share';
+import Share from 'react-native-share';import { useRoute } from '@react-navigation/native';
+
+
 
 // Project specific imports
 import {Colors, Fonts, fp, hp, STATUS_CONFIG, wp} from '@utils/Constants';
@@ -565,18 +567,32 @@ const InboxScreen = ({navigation}) => {
     setRefreshing(true);
     setFirstLoading(true);
 
-    if (search !== '') {
-      handleSearch(1);
-    } else {
-      fetchData(1, true);
-    }
-  }, [userId]);
+        if (search !== '') {
 
-  useEffect(() => {
-    setFirstLoading(true);
+            handleSearch(1);
+        } else {
 
-    fetchData(1);
-  }, []);
+            fetchData(1, true);
+        }
+    }, [userId]);
+
+    const route = useRoute();
+
+
+    useEffect(() => {
+        if (route.params?.reload) {
+            setData([])
+            setFirstLoading(true);
+
+            fetchData(1);
+        }
+    }, [route.params?.reload]);
+
+    // useEffect(() => {
+    //     setFirstLoading(true);
+
+    //     fetchData(1);
+    // }, []);
 
   const reset = () => {
     setData([]);

@@ -1,12 +1,15 @@
 import AttachmentMeta from '@screens/canvas/components/fieldMeta/AttachmentMeta';
 import CheckboxMeta from '@screens/canvas/components/fieldMeta/CheckboxMeta';
+import CompanyMeta from '@screens/canvas/components/fieldMeta/CompanyMeta';
 import DateMeta from '@screens/canvas/components/fieldMeta/DateMeta';
+import DrawingMeta from '@screens/canvas/components/fieldMeta/DrawingMeta';
 import DropdownMeta from '@screens/canvas/components/fieldMeta/DropdownMeta';
 import InitialMeta from '@screens/canvas/components/fieldMeta/InitialMeta';
 import NoteMeta from '@screens/canvas/components/fieldMeta/NoteMeta';
 import RadioMeta from '@screens/canvas/components/fieldMeta/RadioMeta';
 import SignatureMeta from '@screens/canvas/components/fieldMeta/SignatureMeta';
 import TextMeta from '@screens/canvas/components/fieldMeta/TextMeta';
+import TitleMeta from '@screens/canvas/components/fieldMeta/TitleMeta';
 import {
   PenLine,
   Pencil,
@@ -66,21 +69,21 @@ export const FIELD_CONFIG = {
   company: {
     label: "Company",
     icon: Building,
-    width: 100,
-    height: 30,
+    width: 80,
+    height: 20,
   },
   title: {
     label: "Only For Recipient",
     icon: Type,
-    width: 150,
-    height: 30,
+    width: 130,
+    height: 20,
   },
   comment_text: {
     label: "Only For Recipient",
 
     icon: FileText,
-    width: 150,
-    height: 30,
+    width: 130,
+    height: 20,
   },
   plain_text: {
     label: "Write Here",
@@ -140,11 +143,15 @@ export const FIELD_META_COMPONENTS = {
   signature: SignatureMeta,
   initial: InitialMeta,
   date_signed: DateMeta,
+  my_date_signed: DateMeta,
   comment_text: TextMeta,
   plain_text: NoteMeta,
   checkbox: CheckboxMeta,
   dropdown: DropdownMeta,
   attachment: AttachmentMeta,
+  company: CompanyMeta,
+  title: TitleMeta,
+  drawing: DrawingMeta,
   radio: RadioMeta
 };
 
@@ -261,5 +268,5 @@ export const ALL_COLORS = [
 export const TEXT_STYLE_ELIGIBLE = ['date_signed', 'name', 'email', 'company', 'title', 'comment_text', 'plain_text'];
 
 export const PREFILLED_FIELDS = ['my_signature', 'my_initial', 'my_stamp', 'my_date_signed', 'my_full_name', 'my_email', 'my_company', 'plain_text'];
-export const IAMSIGNER_FIELDS = ['signature', 'initial', 'stamp', 'date_signed', 'full_name', 'first_name', 'last_name', 'email', 'company', 'title'];
+export const IAMSIGNER_FIELDS = ['signature', 'initial', 'stamp', 'date_signed', 'full_name', 'first_name', 'last_name', 'email'];
 

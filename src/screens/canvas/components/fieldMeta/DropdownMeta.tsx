@@ -35,9 +35,16 @@ const DropdownMeta = ({ field, updateFieldValue }) => {
     updateFieldValue("field_data", finalString);
   };
 
+  const isRequired = field?.required_field_checkbox;
+
+
   return (
     <View style={{ gap: hp(3) }}>
+      <AppToggleButton label={'Required'} value={isRequired} onToggle={(val) => {
 
+        updateFieldValue('required_field_checkbox', val)
+
+      }} />
 
       <View >
         <Text style={{ fontFamily: Fonts.Regular, marginBottom: hp(0.8), color: Colors.text_primary }}>Dropdown Label</Text>

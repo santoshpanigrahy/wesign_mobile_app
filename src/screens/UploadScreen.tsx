@@ -116,10 +116,10 @@ import { launchImageLibrary } from 'react-native-image-picker';
 
 const configureGoogleDrive = () => {
   GoogleSignin.configure({
-    // This scope is MANDATORY to read files from Drive
-    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    // Updated to the non-sensitive scope approved by Google
+    scopes: ['https://www.googleapis.com/auth/drive.file'],
+
     // You get this ID from the Google Cloud Console
-    // webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
     webClientId:
       '396564745764-disnuci9msclu3j7i3r9knke7b9qtr9f.apps.googleusercontent.com',
     iosClientId:

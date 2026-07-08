@@ -36,6 +36,8 @@ import {
 } from 'react-native-popup-menu';
 import { authorize } from 'react-native-app-auth';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const validTypes = [
   'image/gif',
   'image/tiff',
@@ -71,6 +73,18 @@ const validTypes = [
   'text/plain',
 ];
 
+const EXTENSION_TO_MIME_MAP = {
+  'pdf': 'application/pdf',
+  'doc': 'application/msword',
+  'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'csv': 'text/csv',
+  'txt': 'text/plain',
+  'xls': 'application/vnd.ms-excel',
+  'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'png': 'image/png',
+  'jpg': 'image/jpeg',
+  'jpeg': 'image/jpeg',
+};
 const FILE_ICONS = {
   PDF: require('@assets/icons/pdf.png'),
   DOC: require('@assets/icons/doc.png'),
@@ -82,6 +96,7 @@ const FILE_ICONS = {
   IMG: require('@assets/icons/img.png'),
   DEFAULT: require('@assets/icons/file.png'),
 };
+
 
 const FILE_TYPE_MAP = {
   'application/pdf': 'PDF',
@@ -146,6 +161,8 @@ const UploadScreen = () => {
     configureGoogleDrive();
   }, []);
 
+  const insets = useSafeAreaInsets();
+
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
 
   const pickImages = async () => {
@@ -179,21 +196,69 @@ const UploadScreen = () => {
     );
   };
 
-  const fetchGoogleDrivePDFs = async () => {
+  const getDriveIcons = (item) => {
+    // Check the label we attached in the fetch function
+    switch (item.fileTypeLabel) {
+      case 'PDF':
+        return require('@assets/icons/pdf.png');
+      case 'DOC':
+      case 'DOCX':
+        return require('@assets/icons/doc.png');
+      case 'XLS':
+      case 'XLSX':
+      case 'CSV':
+        return require('@assets/icons/sheets.png'); // Optional: if you have an excel icon
+      case 'TXT':
+        return require('@assets/icons/file.png'); // Optional: if you have a text icon
+    }
+
+    // If it's an image (like PNG, JPG), check the mimeType directly
+    if (item.mimeType && item.mimeType.startsWith('image/')) {
+      return require('@assets/icons/img.png'); // Or png.png if you prefer
+    }
+
+    // Fallback for any unknown file types
+    return require('@assets/icons/file.png');
+  };
+
+  const getMimeType = (extension) => {
+    if (!extension) return 'application/octet-stream'; // Default fallback
+
+    // 1. Remove the leading dot if it exists (e.g., ".pdf" becomes "pdf")
+    // 2. Convert to lowercase to ensure "PDF" matches "pdf"
+    const cleanExtension = extension.replace(/^\./, '').toLowerCase();
+
+    // 3. Look up the MIME type, or return a generic fallback if not found
+    return EXTENSION_TO_MIME_MAP[cleanExtension] || 'application/octet-stream';
+  };
+  const fetchGoogleDriveFiles = async () => {
     try {
       // 1. Ensure the device supports Google Play Services (Android)
       await GoogleSignin.hasPlayServices();
+
       // 2. Prompt the user to log in and authorize wesign
       const userInfo = await GoogleSignin.signIn();
+
       // 3. Get the access token to use with the Drive API
       const tokens = await GoogleSignin.getTokens();
       const accessToken = tokens.accessToken;
+
       if (!accessToken) {
         throw new Error('No access token received');
       }
       setGoogleAccessToken(accessToken);
+
+      // 4. Dynamically build the query string for all MIME types
+      // This creates a string like: mimeType="application/pdf" or mimeType="text/csv"...
+      const mimeTypes = Object.keys(FILE_TYPE_MAP);
+      const queryConditions = mimeTypes.map(type => `mimeType="${type}"`).join(' or ');
+
+      // Remember to encode the query string so the URL remains valid
+      const queryString = `q=${encodeURIComponent(queryConditions)}&fields=files(id,name,mimeType)`;
+
+      // 5. Fetch the files using the constructed query
       const response = await fetch(
-        'https://www.googleapis.com/drive/v3/files?q=mimeType="application/pdf"&fields=files(id,name,mimeType)',
+        `https://www.googleapis.com/drive/v3/files?${queryString}`,
         {
           method: 'GET',
           headers: {
@@ -202,12 +267,23 @@ const UploadScreen = () => {
           },
         },
       );
+
       const data = await response.json();
+
       if (data.files && data.files.length > 0) {
-        console.log('Found PDFs:', data.files);
-        return data.files;
+        console.log('Found files:', data.files);
+
+        // Optional: Attach your friendly label (e.g., 'PDF', 'DOCX') to the file data
+        const filesWithTypes = data.files.map(file => ({
+          ...file,
+          fileTypeLabel: FILE_TYPE_MAP[file.mimeType] || 'UNKNOWN'
+        }));
+
+        return filesWithTypes;
       } else {
-        console.log('No PDFs found in this Drive.');
+        console.log('No matching files found in this Drive.');
+        // Note: Make sure you actually want to log the user out here. 
+        // Sometimes an empty drive is a valid state and doesn't require a sign out.
         GoogleSignin.signOut();
         return [];
       }
@@ -227,7 +303,7 @@ const UploadScreen = () => {
     try {
       // if (googleDriveFiles?.length === 0 && !googleAccessToken) {
 
-      const driveFiles = await fetchGoogleDrivePDFs();
+      const driveFiles = await fetchGoogleDriveFiles();
       setGoogleDriveFiles(driveFiles);
 
       // }
@@ -277,6 +353,8 @@ const UploadScreen = () => {
   const handleDriveFileSelect = async (driveFile, accessToken) => {
     googleDriveRef?.current?.close();
     dispatch(showLoader('Uploading'));
+
+    console.log(driveFile.fileTypeLabel)
     try {
       const localPath = await downloadFileFromDrive(driveFile, accessToken);
 
@@ -287,7 +365,7 @@ const UploadScreen = () => {
         const formattedFile = {
           uri: `file://${localPath}`,
           name: driveFile.name,
-          type: 'application/pdf',
+          type: getMimeType(driveFile.fileTypeLabel),
           size: actualSizeInBytes || 0,
         };
 
@@ -309,7 +387,7 @@ const UploadScreen = () => {
       style={styles.cloundFileWrapper}
       onPress={() => handleDriveFileSelect(item, googleAccessToken)}>
       <Image
-        source={require('@assets/icons/pdf.png')}
+        source={getDriveIcons(item)}
         style={{ width: wp(8), height: wp(12) }}
       />
       <Text style={styles.cloundFileName}>{item.name}</Text>
@@ -994,14 +1072,14 @@ const UploadScreen = () => {
 
       {envelopeDocuments?.length > 0 && (
         <View
-          style={{
+          style={[{
             backgroundColor: Colors.white,
             height: hp(9),
             flexDirection: 'row',
             justifyContent: 'flex-end',
             alignItems: 'center',
             paddingHorizontal: wp(5),
-          }}>
+          }, { paddingBottom: insets.bottom > 0 ? insets.bottom : 16 }]}>
           <AppButton
             onPress={() => handleNext()}
             title="Next"

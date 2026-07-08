@@ -19,6 +19,7 @@ import React, {
   forwardRef,
 } from 'react';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ArrowLeft,
   BookUser,
@@ -34,18 +35,18 @@ import {
   UserPlus,
   X,
 } from 'lucide-react-native';
-import {Colors, Fonts, fp, hp, RECIPIENT_COLORS, wp} from '@utils/Constants';
+import { Colors, Fonts, fp, hp, RECIPIENT_COLORS, wp } from '@utils/Constants';
 import AppBottomSheet from '@components/AppBottomSheet';
-import {Controller, useForm} from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import AppInput from '@components/AppInput';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import CountryPicker, {
   getAllCountries,
 } from 'react-native-country-picker-modal';
-import Animated, {Easing, FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeOut } from 'react-native-reanimated';
 import AddressBook from '@components/AddressBook';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import {useAppDispatch, useAppSelector} from '@redux/hooks';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import {
   deleteRecipientById,
   resetEnvelope,
@@ -63,7 +64,7 @@ import {
 } from '@utils/NavigationUtils';
 import AppToggleButton from '@components/AppToggleButton';
 import Toast from 'react-native-toast-message';
-import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import moment from 'moment';
 import api from '@utils/api';
 import {
@@ -72,16 +73,15 @@ import {
   MenuOption,
   MenuTrigger,
 } from 'react-native-popup-menu';
-import {useKeyboard} from '@utils/documentService';
-import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import { useKeyboard } from '@utils/documentService';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import RecipientEmailField from '@components/RecipientEmailField';
 import RecipientNameField from '@components/RecipientNameField';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const typeOptions = [
-  {label: 'Email', value: 'email'},
-  {label: 'Email & SMS', value: 'email_and_sms'},
-  {label: 'SMS', value: 'sms'},
+  { label: 'Email', value: 'email' },
+  { label: 'Email & SMS', value: 'email_and_sms' },
+  { label: 'SMS', value: 'sms' },
 ];
 
 const roleOptions = [
@@ -104,21 +104,21 @@ const roleOptions = [
 
 // --- 1. Memoized Drag Item ---
 const DraggableRecipientItem = memo(
-  ({item, drag, isActive, onMenuOpen, onEdit}) => {
+  ({ item, drag, isActive, onMenuOpen, onEdit }) => {
     const badgeColor =
       item.action === 'needs_to_sign'
         ? '#1fadff'
         : item.action === 'receive_copy'
-        ? '#52f439'
-        : '#f76e48';
+          ? '#52f439'
+          : '#f76e48';
     const badgeLabel =
       item.action === 'needs_to_sign'
         ? 'Need to Sign'
         : item.action === 'receive_copy'
-        ? 'Receives a Copy'
-        : item.action === 'in_person_sign'
-        ? 'In Person Sign'
-        : '';
+          ? 'Receives a Copy'
+          : item.action === 'in_person_sign'
+            ? 'In Person Sign'
+            : '';
 
     return (
       <TouchableOpacity
@@ -135,7 +135,7 @@ const DraggableRecipientItem = memo(
         <View
           style={[
             styles.recipientCircle,
-            {backgroundColor: item?.meta_info?.recepient_border_color},
+            { backgroundColor: item?.meta_info?.recepient_border_color },
           ]}>
           <Text style={styles.recipientCircleText}>
             {item?.recepient_name?.slice(0, 2)}
@@ -170,7 +170,7 @@ const DraggableRecipientItem = memo(
           )}
 
           <Text
-            style={[styles.recipientCardAction, {backgroundColor: badgeColor}]}>
+            style={[styles.recipientCardAction, { backgroundColor: badgeColor }]}>
             {badgeLabel}
           </Text>
         </View>
@@ -210,7 +210,7 @@ const RecipientFormModal = forwardRef(
       control,
       handleSubmit,
       watch,
-      formState: {errors},
+      formState: { errors },
       reset,
       setValue,
     } = useForm({
@@ -240,7 +240,7 @@ const RecipientFormModal = forwardRef(
           const data = await getAllCountries();
           setCountries(data);
         } catch (err) {
-          Toast.show({type: 'error', text1: 'Failed to load countries'});
+          Toast.show({ type: 'error', text1: 'Failed to load countries' });
         }
       };
       fetchCountries();
@@ -287,7 +287,7 @@ const RecipientFormModal = forwardRef(
         entering={FadeIn.duration(150).easing(Easing.out(Easing.quad))}
         exiting={FadeOut.duration(100)}
         style={styles.overlay}>
-        <View style={[styles.modalHeaderRow, {paddingTop: inset.top}]}>
+        <View style={[styles.modalHeaderRow, { paddingTop: inset.top }]}>
           <View style={styles.modalTitleRow}>
             <TouchableOpacity onPress={onClose}>
               <X color={Colors.text_primary} size={fp(3)} />
@@ -304,7 +304,7 @@ const RecipientFormModal = forwardRef(
         </View>
 
         <KeyboardAwareScrollView
-          contentContainerStyle={{paddingBottom: 50}}
+          contentContainerStyle={{ paddingBottom: 50 }}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled={true}
           enableOnAndroid={true}
@@ -314,7 +314,7 @@ const RecipientFormModal = forwardRef(
             <Controller
               control={control}
               name="method"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <View>
                   <Text style={styles.label}>
                     Method<Text style={styles.error}>*</Text>
@@ -353,7 +353,7 @@ const RecipientFormModal = forwardRef(
                     message: 'Please enter a valid email address',
                   },
                 }}
-                render={({field: {onChange, value}, fieldState: {error}}) => (
+                render={({ field: { onChange, value }, fieldState: { error } }) => (
                   <AppInput
                     label="Host Email"
                     placeholder="Enter host email"
@@ -412,14 +412,14 @@ const RecipientFormModal = forwardRef(
                       borderColor: errors?.recepient_phone?.message
                         ? Colors.error
                         : isPhoneNumberFocus
-                        ? Colors.primary_dark
-                        : Colors.text_secondary,
+                          ? Colors.primary_dark
+                          : Colors.text_secondary,
                     },
                   ]}>
                   <Controller
                     control={control}
                     name="recepient_country_code"
-                    render={({field: {onChange, value}}) => (
+                    render={({ field: { onChange, value } }) => (
                       <CountryPicker
                         countryCode={value || 'US'}
                         withFlag
@@ -437,7 +437,7 @@ const RecipientFormModal = forwardRef(
                       validate: value =>
                         value?.length === 10 || 'Must be 10 digits',
                     }}
-                    render={({field: {onChange, value}}) => (
+                    render={({ field: { onChange, value } }) => (
                       <TextInput
                         style={styles.input}
                         placeholder="Enter phone number"
@@ -462,14 +462,14 @@ const RecipientFormModal = forwardRef(
             )}
 
             <View>
-              <Text style={[styles.label, {marginBottom: wp(3)}]}>
+              <Text style={[styles.label, { marginBottom: wp(3) }]}>
                 Action<Text style={styles.error}>*</Text>
               </Text>
               <Controller
                 control={control}
                 name="action"
-                rules={{required: 'Select Action'}}
-                render={({field: {onChange, value}}) => (
+                rules={{ required: 'Select Action' }}
+                render={({ field: { onChange, value } }) => (
                   <View style={styles.actionGroup}>
                     {roleOptions.map(item => (
                       <TouchableOpacity
@@ -517,8 +517,8 @@ const RecipientFormModal = forwardRef(
                     control={control}
                     name="access_code"
                     render={({
-                      field: {onChange, value},
-                      fieldState: {error},
+                      field: { onChange, value },
+                      fieldState: { error },
                     }) => (
                       <AppInput
                         secureTextEntry
@@ -536,7 +536,7 @@ const RecipientFormModal = forwardRef(
                   <Controller
                     control={control}
                     name="sign_request_alert"
-                    render={({field: {onChange, value}}) => (
+                    render={({ field: { onChange, value } }) => (
                       <View style={styles.switchRow}>
                         <View style={styles.switchTitleGroup}>
                           <Text style={styles.switchLabel}>
@@ -561,7 +561,7 @@ const RecipientFormModal = forwardRef(
                   <Controller
                     control={control}
                     name="completed_alert"
-                    render={({field: {onChange, value}}) => (
+                    render={({ field: { onChange, value } }) => (
                       <View style={styles.switchRow}>
                         <View style={styles.switchTitleGroup}>
                           <Text style={styles.switchLabel}>
@@ -589,7 +589,7 @@ const RecipientFormModal = forwardRef(
         </KeyboardAwareScrollView>
 
         {!editData && (
-          <View style={{paddingTop: hp(1), backgroundColor: Colors.white}}>
+          <View style={{ paddingTop: hp(1), backgroundColor: Colors.white }}>
             <AppButton
               onPress={handleSubmit(saveAndReset)}
               title="Save & Add New Recipient"
@@ -602,10 +602,12 @@ const RecipientFormModal = forwardRef(
 );
 
 // --- 3. Main Screen ---
-const AddRecipientScreen = ({navigation}) => {
+const AddRecipientScreen = ({ navigation }) => {
   const envelopeDocuments = useAppSelector(
     state => state.envelope.envelopeDocuments,
   );
+
+  const insets = useSafeAreaInsets();
   const userId = useAppSelector(state => state.auth.user);
   const dispatch = useAppDispatch();
   const recipients = useAppSelector(state => state?.envelope?.addRecipientsBox);
@@ -626,7 +628,7 @@ const AddRecipientScreen = ({navigation}) => {
       return true;
     }
 
-    const requestData = {emails: mails};
+    const requestData = { emails: mails };
 
     try {
       const response = await api.post('/api/validate/email', requestData);
@@ -664,7 +666,7 @@ const AddRecipientScreen = ({navigation}) => {
       return true;
     }
 
-    const requestData = {email: mail};
+    const requestData = { email: mail };
 
     try {
       const response = await api.post('/api/validate/email', requestData);
@@ -674,7 +676,7 @@ const AddRecipientScreen = ({navigation}) => {
       return data.status === true;
     } catch (error) {
       console.error('Email validation error:', error);
-      Toast.show({type: 'error', text1: error?.message});
+      Toast.show({ type: 'error', text1: error?.message });
       return false;
     } finally {
       dispatch(hideLoader());
@@ -704,7 +706,7 @@ const AddRecipientScreen = ({navigation}) => {
     // }
 
     if (editData) {
-      dispatch(updateRecipientById({id: editData.id, data}));
+      dispatch(updateRecipientById({ id: editData.id, data }));
     } else {
       const usedColors = recipients.map(r => r.meta_info?.recepient_color);
       const availableColors = RECIPIENT_COLORS.filter(
@@ -714,8 +716,8 @@ const AddRecipientScreen = ({navigation}) => {
         availableColors.length > 0
           ? availableColors[0]
           : RECIPIENT_COLORS[
-              Math.floor(Math.random() * RECIPIENT_COLORS.length)
-            ];
+          Math.floor(Math.random() * RECIPIENT_COLORS.length)
+          ];
 
       dispatch(
         setRecipients({
@@ -771,7 +773,7 @@ const AddRecipientScreen = ({navigation}) => {
         host_email: item.host_email || null,
       })),
       envelope_documents: envelope_documents,
-      email_content: {subject: 'Wesign:', content: ''},
+      email_content: { subject: 'Wesign:', content: '' },
       expiry_date: null,
       enable_comments: false,
       last_changed: moment().utc().format('YYYY-MM-DDTHH:mm:ss'),
@@ -790,10 +792,10 @@ const AddRecipientScreen = ({navigation}) => {
 
         dispatch(resetEnvelope());
 
-        Toast.show({type: 'success', text1: 'Draft Saved Successfully'});
+        Toast.show({ type: 'success', text1: 'Draft Saved Successfully' });
       }
     } catch (error) {
-      Toast.show({type: 'error', text1: error?.message});
+      Toast.show({ type: 'error', text1: error?.message });
     } finally {
       dispatch(hideLoader());
     }
@@ -816,7 +818,7 @@ const AddRecipientScreen = ({navigation}) => {
   }, []);
 
   const renderItem = useCallback(
-    ({item, drag, isActive}) => {
+    ({ item, drag, isActive }) => {
       return (
         <DraggableRecipientItem
           item={item}
@@ -831,10 +833,10 @@ const AddRecipientScreen = ({navigation}) => {
   );
 
   const renderErrorItem = useCallback(
-    ({item}) => {
+    ({ item }) => {
       return (
         <View style={styles.fileItemError}>
-          <Text style={{fontFamily: Fonts.Medium, fontSize: fp(1.7), flex: 1}}>
+          <Text style={{ fontFamily: Fonts.Medium, fontSize: fp(1.7), flex: 1 }}>
             {item}
           </Text>
 
@@ -848,7 +850,7 @@ const AddRecipientScreen = ({navigation}) => {
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            <Text style={{fontFamily: Fonts.SemiBold, color: Colors.white}}>
+            <Text style={{ fontFamily: Fonts.SemiBold, color: Colors.white }}>
               Validate
             </Text>
           </TouchableOpacity>
@@ -889,7 +891,7 @@ const AddRecipientScreen = ({navigation}) => {
     let emailCount: any = {};
 
     let updatedRecipients = recipients.map((r, i) => {
-      let updatedRecipient = {...r};
+      let updatedRecipient = { ...r };
 
       // Generate dummy email for in-person sign
       if (
@@ -967,7 +969,7 @@ const AddRecipientScreen = ({navigation}) => {
           </MenuTrigger>
           <MenuOptions
             placement="bottom"
-            customStyles={{optionsContainer: styles.menuContainer}}>
+            customStyles={{ optionsContainer: styles.menuContainer }}>
             <MenuOption onSelect={handleSaveEnvelope}>
               <View style={styles.menuRow}>
                 <Save color={Colors.text_primary} size={fp(2.5)} />
@@ -1008,21 +1010,21 @@ const AddRecipientScreen = ({navigation}) => {
           <UserPlus color={Colors.text_primary} size={fp(2.5)} />
           <Text style={styles.addBtnText}>Add Recepient</Text>
         </TouchableOpacity>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <DraggableFlatList
             removeClippedSubviews={false}
             data={recipients}
             keyExtractor={item => item.id}
             renderItem={renderItem}
-            onDragEnd={({data}) => dispatch(setRecipientsBulk(data))}
+            onDragEnd={({ data }) => dispatch(setRecipientsBulk(data))}
             // Optional: Add some bottom padding so the last item isn't flush with the button
-            contentContainerStyle={{paddingBottom: 20}}
+            contentContainerStyle={{ paddingBottom: 20 }}
           />
         </View>
       </View>
 
       {recipients?.length > 0 && (
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: insets.bottom > 0 ? insets.bottom : 16 }]}>
           <AppButton onPress={handleNext} title="Next" style={styles.nextBtn} />
         </View>
       )}
@@ -1073,9 +1075,9 @@ const AddRecipientScreen = ({navigation}) => {
       <AppBottomSheet
         ref={invalidEmailsRef}
         withCloseBtn={false}
-        containerStyle={{paddingBottom: wp(4)}}
+        containerStyle={{ paddingBottom: wp(4) }}
         snapPoints={['50%']}>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <Text
             style={{
               fontFamily: Fonts.Medium,
@@ -1099,7 +1101,7 @@ const AddRecipientScreen = ({navigation}) => {
 
           <BottomSheetFlatList
             data={invalidEmails}
-            contentContainerStyle={{flex: 1}}
+            contentContainerStyle={{ flex: 1 }}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderErrorItem}
             keyboardShouldPersistTaps="handled"
@@ -1112,9 +1114,9 @@ const AddRecipientScreen = ({navigation}) => {
       <AppBottomSheet
         ref={duplicateWarningRef}
         withCloseBtn={false}
-        containerStyle={{paddingBottom: wp(4)}}
+        containerStyle={{ paddingBottom: wp(4) }}
         snapPoints={['30%']}>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <Text
             style={{
               fontFamily: Fonts.SemiBold,
@@ -1153,7 +1155,7 @@ const AddRecipientScreen = ({navigation}) => {
               dispatch(setSigningOrder(true));
               duplicateWarningRef?.current?.close();
             }}
-            style={{backgroundColor: Colors.error}}
+            style={{ backgroundColor: Colors.error }}
           />
         </View>
       </AppBottomSheet>
@@ -1165,8 +1167,8 @@ export default AddRecipientScreen;
 
 // --- Extracted & Cleaned Styles ---
 const styles = StyleSheet.create({
-  flexOne: {flex: 1},
-  container: {flex: 1, padding: wp(5), backgroundColor: '#F4F7FB'},
+  flexOne: { flex: 1 },
+  container: { flex: 1, padding: wp(5), backgroundColor: '#F4F7FB' },
   header: {
     height: hp(7),
     flexDirection: 'row',
@@ -1233,7 +1235,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(5),
   },
-  nextBtn: {width: wp(25), height: hp(5.2)},
+  nextBtn: { width: wp(25), height: hp(5.2) },
   overlay: {
     position: 'absolute',
     top: 0,
@@ -1249,7 +1251,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: hp(2),
   },
-  modalTitleRow: {flexDirection: 'row', alignItems: 'center', gap: wp(4)},
+  modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: wp(4) },
   modalTitle: {
     fontFamily: Fonts.SemiBold,
     color: Colors.text_primary,
@@ -1260,15 +1262,15 @@ const styles = StyleSheet.create({
     color: Colors.primary_dark,
     fontSize: fp(2),
   },
-  formContainer: {gap: hp(2), paddingTop: hp(1)},
+  formContainer: { gap: hp(2), paddingTop: hp(1) },
   label: {
     fontSize: 14,
     color: Colors.text_primary,
     fontFamily: Fonts.Medium,
     marginBottom: 6,
   },
-  error: {color: Colors.error, fontSize: 12, marginTop: 4},
-  typeWrapper: {flexDirection: 'row', gap: wp(3)},
+  error: { color: Colors.error, fontSize: 12, marginTop: 4 },
+  typeWrapper: { flexDirection: 'row', gap: wp(3) },
   type: {
     height: hp(5),
     justifyContent: 'center',
@@ -1278,13 +1280,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 2,
   },
-  activeType: {borderColor: '#319af1', backgroundColor: '#319af110'},
+  activeType: { borderColor: '#319af1', backgroundColor: '#319af110' },
   typeText: {
     color: Colors.text_primary,
     fontFamily: Fonts.Regular,
     fontSize: fp(1.7),
   },
-  activeTypeText: {color: Colors.primary_dark},
+  activeTypeText: { color: Colors.primary_dark },
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1300,8 +1302,8 @@ const styles = StyleSheet.create({
     color: Colors.text_primary,
     fontFamily: Fonts.Regular,
   },
-  actionGroup: {gap: hp(2.5)},
-  actionBtn: {flexDirection: 'row', alignItems: 'flex-start', gap: wp(2)},
+  actionGroup: { gap: hp(2.5) },
+  actionBtn: { flexDirection: 'row', alignItems: 'flex-start', gap: wp(2) },
   outerCircle: {
     width: wp(6),
     height: wp(6),
@@ -1318,7 +1320,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(1.5),
     backgroundColor: '#007AFF',
   },
-  actionTextWrapper: {marginLeft: 10},
+  actionTextWrapper: { marginLeft: 10 },
   actionLabel: {
     fontSize: fp(1.8),
     fontFamily: Fonts.Regular,
@@ -1330,27 +1332,27 @@ const styles = StyleSheet.create({
     color: Colors.text_secondary,
     marginTop: wp(1.5),
   },
-  securityWrapper: {marginTop: hp(0.5)},
+  securityWrapper: { marginTop: hp(0.5) },
   securityToggle: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: hp(2),
     height: hp(6),
   },
-  securityTitle: {flex: 1, fontFamily: Fonts.SemiBold, fontSize: fp(2)},
-  securityGroup: {gap: hp(3)},
+  securityTitle: { flex: 1, fontFamily: Fonts.SemiBold, fontSize: fp(2) },
+  securityGroup: { gap: hp(3) },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  switchTitleGroup: {flexDirection: 'row', gap: 5, alignItems: 'center'},
+  switchTitleGroup: { flexDirection: 'row', gap: 5, alignItems: 'center' },
   switchLabel: {
     fontSize: 14,
     color: Colors.text_primary,
     fontFamily: Fonts.Medium,
   },
-  switchImg: {width: wp(11), height: wp(7)},
+  switchImg: { width: wp(11), height: wp(7) },
   recipientCard: {
     flexDirection: 'row',
     gap: wp(4),
@@ -1417,9 +1419,9 @@ const styles = StyleSheet.create({
     marginBottom: hp(1),
     paddingHorizontal: wp(4),
   },
-  contactRow: {flexDirection: 'row', alignItems: 'center', gap: wp(1)},
-  mailIcon: {marginTop: 1},
-  sheetActions: {paddingHorizontal: wp(4)},
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: wp(1) },
+  mailIcon: { marginTop: 1 },
+  sheetActions: { paddingHorizontal: wp(4) },
   sheetActionRow: {
     flexDirection: 'row',
     gap: wp(3),

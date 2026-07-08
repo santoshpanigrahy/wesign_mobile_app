@@ -282,6 +282,7 @@ const RecipientFormModal = forwardRef(
       reset();
     };
     const inset = useSafeAreaInsets();
+    console.log('285');
     return (
       <Animated.View
         entering={FadeIn.duration(150).easing(Easing.out(Easing.quad))}

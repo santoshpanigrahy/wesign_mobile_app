@@ -594,6 +594,7 @@ const PricingScreen = () => {
         });
       } else {
         // iOS upgrade logic
+        dispatch(showLoader(''));
         setSelectedPlanForPurchase(newProduct.productId);
         const appAccountToken = userIdToUUID(userId);
         await clearTransactionIOS();
@@ -606,14 +607,19 @@ const PricingScreen = () => {
         if (purchaseResult && typeof purchaseResult.then === 'function') {
           purchaseResult
             .then((res: any) => {
-              handlePurchaseUpdate(res);
+              dispatch(hideLoader());
+              setTimeout(() => {
+                handlePurchaseUpdate(res);
+              }, 1000);
             })
             .catch((error: any) => {
+              dispatch(hideLoader());
               handlePurchaseError(error);
             });
         }
       }
     } catch (error: any) {
+      dispatch(hideLoader());
       if (error.code !== 'E_USER_CANCELLED')
         Alert.alert('Upgrade Error', error?.message);
     }

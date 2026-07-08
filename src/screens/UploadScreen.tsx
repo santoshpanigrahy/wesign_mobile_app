@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -17,24 +17,24 @@ import {
   Trash,
   Upload,
 } from 'lucide-react-native';
-import { pick } from '@react-native-documents/picker';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
-import { useAppDispatch, useAppSelector } from '@redux/hooks';
+import {pick} from '@react-native-documents/picker';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
+import {useAppDispatch, useAppSelector} from '@redux/hooks';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import api from '@utils/api';
-import { goBack, navigate } from '@utils/NavigationUtils';
+import {goBack, navigate} from '@utils/NavigationUtils';
 import AppBottomSheet from '@components/AppBottomSheet';
 import ConfirmExitModal from '@components/ConfirmExitModal';
-import { Portal } from '@gorhom/portal';
+import {Portal} from '@gorhom/portal';
 import AppButton from '@components/AppButton';
-import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
 import {
   Menu,
   MenuOptions,
   MenuOption,
   MenuTrigger,
 } from 'react-native-popup-menu';
-import { authorize } from 'react-native-app-auth';
+import {authorize} from 'react-native-app-auth';
 
 const validTypes = [
   'image/gif',
@@ -69,8 +69,22 @@ const validTypes = [
   'application/vnd.ms-excel',
   'application/octet-stream',
   'text/plain',
+  'application/vnd.google-apps.document', // Google Docs
+  'application/vnd.google-apps.presentation',
+  'application/vnd.google-apps.spreadsheet',
 ];
-
+const EXTENSION_TO_MIME_MAP = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  csv: 'text/csv',
+  txt: 'text/plain',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+};
 const FILE_ICONS = {
   PDF: require('@assets/icons/pdf.png'),
   DOC: require('@assets/icons/doc.png'),
@@ -108,16 +122,16 @@ import {
   updateDocumentByIndex,
 } from '@redux/slices/envelopeSlice';
 import AppToggleButton from '@components/AppToggleButton';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { useFocusEffect } from '@react-navigation/native';
+import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 const configureGoogleDrive = () => {
   GoogleSignin.configure({
     // This scope is MANDATORY to read files from Drive
-    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+    scopes: ['https://www.googleapis.com/auth/drive.file'],
     // You get this ID from the Google Cloud Console
     // webClientId: '396564745764-lk21f8ddr1nshcp3gsbqtkvjj692e5tt.apps.googleusercontent.com',
     webClientId:
@@ -178,7 +192,41 @@ const UploadScreen = () => {
       },
     );
   };
+  const getDriveIcons = item => {
+    // Check the label we attached in the fetch function
+    switch (item.fileTypeLabel) {
+      case 'PDF':
+        return require('@assets/icons/pdf.png');
+      case 'DOC':
+      case 'DOCX':
+        return require('@assets/icons/doc.png');
+      case 'XLS':
+      case 'XLSX':
+      case 'CSV':
+        return require('@assets/icons/sheets.png'); // Optional: if you have an excel icon
+      case 'TXT':
+        return require('@assets/icons/file.png'); // Optional: if you have a text icon
+    }
 
+    // If it's an image (like PNG, JPG), check the mimeType directly
+    if (item.mimeType && item.mimeType.startsWith('image/')) {
+      return require('@assets/icons/img.png'); // Or png.png if you prefer
+    }
+
+    // Fallback for any unknown file types
+    return require('@assets/icons/file.png');
+  };
+
+  const getMimeType = extension => {
+    if (!extension) return 'application/octet-stream'; // Default fallback
+
+    // 1. Remove the leading dot if it exists (e.g., ".pdf" becomes "pdf")
+    // 2. Convert to lowercase to ensure "PDF" matches "pdf"
+    const cleanExtension = extension.replace(/^\./, '').toLowerCase();
+
+    // 3. Look up the MIME type, or return a generic fallback if not found
+    return EXTENSION_TO_MIME_MAP[cleanExtension] || 'application/octet-stream';
+  };
   const fetchGoogleDrivePDFs = async () => {
     try {
       // 1. Ensure the device supports Google Play Services (Android)
@@ -192,8 +240,26 @@ const UploadScreen = () => {
         throw new Error('No access token received');
       }
       setGoogleAccessToken(accessToken);
+      const mimeTypes = [...new Set(validTypes.map(t => t.toLowerCase()))];
+
+      const mimeQuery = mimeTypes
+        .map(type => `mimeType='${type}'`)
+        .join(' or ');
+      const q = `(${mimeQuery}) and trashed=false`;
+      // const mimeTypes = Object.keys(FILE_TYPE_MAP);
+      // const queryConditions = mimeTypes
+      //   .map(type => `mimeType="${type}"`)
+      //   .join(' or ');
+
+      // // Remember to encode the query string so the URL remains valid
+      // const queryString = `q=${encodeURIComponent(
+      //   queryConditions,
+      // )}&fields=files(id,name,mimeType)`;
       const response = await fetch(
-        'https://www.googleapis.com/drive/v3/files?q=mimeType="application/pdf"&fields=files(id,name,mimeType)',
+        // `https://www.googleapis.com/drive/v3/files?q=${queryString}`,
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
+          q,
+        )}&fields=files(id,name,mimeType)`,
         {
           method: 'GET',
           headers: {
@@ -205,7 +271,30 @@ const UploadScreen = () => {
       const data = await response.json();
       if (data.files && data.files.length > 0) {
         console.log('Found PDFs:', data.files);
-        return data.files;
+        const filesWithTypes = data.files.map(file => {
+          const isGoogleNative = file.mimeType?.startsWith(
+            'application/vnd.google-apps.',
+          );
+
+          let fileName = file.name;
+
+          if (isGoogleNative) {
+            const exportInfo = GOOGLE_EXPORT_MAP[file.mimeType];
+
+            if (exportInfo && !file.name.endsWith(`.${exportInfo.extension}`)) {
+              fileName = `${file.name}.${exportInfo.extension}`;
+            }
+          }
+
+          return {
+            ...file,
+            name: fileName,
+            fileTypeLabel: FILE_TYPE_MAP[file.mimeType] || 'UNKNOWN',
+          };
+        });
+        console.log('295', filesWithTypes);
+        return filesWithTypes;
+        // return data.files;
       } else {
         console.log('No PDFs found in this Drive.');
         GoogleSignin.signOut();
@@ -238,27 +327,74 @@ const UploadScreen = () => {
     }
   };
 
+  // Map Google-native mime types to a real exportable format + matching extension
+  const GOOGLE_EXPORT_MAP: Record<
+    string,
+    {mimeType: string; extension: string}
+  > = {
+    'application/vnd.google-apps.spreadsheet': {
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      extension: 'xlsx',
+    },
+    'application/vnd.google-apps.document': {
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      extension: 'docx',
+    },
+    'application/vnd.google-apps.presentation': {
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      extension: 'pptx',
+    },
+  };
   const downloadFileFromDrive = async (file, accessToken) => {
-    const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
+    const isGoogleNative = file.mimeType?.startsWith(
+      'application/vnd.google-apps.',
+    );
+
+    let fromUrl: string;
+    let fileName: string;
+
+    if (isGoogleNative) {
+      const exportInfo = GOOGLE_EXPORT_MAP[file.mimeType];
+      console.log('Export Info:', exportInfo, 'for file:', file.name);
+      if (!exportInfo) {
+        console.error(
+          'Unsupported Google file type for export:',
+          file.mimeType,
+        );
+        return null;
+      }
+      console.log('351', file, exportInfo);
+      // TS now knows exportInfo is non-null for the rest of this block
+      fileName = `${file.name}.${exportInfo.extension}`;
+      fromUrl = `https://www.googleapis.com/drive/v3/files/${
+        file.id
+      }/export?mimeType=${encodeURIComponent(exportInfo.mimeType)}`;
+    } else {
+      console.log('358', file);
+      fileName = file.name;
+      fromUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
+    }
+
+    const localPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
     const options = {
-      fromUrl: `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+      fromUrl,
       toFile: localPath,
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-
       begin: res => {
         console.log('Download started. Content Length:', res.contentLength);
       },
       progress: res => {
-        let progressPercent = (res.bytesWritten / res.contentLength) * 100;
-        // console.log(`Download Progress: ${progressPercent.toFixed(2)}%`);
+        const progressPercent = (res.bytesWritten / res.contentLength) * 100;
       },
     };
-
+    console.log('Downloading from Drive:', options);
     try {
-      // Start the download and wait for the promise to resolve
       const response = await RNFS.downloadFile(options).promise;
 
       if (response.statusCode === 200) {
@@ -274,6 +410,42 @@ const UploadScreen = () => {
     }
   };
 
+  // const downloadFileFromDrive = async (file, accessToken) => {
+  //   const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
+
+  //   const options = {
+  //     fromUrl: `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+  //     toFile: localPath,
+  //     headers: {
+  //       Authorization: `Bearer ${accessToken}`,
+  //     },
+
+  //     begin: res => {
+  //       console.log('Download started. Content Length:', res.contentLength);
+  //     },
+  //     progress: res => {
+  //       let progressPercent = (res.bytesWritten / res.contentLength) * 100;
+  //       // console.log(`Download Progress: ${progressPercent.toFixed(2)}%`);
+  //     },
+  //   };
+
+  //   try {
+  //     // Start the download and wait for the promise to resolve
+  //     const response = await RNFS.downloadFile(options).promise;
+
+  //     if (response.statusCode === 200) {
+  //       console.log('File successfully downloaded to:', localPath);
+  //       return localPath;
+  //     } else {
+  //       console.error('Download failed with status code:', response.statusCode);
+  //       return null;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error downloading from Drive via RNFS:', error);
+  //     return null;
+  //   }
+  // };
+
   const handleDriveFileSelect = async (driveFile, accessToken) => {
     googleDriveRef?.current?.close();
     dispatch(showLoader('Uploading'));
@@ -283,14 +455,20 @@ const UploadScreen = () => {
       if (localPath) {
         const fileStats = await RNFS.stat(localPath);
         const actualSizeInBytes = fileStats.size;
-
+        console.log(
+          'Downloaded file size:',
+          driveFile,
+          'bytes',
+          actualSizeInBytes,
+        );
         const formattedFile = {
           uri: `file://${localPath}`,
           name: driveFile.name,
-          type: 'application/pdf',
+          type: getMimeType(driveFile.fileTypeLabel),
+          // type: 'application/pdf',
           size: actualSizeInBytes || 0,
         };
-
+        console.log('Formatted file for upload:', formattedFile);
         await handleUpload([formattedFile]);
 
         // GoogleSignin.signOut();
@@ -304,25 +482,25 @@ const UploadScreen = () => {
     }
   };
 
-  const renderGoogleDriveFileItem = ({ item }) => (
+  const renderGoogleDriveFileItem = ({item}) => (
     <TouchableOpacity
       style={styles.cloundFileWrapper}
       onPress={() => handleDriveFileSelect(item, googleAccessToken)}>
       <Image
-        source={require('@assets/icons/pdf.png')}
-        style={{ width: wp(8), height: wp(12) }}
+        source={getDriveIcons(item)}
+        style={{width: wp(8), height: wp(12)}}
       />
       <Text style={styles.cloundFileName}>{item.name}</Text>
     </TouchableOpacity>
   );
 
-  const renderDropboxFileItem = ({ item }) => (
+  const renderDropboxFileItem = ({item}) => (
     <TouchableOpacity
       style={styles.cloundFileWrapper}
       onPress={() => handleDropboxFileSelect(item)}>
       <Image
         source={require('@assets/icons/pdf.png')}
-        style={{ width: wp(8), height: wp(12) }}
+        style={{width: wp(8), height: wp(12)}}
       />
       <Text style={styles.cloundFileName}>{item.name}</Text>
     </TouchableOpacity>
@@ -382,7 +560,7 @@ const UploadScreen = () => {
     console.log(`Downloading ${file.name} from Dropbox...`);
 
     const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
-    const dropboxApiArg = JSON.stringify({ path: file.path_lower });
+    const dropboxApiArg = JSON.stringify({path: file.path_lower});
 
     const options = {
       fromUrl: 'https://content.dropboxapi.com/2/files/download',
@@ -445,7 +623,6 @@ const UploadScreen = () => {
   const googleDriveRef = useRef<any>(null);
 
   const openSheet = () => {
-
     sheetRef.current?.snapToIndex(0);
   };
   const [documentId, setDocumentId] = useState(null);
@@ -614,13 +791,15 @@ const UploadScreen = () => {
     });
 
     formData.append('user', userId);
-
+    formData._parts.forEach(([key, value]) => {
+      console.log(key, ':', value);
+    });
     try {
       const res = await api.post(
         '/converter/file/upload?ngsw-bypass=true',
         formData,
         {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: {'Content-Type': 'multipart/form-data'},
 
           onUploadProgress: progressEvent => {
             const percent = Math.round(
@@ -792,7 +971,7 @@ const UploadScreen = () => {
         if (im_signer) {
           navigate('Canvas');
         } else {
-          navigate('Recipient', { keys: requestData });
+          navigate('Recipient', {keys: requestData});
         }
       }
     } catch (err) {
@@ -809,13 +988,13 @@ const UploadScreen = () => {
     dispatch(removeErrorDocuments());
   };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
     return (
       <View style={styles.fileItem}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Image source={getFileIcon(item)} style={{width: 40, height: 40}} />
 
-          <View style={{ flex: 1 }}>
+          <View style={{flex: 1}}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
@@ -840,20 +1019,20 @@ const UploadScreen = () => {
 
         {item.uploading && (
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${item.progress}%` }]} />
+            <View style={[styles.progressFill, {width: `${item.progress}%`}]} />
           </View>
         )}
       </View>
     );
   };
 
-  const renderErrorItem = ({ item, index }) => {
+  const renderErrorItem = ({item, index}) => {
     return (
       <View style={styles.fileItemError}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Image source={getFileIcon(item)} style={{ width: 40, height: 40 }} />
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Image source={getFileIcon(item)} style={{width: 40, height: 40}} />
 
-          <View style={{ flex: 1 }}>
+          <View style={{flex: 1}}>
             <Text style={styles.fileName} numberOfLines={1}>
               {item.name}
             </Text>
@@ -875,7 +1054,7 @@ const UploadScreen = () => {
     );
   };
 
-  console.log("first")
+  console.log('first');
 
   return (
     <CustomSafeAreaView>
@@ -988,7 +1167,7 @@ const UploadScreen = () => {
           data={envelopeDocuments}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingVertical: hp(1) }}
+          contentContainerStyle={{paddingVertical: hp(1)}}
         />
       </View>
 
@@ -1005,7 +1184,7 @@ const UploadScreen = () => {
           <AppButton
             onPress={() => handleNext()}
             title="Next"
-            style={{ width: wp(25), height: hp(5.2) }}
+            style={{width: wp(25), height: hp(5.2)}}
           />
         </View>
       )}
@@ -1085,7 +1264,7 @@ const UploadScreen = () => {
             }}
             onPress={() => handleDeleteDocument()}>
             <Trash size={fp(2.5)} color={Colors.error} />
-            <Text style={[styles.providerText, { fontSize: fp(2) }]}>Delete</Text>
+            <Text style={[styles.providerText, {fontSize: fp(2)}]}>Delete</Text>
           </TouchableOpacity>
         </View>
       </AppBottomSheet>
@@ -1093,9 +1272,9 @@ const UploadScreen = () => {
       <AppBottomSheet
         ref={errorFileRef}
         withCloseBtn={false}
-        containerStyle={{ paddingBottom: wp(4) }}
+        containerStyle={{paddingBottom: wp(4)}}
         snapPoints={['50%']}>
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <Text
             style={{
               fontFamily: Fonts.Medium,
@@ -1113,7 +1292,7 @@ const UploadScreen = () => {
 
           <BottomSheetFlatList
             data={errorFiles}
-            contentContainerStyle={{ flex: 1 }}
+            contentContainerStyle={{flex: 1}}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderErrorItem}
             keyboardShouldPersistTaps="handled"
@@ -1122,7 +1301,7 @@ const UploadScreen = () => {
           <AppButton
             title="Remove All"
             onPress={() => clearAllErrorFiles()}
-            style={{ backgroundColor: Colors.error }}
+            style={{backgroundColor: Colors.error}}
           />
         </View>
       </AppBottomSheet>
@@ -1130,9 +1309,9 @@ const UploadScreen = () => {
       <AppBottomSheet
         ref={googleDriveRef}
         title={'Google Drive Files'}
-        containerStyle={{ paddingBottom: wp(4) }}
+        containerStyle={{paddingBottom: wp(4)}}
         snapPoints={['90%']}>
-        <View style={{ flex: 1, paddingTop: hp(2) }}>
+        <View style={{flex: 1, paddingTop: hp(2)}}>
           <BottomSheetFlatList
             data={googleDriveFiles}
             // contentContainerStyle={{ flex: 1 }}
@@ -1146,9 +1325,9 @@ const UploadScreen = () => {
       <AppBottomSheet
         ref={dropboxRef}
         title={'Dropbox Files'}
-        containerStyle={{ paddingBottom: wp(4) }}
+        containerStyle={{paddingBottom: wp(4)}}
         snapPoints={['90%']}>
-        <View style={{ flex: 1, paddingTop: hp(2) }}>
+        <View style={{flex: 1, paddingTop: hp(2)}}>
           <BottomSheetFlatList
             data={dropboxFiles}
             // contentContainerStyle={{ flex: 1 }}

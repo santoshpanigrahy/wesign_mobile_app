@@ -71,6 +71,9 @@ const validTypes = [
   'application/vnd.ms-excel',
   'application/octet-stream',
   'text/plain',
+  'application/vnd.google-apps.document', // Google Docs
+  'application/vnd.google-apps.presentation',
+  'application/vnd.google-apps.spreadsheet',
 ];
 
 const EXTENSION_TO_MIME_MAP = {
@@ -231,34 +234,39 @@ const UploadScreen = () => {
     // 3. Look up the MIME type, or return a generic fallback if not found
     return EXTENSION_TO_MIME_MAP[cleanExtension] || 'application/octet-stream';
   };
-  const fetchGoogleDriveFiles = async () => {
+  const fetchGoogleDrivePDFs = async () => {
     try {
       // 1. Ensure the device supports Google Play Services (Android)
       await GoogleSignin.hasPlayServices();
-
       // 2. Prompt the user to log in and authorize wesign
       const userInfo = await GoogleSignin.signIn();
-
       // 3. Get the access token to use with the Drive API
       const tokens = await GoogleSignin.getTokens();
       const accessToken = tokens.accessToken;
-
       if (!accessToken) {
         throw new Error('No access token received');
       }
       setGoogleAccessToken(accessToken);
+      const mimeTypes = [...new Set(validTypes.map(t => t.toLowerCase()))];
 
-      // 4. Dynamically build the query string for all MIME types
-      // This creates a string like: mimeType="application/pdf" or mimeType="text/csv"...
-      const mimeTypes = Object.keys(FILE_TYPE_MAP);
-      const queryConditions = mimeTypes.map(type => `mimeType="${type}"`).join(' or ');
+      const mimeQuery = mimeTypes
+        .map(type => `mimeType='${type}'`)
+        .join(' or ');
+      const q = `(${mimeQuery}) and trashed=false`;
+      // const mimeTypes = Object.keys(FILE_TYPE_MAP);
+      // const queryConditions = mimeTypes
+      //   .map(type => `mimeType="${type}"`)
+      //   .join(' or ');
 
-      // Remember to encode the query string so the URL remains valid
-      const queryString = `q=${encodeURIComponent(queryConditions)}&fields=files(id,name,mimeType)`;
-
-      // 5. Fetch the files using the constructed query
+      // // Remember to encode the query string so the URL remains valid
+      // const queryString = `q=${encodeURIComponent(
+      //   queryConditions,
+      // )}&fields=files(id,name,mimeType)`;
       const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?${queryString}`,
+        // `https://www.googleapis.com/drive/v3/files?q=${queryString}`,
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
+          q,
+        )}&fields=files(id,name,mimeType)`,
         {
           method: 'GET',
           headers: {
@@ -267,23 +275,35 @@ const UploadScreen = () => {
           },
         },
       );
-
       const data = await response.json();
-
       if (data.files && data.files.length > 0) {
-        console.log('Found files:', data.files);
+        console.log('Found PDFs:', data.files);
+        const filesWithTypes = data.files.map(file => {
+          const isGoogleNative = file.mimeType?.startsWith(
+            'application/vnd.google-apps.',
+          );
 
-        // Optional: Attach your friendly label (e.g., 'PDF', 'DOCX') to the file data
-        const filesWithTypes = data.files.map(file => ({
-          ...file,
-          fileTypeLabel: FILE_TYPE_MAP[file.mimeType] || 'UNKNOWN'
-        }));
+          let fileName = file.name;
 
+          if (isGoogleNative) {
+            const exportInfo = GOOGLE_EXPORT_MAP[file.mimeType];
+
+            if (exportInfo && !file.name.endsWith(`.${exportInfo.extension}`)) {
+              fileName = `${file.name}.${exportInfo.extension}`;
+            }
+          }
+
+          return {
+            ...file,
+            name: fileName,
+            fileTypeLabel: FILE_TYPE_MAP[file.mimeType] || 'UNKNOWN',
+          };
+        });
+        console.log('295', filesWithTypes);
         return filesWithTypes;
+        // return data.files;
       } else {
-        console.log('No matching files found in this Drive.');
-        // Note: Make sure you actually want to log the user out here. 
-        // Sometimes an empty drive is a valid state and doesn't require a sign out.
+        console.log('No PDFs found in this Drive.');
         GoogleSignin.signOut();
         return [];
       }
@@ -298,12 +318,13 @@ const UploadScreen = () => {
     }
   };
 
+
   const handleDriveLogin = async () => {
     sheetRef?.current?.close();
     try {
       // if (googleDriveFiles?.length === 0 && !googleAccessToken) {
 
-      const driveFiles = await fetchGoogleDriveFiles();
+      const driveFiles = await fetchGoogleDrivePDFs();
       setGoogleDriveFiles(driveFiles);
 
       // }
@@ -314,27 +335,74 @@ const UploadScreen = () => {
     }
   };
 
+  // Map Google-native mime types to a real exportable format + matching extension
+  const GOOGLE_EXPORT_MAP: Record<
+    string,
+    { mimeType: string; extension: string }
+  > = {
+    'application/vnd.google-apps.spreadsheet': {
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      extension: 'xlsx',
+    },
+    'application/vnd.google-apps.document': {
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      extension: 'docx',
+    },
+    'application/vnd.google-apps.presentation': {
+      mimeType:
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      extension: 'pptx',
+    },
+  };
+
   const downloadFileFromDrive = async (file, accessToken) => {
-    const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
+    const isGoogleNative = file.mimeType?.startsWith(
+      'application/vnd.google-apps.',
+    );
+
+    let fromUrl: string;
+    let fileName: string;
+
+    if (isGoogleNative) {
+      const exportInfo = GOOGLE_EXPORT_MAP[file.mimeType];
+      console.log('Export Info:', exportInfo, 'for file:', file.name);
+      if (!exportInfo) {
+        console.error(
+          'Unsupported Google file type for export:',
+          file.mimeType,
+        );
+        return null;
+      }
+      console.log('351', file, exportInfo);
+      // TS now knows exportInfo is non-null for the rest of this block
+      fileName = `${file.name}.${exportInfo.extension}`;
+      fromUrl = `https://www.googleapis.com/drive/v3/files/${file.id
+        }/export?mimeType=${encodeURIComponent(exportInfo.mimeType)}`;
+    } else {
+      console.log('358', file);
+      fileName = file.name;
+      fromUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`;
+    }
+
+    const localPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
     const options = {
-      fromUrl: `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+      fromUrl,
       toFile: localPath,
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
-
       begin: res => {
         console.log('Download started. Content Length:', res.contentLength);
       },
       progress: res => {
-        let progressPercent = (res.bytesWritten / res.contentLength) * 100;
-        // console.log(`Download Progress: ${progressPercent.toFixed(2)}%`);
+        const progressPercent = (res.bytesWritten / res.contentLength) * 100;
       },
     };
-
+    console.log('Downloading from Drive:', options);
     try {
-      // Start the download and wait for the promise to resolve
       const response = await RNFS.downloadFile(options).promise;
 
       if (response.statusCode === 200) {
@@ -349,6 +417,43 @@ const UploadScreen = () => {
       return null;
     }
   };
+
+
+  // const downloadFileFromDrive = async (file, accessToken) => {
+  //   const localPath = `${RNFS.DocumentDirectoryPath}/${file.name}`;
+
+  //   const options = {
+  //     fromUrl: `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,
+  //     toFile: localPath,
+  //     headers: {
+  //       Authorization: `Bearer ${accessToken}`,
+  //     },
+
+  //     begin: res => {
+  //       console.log('Download started. Content Length:', res.contentLength);
+  //     },
+  //     progress: res => {
+  //       let progressPercent = (res.bytesWritten / res.contentLength) * 100;
+  //       // console.log(`Download Progress: ${progressPercent.toFixed(2)}%`);
+  //     },
+  //   };
+
+  //   try {
+  //     // Start the download and wait for the promise to resolve
+  //     const response = await RNFS.downloadFile(options).promise;
+
+  //     if (response.statusCode === 200) {
+  //       console.log('File successfully downloaded to:', localPath);
+  //       return localPath;
+  //     } else {
+  //       console.error('Download failed with status code:', response.statusCode);
+  //       return null;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error downloading from Drive via RNFS:', error);
+  //     return null;
+  //   }
+  // };
 
   const handleDriveFileSelect = async (driveFile, accessToken) => {
     googleDriveRef?.current?.close();

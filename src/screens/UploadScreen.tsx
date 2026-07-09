@@ -122,7 +122,7 @@ import {
   updateDocumentByIndex,
 } from '@redux/slices/envelopeSlice';
 import AppToggleButton from '@components/AppToggleButton';
-import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+// import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
@@ -1290,14 +1290,21 @@ const UploadScreen = () => {
             {errorFiles.length} {errorFiles.length > 1 ? "files" : "file"} need attention
           </Text> */}
 
-          <BottomSheetFlatList
+          {/* <BottomSheetFlatList
             data={errorFiles}
             contentContainerStyle={{flex: 1}}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderErrorItem}
             keyboardShouldPersistTaps="handled"
+          /> */}
+          <FlatList
+            data={errorFiles}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderErrorItem}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{paddingBottom: 20}}
+            showsVerticalScrollIndicator={false}
           />
-
           <AppButton
             title="Remove All"
             onPress={() => clearAllErrorFiles()}
@@ -1312,12 +1319,19 @@ const UploadScreen = () => {
         containerStyle={{paddingBottom: wp(4)}}
         snapPoints={['90%']}>
         <View style={{flex: 1, paddingTop: hp(2)}}>
-          <BottomSheetFlatList
+          {/* <BottomSheetFlatList
             data={googleDriveFiles}
-            // contentContainerStyle={{ flex: 1 }}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderGoogleDriveFileItem}
             keyboardShouldPersistTaps="handled"
+          /> */}
+          <FlatList
+            data={googleDriveFiles}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderGoogleDriveFileItem}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{paddingBottom: 20}}
+            showsVerticalScrollIndicator={false}
           />
         </View>
       </AppBottomSheet>
@@ -1328,12 +1342,20 @@ const UploadScreen = () => {
         containerStyle={{paddingBottom: wp(4)}}
         snapPoints={['90%']}>
         <View style={{flex: 1, paddingTop: hp(2)}}>
-          <BottomSheetFlatList
+          {/* <BottomSheetFlatList
             data={dropboxFiles}
             // contentContainerStyle={{ flex: 1 }}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderDropboxFileItem}
             keyboardShouldPersistTaps="handled"
+          /> */}
+          <FlatList
+            data={dropboxFiles}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderDropboxFileItem}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{paddingBottom: 20}}
+            showsVerticalScrollIndicator={false}
           />
         </View>
       </AppBottomSheet>

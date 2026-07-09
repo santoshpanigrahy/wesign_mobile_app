@@ -4,26 +4,33 @@ import {
   Text,
   TouchableOpacity,
   View,
-  TextInput
+  TextInput,
+  FlatList,
 } from 'react-native';
-import React, { useCallback, useEffect, useState, memo } from 'react';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
-import { useAppSelector } from '@redux/hooks';
+import React, {useCallback, useEffect, useState, memo} from 'react';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
+import {useAppSelector} from '@redux/hooks';
 import api from '@utils/api';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { Mail, Phone, Search } from 'lucide-react-native';
+// import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import {Mail, Phone, Search} from 'lucide-react-native';
 
 // 1. Memoized item and removed inline styles
-const RecipientItem = memo(({ item, onSelectRecipient }) => {
+const RecipientItem = memo(({item, onSelectRecipient}) => {
   return (
-    <TouchableOpacity onPress={() => onSelectRecipient(item)} style={styles.card}>
+    <TouchableOpacity
+      onPress={() => onSelectRecipient(item)}
+      style={styles.card}>
       {item.recepient_name && (
         <Text style={styles.name}>{item.recepient_name}</Text>
       )}
 
       {item.recepient_email && (
         <View style={styles.contactRow}>
-          <Mail color={Colors.text_secondary} size={fp(2)} style={styles.mailIcon} />
+          <Mail
+            color={Colors.text_secondary}
+            size={fp(2)}
+            style={styles.mailIcon}
+          />
           <Text style={styles.info}>{item.recepient_email}</Text>
         </View>
       )}
@@ -38,7 +45,7 @@ const RecipientItem = memo(({ item, onSelectRecipient }) => {
   );
 });
 
-const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
+const AddressBook = ({onSelectRecipient, setRecipientsList}) => {
   const userId = useAppSelector(state => state.auth.user?.id);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -52,7 +59,7 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
       const res = await api.get(`/api/recepient/list?user=${userId}`);
       setData(res.data?.recipients || []);
       setFilteredData(res.data?.recipients || []);
-      setRecipientsList(res.data?.recipients || [])
+      setRecipientsList(res.data?.recipients || []);
     } catch (error) {
       console.log('API ERROR:', error);
     } finally {
@@ -72,10 +79,11 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
         return;
       }
       const lowerText = search.toLowerCase();
-      const filtered = data.filter(item =>
-        item.recepient_name?.toLowerCase().includes(lowerText) ||
-        item.recepient_email?.toLowerCase().includes(lowerText) ||
-        item.recepient_phone?.toLowerCase().includes(lowerText)
+      const filtered = data.filter(
+        item =>
+          item.recepient_name?.toLowerCase().includes(lowerText) ||
+          item.recepient_email?.toLowerCase().includes(lowerText) ||
+          item.recepient_phone?.toLowerCase().includes(lowerText),
       );
       setFilteredData(filtered);
     }, 300);
@@ -83,14 +91,22 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
     return () => clearTimeout(timeoutId);
   }, [search, data]);
 
-  const handleRecipientSelect = useCallback((recipient) => {
-    onSelectRecipient(recipient);
-    setSearch('')
-  }, [onSelectRecipient]);
+  const handleRecipientSelect = useCallback(
+    recipient => {
+      onSelectRecipient(recipient);
+      setSearch('');
+    },
+    [onSelectRecipient],
+  );
 
-  const renderItem = useCallback(({ item }) => {
-    return <RecipientItem item={item} onSelectRecipient={handleRecipientSelect} />;
-  }, [handleRecipientSelect]);
+  const renderItem = useCallback(
+    ({item}) => {
+      return (
+        <RecipientItem item={item} onSelectRecipient={handleRecipientSelect} />
+      );
+    },
+    [handleRecipientSelect],
+  );
 
   return (
     <View style={styles.container}>
@@ -105,13 +121,14 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
         />
       </View>
 
-      <BottomSheetFlatList
+      <FlatList
         data={filteredData}
         // 3. Unique IDs instead of indexes
-        keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+        keyExtractor={(item, index) =>
+          item.id ? item.id.toString() : index.toString()
+        }
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
-
         initialNumToRender={15}
         maxToRenderPerBatch={15}
         windowSize={15}
@@ -130,14 +147,14 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
 export default AddressBook;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: hp(2) },
+  container: {flex: 1, paddingTop: hp(2)},
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: Colors.text_secondary,
     marginBottom: hp(2),
-    gap: wp(3)
+    gap: wp(3),
   },
   searchInput: {
     flex: 1,
@@ -152,7 +169,7 @@ const styles = StyleSheet.create({
     paddingBottom: hp(1.8),
     marginBottom: hp(1.5),
     borderBottomColor: Colors.border,
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   name: {
     fontSize: fp(1.9),
@@ -168,9 +185,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(1.5),
-    marginTop: 5
+    marginTop: 5,
   },
-  mailIcon: { marginTop: 3 },
+  mailIcon: {marginTop: 3},
   empty: {
     textAlign: 'center',
     marginTop: hp(5),

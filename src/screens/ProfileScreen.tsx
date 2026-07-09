@@ -17,15 +17,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  FlatList,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import FastImage from 'react-native-fast-image';
 import {useForm, Controller} from 'react-hook-form';
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetTextInput,
-  BottomSheetFlatList,
-} from '@gorhom/bottom-sheet';
+// import BottomSheet, {
+//   BottomSheetBackdrop,
+//   BottomSheetTextInput,
+//   BottomSheetFlatList,
+// } from '@gorhom/bottom-sheet';
 import {Country, State} from 'country-state-city';
 import {
   User,
@@ -661,17 +662,17 @@ const ProfilePagerScreen = ({navigation}) => {
     });
   };
 
-  const renderBackdrop = useCallback(
-    props => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
-    ),
-    [],
-  );
+  // const renderBackdrop = useCallback(
+  //   props => (
+  //     <BottomSheetBackdrop
+  //       {...props}
+  //       disappearsOnIndex={-1}
+  //       appearsOnIndex={0}
+  //       opacity={0.5}
+  //     />
+  //   ),
+  //   [],
+  // );
 
   if (!user) {
     return null;
@@ -987,7 +988,7 @@ const ProfilePagerScreen = ({navigation}) => {
               onChangeText={setSearchQuery}
             />
           </View>
-          <BottomSheetFlatList
+          <FlatList
             data={filteredData}
             keyExtractor={item => item.isoCode + item.name}
             initialNumToRender={20}
@@ -1019,7 +1020,7 @@ const ProfilePagerScreen = ({navigation}) => {
                             onChangeText={setSearchQuery}
                         />
                     </View> */}
-          <BottomSheetFlatList
+          <FlatList
             data={timezones}
             keyExtractor={item => item?.id}
             initialNumToRender={20}

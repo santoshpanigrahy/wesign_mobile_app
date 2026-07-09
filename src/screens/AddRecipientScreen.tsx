@@ -1,4 +1,5 @@
 import {
+  FlatList,
   Image,
   Keyboard,
   ScrollView,
@@ -1098,7 +1099,7 @@ const AddRecipientScreen = ({navigation}) => {
             before proceeding.
           </Text>
 
-          <BottomSheetFlatList
+          <FlatList
             data={invalidEmails}
             contentContainerStyle={{flex: 1}}
             keyExtractor={(item, index) => index.toString()}

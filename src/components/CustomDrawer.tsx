@@ -30,6 +30,7 @@ import {
 import {useAppDispatch, useAppSelector} from '@redux/hooks';
 import {logout} from '@redux/slices/authSlice';
 import {navigate} from '@utils/NavigationUtils';
+import Config from '@utils/Config';
 
 const CustomDrawer = (props: any) => {
   const {state, navigation} = props;
@@ -226,7 +227,9 @@ const CustomDrawer = (props: any) => {
         </View>
         <View style={styles.policyWrapper}>
           <View style={styles.policyBtn}>
-            <Text style={styles.policyBtnText}>Version - {version}</Text>
+            <Text style={styles.policyBtnText}>
+              Version - {version ?? Config.iOSAppVersion}
+            </Text>
           </View>
         </View>
       </View>

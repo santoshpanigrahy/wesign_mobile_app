@@ -60,12 +60,14 @@ export const loadUser = createAsyncThunk('auth/loadUser', async () => {
   const user = await AsyncStorage.getItem('user');
   const token = await AsyncStorage.getItem('token');
   const subscription = await AsyncStorage.getItem('subscription');
+  const version = await AsyncStorage.getItem('version');
 
   if (user && token) {
     return {
       user: JSON.parse(user),
       token,
       subscription: JSON.parse(subscription),
+      version,
     };
   }
 
@@ -98,6 +100,7 @@ const authSlice = createSlice({
       state.user = action.payload;
     },
     setVersion: (state, action) => {
+      AsyncStorage.setItem('version', action.payload);
       state.version = action.payload;
     },
     setSubscription: (state, action) => {

@@ -50,7 +50,7 @@ import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import AppBottomSheet from '@components/AppBottomSheet';
 import EnvelopeHistorySheet from '@screens/canvas/components/EnvelopeHistorySheet';
-import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
+// import {BottomSheetScrollView} from '@gorhom/bottom-sheet';
 import {getSnapshots} from '@utils/documentService';
 import CONFIG from '@utils/Config';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -449,6 +449,7 @@ const EnvelopeDetailsScreen = ({route}) => {
       const data = response.data;
 
       if (data.status === true) {
+        console.log('452', data.history);
         setHistoryList(data.history);
         historyRef?.current?.snapToIndex(0);
       } else {
@@ -1074,14 +1075,20 @@ const EnvelopeDetailsScreen = ({route}) => {
         ref={historyRef}
         title={'Envelope History'}
         snapPoints={['90%']}>
-        <BottomSheetScrollView>
-          <EnvelopeHistorySheet
-            onDownloadCertificate={onDownloadCertificate}
-            onExportActivity={onExportActivity}
-            details={historyDetails}
-            historyList={historyList}
-          />
-        </BottomSheetScrollView>
+        {/* <View style={{flex: 1}}>
+          <ScrollView
+            style={{flex: 1}}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{paddingBottom: hp(5)}}> */}
+        <EnvelopeHistorySheet
+          onDownloadCertificate={onDownloadCertificate}
+          onExportActivity={onExportActivity}
+          details={historyDetails}
+          historyList={historyList}
+        />
+        {/* </ScrollView>
+        </View> */}
       </AppBottomSheet>
     </CustomSafeAreaView>
   );

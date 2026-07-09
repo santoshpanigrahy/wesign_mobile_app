@@ -9,8 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import {
   ArrowLeft,
@@ -20,8 +20,8 @@ import {
   UserPen,
 } from 'lucide-react-native';
 
-import { useAppDispatch, useAppSelector } from '@redux/hooks';
-import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+import {useAppDispatch, useAppSelector} from '@redux/hooks';
+import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
 import {
   getDocumentListing,
   getDocumentUrl,
@@ -44,11 +44,11 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Slider } from 'react-native-awesome-slider';
+import {Slider} from 'react-native-awesome-slider';
 import CanvasPrefilledFields from './components/CanvasPrefilledFields';
 import CanvasRecipients from './components/CanvasRecipients';
 import AppBottomSheet from '@components/AppBottomSheet';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+// import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
 import AppButton from '@components/AppButton';
 import TextStyleMeta from './components/fieldMeta/TextStyleMeta';
 import api from '@utils/api';
@@ -58,21 +58,21 @@ import InitialPad from './components/InitialPad';
 import StampPad from './components/StampPad';
 import TopSheet from './components/TopSheet';
 import Toast from 'react-native-toast-message';
-import { setAllFields, setRecipientsBulk } from '@redux/slices/envelopeSlice';
-import { navigate } from '@utils/NavigationUtils';
+import {setAllFields, setRecipientsBulk} from '@redux/slices/envelopeSlice';
+import {navigate} from '@utils/NavigationUtils';
 import FastImage from 'react-native-fast-image';
-import { FlatList } from 'react-native-gesture-handler';
+import {FlatList} from 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import CreateRadioFieldModal from './components/CreateRadioFieldModal';
 import SwipeHint from '@components/SwipeHint';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CanvasIamSignerFields from './components/CanvasIamSignerFields';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const MemoTopSheet = React.memo(TopSheet);
 
-const CanvasScreen = ({ navigation }) => {
+const CanvasScreen = ({navigation}) => {
   const {width: screenWidth} = useWindowDimensions();
   const user = useAppSelector(state => state.auth.user);
   const dispatch = useAppDispatch();
@@ -98,7 +98,7 @@ const CanvasScreen = ({ navigation }) => {
 
   const reduxFields = useAppSelector(state => state?.envelope?.allFields);
 
-  const { id, first_name, last_name, email, company_name, job_title } = user;
+  const {id, first_name, last_name, email, company_name, job_title} = user;
   const fullName = first_name + ' ' + last_name;
   const initial = first_name?.slice(0, 1) + last_name?.slice(0, 1);
 
@@ -233,11 +233,11 @@ const CanvasScreen = ({ navigation }) => {
   // );
 
   useEffect(() => {
-    rotate.value = withTiming(showDocuments ? 180 : 0, { duration: 250 });
+    rotate.value = withTiming(showDocuments ? 180 : 0, {duration: 250});
   }, [showDocuments]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotate.value}deg` }],
+    transform: [{rotate: `${rotate.value}deg`}],
   }));
 
   // --- API CALLS ---
@@ -356,7 +356,7 @@ const CanvasScreen = ({ navigation }) => {
   };
 
   const addGlobalIndex = docs =>
-    docs.map((doc, index) => ({ ...doc, globalIndex: index }));
+    docs.map((doc, index) => ({...doc, globalIndex: index}));
 
   const groupDocuments = docs => {
     const grouped = {};
@@ -429,13 +429,20 @@ const CanvasScreen = ({ navigation }) => {
       field_name: type,
     };
 
-    if (type === 'date_signed' || type === 'company' || type === 'title' || type === 'comment_text' || type === 'dropdown' || type === 'drawing') {
+    if (
+      type === 'date_signed' ||
+      type === 'company' ||
+      type === 'title' ||
+      type === 'comment_text' ||
+      type === 'dropdown' ||
+      type === 'drawing'
+    ) {
       field.required_field_checkbox = true;
     }
 
-    console.log("Filedsss ==> ", field)
+    console.log('Filedsss ==> ', field);
     if (type === 'company' || type === 'title' || type === 'comment_text') {
-      field.font_size = 7
+      field.font_size = 7;
     }
 
     if (isPrefilled && prefillData && !im_signer) {
@@ -467,8 +474,6 @@ const CanvasScreen = ({ navigation }) => {
       }
     }
 
-
-
     if (type === 'checkbox' && im_signer) field.is_checked = true;
     if (type === 'full_name' && !im_signer)
       field.field_data = recipient?.recepient_name;
@@ -486,7 +491,7 @@ const CanvasScreen = ({ navigation }) => {
     const groupName = data?.groupName;
     const radioOptions = data?.radioOptions;
 
-    const { x, y, page, selectedRecipient } = pendingField;
+    const {x, y, page, selectedRecipient} = pendingField;
 
     const radioFields = radioOptions?.map((option, index) => {
       const fieldValue = `${groupName}@-@-@${option}`;
@@ -516,8 +521,8 @@ const CanvasScreen = ({ navigation }) => {
     setPendingField(null);
   };
 
-  const handlePrefillSaved = (data) => {
-    setPrefillData(prev => ({ ...prev, [pendingField.selectedFieldType]: data }));
+  const handlePrefillSaved = data => {
+    setPrefillData(prev => ({...prev, [pendingField.selectedFieldType]: data}));
     const isPrefilledType = true;
     const newField = createField(
       pendingField.selectedFieldType,
@@ -528,12 +533,12 @@ const CanvasScreen = ({ navigation }) => {
       pendingField.page.document_order,
       pendingField.selectedRecipient,
       data,
-      isPrefilledType
+      isPrefilledType,
     );
 
-    console.log("shdvbsbdjk======> ", isPrefilledType)
+    console.log('shdvbsbdjk======> ', isPrefilledType);
 
-    console.log("New Fields +++>  ", newField)
+    console.log('New Fields +++>  ', newField);
     setFields(prev => [...prev, newField]);
     setPendingField(null);
   };
@@ -549,7 +554,7 @@ const CanvasScreen = ({ navigation }) => {
     if (id === 'duplicate') {
       setFields(prev => [
         ...prev,
-        { ...updates, id: Date.now().toString(), y: updates.y + 40 },
+        {...updates, id: Date.now().toString(), y: updates.y + 40},
       ]);
       setEnableResize(false);
       return;
@@ -560,24 +565,24 @@ const CanvasScreen = ({ navigation }) => {
       return;
     }
     if (id === 'edit') {
-      setTempField({ ...updates });
+      setTempField({...updates});
       setSelectedField(updates);
       setShowFieldMetaModal(true);
       setEnableResize(false);
       return;
     }
-    setFields(prev => prev.map(f => (f.id === id ? { ...f, ...updates } : f)));
+    setFields(prev => prev.map(f => (f.id === id ? {...f, ...updates} : f)));
   }, []);
 
   const updateFieldValue = useCallback((key, value) => {
-    setTempField(prev => ({ ...prev, [key]: value }));
+    setTempField(prev => ({...prev, [key]: value}));
   }, []);
 
-  console.log("Temp Fields============> ", tempField)
+  console.log('Temp Fields============> ', tempField);
 
   const handleTap = async (e, page) => {
     if (!selectedFieldType) return;
-    const { locationX, locationY } = e.nativeEvent;
+    const {locationX, locationY} = e.nativeEvent;
     const baseScale = screenWidth / page.width;
     const originalX = locationX / baseScale;
     const originalY = locationY / baseScale;
@@ -742,7 +747,7 @@ const CanvasScreen = ({ navigation }) => {
       isPrefillType,
     );
 
-    console.log("Neww Fields ============> ", newField)
+    console.log('Neww Fields ============> ', newField);
     setFields(prev => [...prev, newField]);
     setSelectedFieldType(null);
   };
@@ -772,7 +777,7 @@ const CanvasScreen = ({ navigation }) => {
 
     if (fields?.length === 0 && im_signer) {
       dispatch(hideLoader());
-      Toast.show({ type: 'error', text1: `Please add at least one field` });
+      Toast.show({type: 'error', text1: `Please add at least one field`});
       return;
     }
 
@@ -824,11 +829,11 @@ const CanvasScreen = ({ navigation }) => {
 
   // --- MEMOIZED RENDERERS ---
   const handleColorSelect = useCallback(color => {
-    setTempField(prev => ({ ...prev, font_color: color }));
+    setTempField(prev => ({...prev, font_color: color}));
     colorRef.current?.close();
   }, []);
 
-  console.log(tempField)
+  console.log(tempField);
 
   const handleDateSelect = useCallback(
     format => {
@@ -856,7 +861,7 @@ const CanvasScreen = ({ navigation }) => {
   );
 
   const renderRecipientItem = useCallback(
-    ({ item }) => (
+    ({item}) => (
       <Pressable
         onPress={() => {
           setTempField(prev => ({
@@ -878,7 +883,7 @@ const CanvasScreen = ({ navigation }) => {
           <Text
             style={[
               styles.recipientAvatarText,
-              { color: item?.meta_info?.recepient_border_color },
+              {color: item?.meta_info?.recepient_border_color},
             ]}>
             {item?.recepient_name?.slice(0, 2)}
           </Text>
@@ -894,7 +899,7 @@ const CanvasScreen = ({ navigation }) => {
   }, []);
 
   const renderPageItem = useCallback(
-    ({ item: page }) => (
+    ({item: page}) => (
       <Pressable
         onPress={() => {
           setShowDocuments(false);
@@ -902,7 +907,7 @@ const CanvasScreen = ({ navigation }) => {
         }}
         style={styles.pageBox}>
         <FastImage
-          source={{ uri: page.url }}
+          source={{uri: page.url}}
           style={styles.pageImage}
           resizeMode={FastImage.resizeMode.cover}
         />
@@ -913,7 +918,7 @@ const CanvasScreen = ({ navigation }) => {
   );
 
   const renderDocumentItem = useCallback(
-    ({ item }) => (
+    ({item}) => (
       <View style={styles.docContainer}>
         <Text style={styles.docTitle}>{item.document_name}</Text>
         <FlatList
@@ -1058,7 +1063,7 @@ const CanvasScreen = ({ navigation }) => {
               <View style={styles.sliderRow}>
                 <Text style={styles.sliderLabel}>
                   {selectedField?.field_name === 'checkbox' ||
-                    selectedField?.field_name === 'radio'
+                  selectedField?.field_name === 'radio'
                     ? 'SCALE'
                     : 'HORIZONTAL'}
                 </Text>
@@ -1085,7 +1090,7 @@ const CanvasScreen = ({ navigation }) => {
                     });
                   } else {
                     setWidthValue(snapped);
-                    updateField(selectedField.id, { width: snapped });
+                    updateField(selectedField.id, {width: snapped});
                   }
                 }}
                 theme={{
@@ -1113,7 +1118,7 @@ const CanvasScreen = ({ navigation }) => {
                       onSlidingComplete={val => {
                         const snapped = snap(val);
                         setHeightValue(snapped);
-                        updateField(selectedField.id, { height: snapped });
+                        updateField(selectedField.id, {height: snapped});
                       }}
                       theme={{
                         minimumTrackTintColor: '#007AFF',
@@ -1209,7 +1214,7 @@ const CanvasScreen = ({ navigation }) => {
       {showFieldMetaModal && (
         <View style={styles.fieldOverlay}>
           {/* <View style={{paddingTop: inset.top}}> */}
-          <View style={[styles.metaHeader, { paddingTop: inset.top }]}>
+          <View style={[styles.metaHeader, {paddingTop: inset.top}]}>
             <View style={styles.metaHeaderTitleRow}>
               <TouchableOpacity onPress={() => setShowFieldMetaModal(false)}>
                 <ArrowLeft color={Colors.text_primary} size={fp(2.8)} />
@@ -1285,7 +1290,17 @@ const CanvasScreen = ({ navigation }) => {
         ref={recipientRef}
         title={'Choose Recipient'}
         snapPoints={['60%']}>
-        <BottomSheetFlatList
+        {/* <BottomSheetFlatList
+          data={allNonRecipients}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderRecipientItem}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.recipientListContent}
+          ListEmptyComponent={() => (
+            <Text style={styles.empty}>No recipients</Text>
+          )}
+        /> */}
+        <FlatList
           data={allNonRecipients}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderRecipientItem}
@@ -1332,10 +1347,10 @@ const CanvasScreen = ({ navigation }) => {
                   key={index}
                   style={[
                     styles.basicColorPressable,
-                    { borderColor: isSelected ? '#000' : 'transparent' },
+                    {borderColor: isSelected ? '#000' : 'transparent'},
                   ]}
                   onPress={() => handleColorSelect(color)}>
-                  <View style={[styles.colorBox, { backgroundColor: color }]}>
+                  <View style={[styles.colorBox, {backgroundColor: color}]}>
                     {isSelected && (
                       <Check size={fp(2.5)} color={Colors.white} />
                     )}
@@ -1348,12 +1363,12 @@ const CanvasScreen = ({ navigation }) => {
 
         <View style={styles.colorSection}>
           <Text style={styles.colorTitleMore}>More Colors</Text>
-          <BottomSheetFlatList
+          <FlatList
             data={ALL_COLORS}
             keyExtractor={item => item}
             numColumns={7}
             scrollEnabled={false}
-            renderItem={({ item, index }) => {
+            renderItem={({item, index}) => {
               const isSelected = tempField?.font_color === item;
               return (
                 <Pressable
@@ -1365,7 +1380,7 @@ const CanvasScreen = ({ navigation }) => {
                       borderColor: isSelected ? '#000' : 'transparent',
                     },
                   ]}>
-                  <View style={[styles.allColorBox, { backgroundColor: item }]}>
+                  <View style={[styles.allColorBox, {backgroundColor: item}]}>
                     {isSelected && (
                       <Check size={fp(2.5)} color={Colors.white} />
                     )}
@@ -1394,7 +1409,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background_light,
     position: 'relative',
   },
-  pagerWrapper: { flex: 1, position: 'relative' },
+  pagerWrapper: {flex: 1, position: 'relative'},
   overlay: {
     position: 'absolute',
     top: 0,
@@ -1413,7 +1428,7 @@ const styles = StyleSheet.create({
     width: wp(100),
     padding: wp(5),
   },
-  verticalDivider: { height: '80%', width: 1, backgroundColor: Colors.border },
+  verticalDivider: {height: '80%', width: 1, backgroundColor: Colors.border},
 
   // Header
   header: {
@@ -1423,16 +1438,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: wp(5),
     backgroundColor: '#FFFFFF',
-
   },
-  headerTitleRow: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  headerTitleRow: {flex: 1, flexDirection: 'row', alignItems: 'center'},
   title: {
     fontSize: fp(2.2),
     fontFamily: Fonts.Medium,
     color: Colors.text_primary,
     letterSpacing: 0.5,
   },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: wp(4) },
+  headerActions: {flexDirection: 'row', alignItems: 'center', gap: wp(4)},
   nextBtn: {
     height: hp(4),
     backgroundColor: Colors.primary_dark,
@@ -1468,7 +1482,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: wp(2),
   },
-  prefillToggleText: { fontSize: fp(1.4), fontFamily: Fonts.Regular },
+  prefillToggleText: {fontSize: fp(1.4), fontFamily: Fonts.Regular},
 
   // Bottom Slider Section
   sliderSection: {
@@ -1477,7 +1491,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#eee',
   },
-  sliderContainer: { paddingVertical: hp(1.5), paddingHorizontal: wp(5) },
+  sliderContainer: {paddingVertical: hp(1.5), paddingHorizontal: wp(5)},
   sliderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1489,7 +1503,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginBottom: 6,
   },
-  sliderLabel: { fontSize: 12, fontWeight: '600' },
+  sliderLabel: {fontSize: 12, fontWeight: '600'},
 
   // Meta Modal
   metaHeader: {
@@ -1498,13 +1512,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: hp(2),
   },
-  metaHeaderTitleRow: { flexDirection: 'row', alignItems: 'center', gap: wp(4) },
+  metaHeaderTitleRow: {flexDirection: 'row', alignItems: 'center', gap: wp(4)},
   metaTitle: {
     fontFamily: Fonts.Regular,
     color: Colors.text_primary,
     fontSize: fp(2.2),
   },
-  metaBody: { flex: 1, paddingTop: hp(1), gap: hp(2.5) },
+  metaBody: {flex: 1, paddingTop: hp(1), gap: hp(2.5)},
   metaLabel: {
     fontFamily: Fonts.Regular,
     marginBottom: hp(0.8),
@@ -1522,19 +1536,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  metaAssignText: { flex: 1, fontFamily: Fonts.Medium },
-  metaDivider: { height: 1, backgroundColor: '#eee', marginVertical: 10 },
+  metaAssignText: {flex: 1, fontFamily: Fonts.Medium},
+  metaDivider: {height: 1, backgroundColor: '#eee', marginVertical: 10},
 
   // List Items & Documents
-  empty: { textAlign: 'center', marginTop: hp(5), color: '#999' },
-  docContainer: { marginBottom: 20 },
+  empty: {textAlign: 'center', marginTop: hp(5), color: '#999'},
+  docContainer: {marginBottom: 20},
   docTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     paddingHorizontal: 10,
   },
-  pageList: { paddingHorizontal: 10, gap: 10 },
+  pageList: {paddingHorizontal: 10, gap: 10},
   pageBox: {
     height: hp(14),
     width: 80,
@@ -1544,7 +1558,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pageImage: { height: '90%', width: '90%' },
+  pageImage: {height: '90%', width: '90%'},
   pageNumber: {
     position: 'absolute',
     bottom: 0,
@@ -1556,7 +1570,7 @@ const styles = StyleSheet.create({
   },
 
   // Bottom Sheet Recipients
-  recipientListContent: { marginTop: hp(2), gap: hp(0.5) },
+  recipientListContent: {marginTop: hp(2), gap: hp(0.5)},
   recipientRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1583,18 +1597,18 @@ const styles = StyleSheet.create({
   },
 
   // Bottom Sheet Date Picker
-  datePickerContainer: { marginTop: hp(1) },
-  dateRowPressable: { height: hp(5), justifyContent: 'center' },
+  datePickerContainer: {marginTop: hp(1)},
+  dateRowPressable: {height: hp(5), justifyContent: 'center'},
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  dateText: { flex: 1, fontFamily: Fonts.Regular, fontSize: fp(1.8) },
+  dateText: {flex: 1, fontFamily: Fonts.Regular, fontSize: fp(1.8)},
 
   // Bottom Sheet Color Picker
-  colorSection: { marginTop: hp(2) },
-  colorTitle: { fontFamily: Fonts.Medium, fontSize: fp(1.8) },
+  colorSection: {marginTop: hp(2)},
+  colorTitle: {fontFamily: Fonts.Medium, fontSize: fp(1.8)},
   colorTitleMore: {
     fontFamily: Fonts.Medium,
     fontSize: fp(1.8),
@@ -1607,7 +1621,7 @@ const styles = StyleSheet.create({
     gap: wp(2),
     marginTop: hp(1.5),
   },
-  basicColorPressable: { flex: 1, borderWidth: 1.5, padding: 1 },
+  basicColorPressable: {flex: 1, borderWidth: 1.5, padding: 1},
   colorBox: {
     height: hp(3.5),
     borderWidth: 1,

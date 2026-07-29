@@ -131,7 +131,8 @@ const PricingScreen = () => {
                 console.log(resData?.data?.subscription)
                 const subscription = resData?.data?.subscription;
 
-                if (subscription?.payment_method === 'Card') {
+
+                if (subscription?.payment_method === 'Card' && !subscription?.pay_later) {
                     setPurchasePlatform('web');
                     let plan = subscription?.activated_plan_id || '';
 

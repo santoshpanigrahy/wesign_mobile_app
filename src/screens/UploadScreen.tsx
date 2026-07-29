@@ -9,6 +9,7 @@ import {
   BackHandler,
   ActivityIndicator,
   Platform,
+  InteractionManager,
 } from 'react-native';
 import {
   ArrowLeft,
@@ -234,51 +235,153 @@ const UploadScreen = () => {
     // 3. Look up the MIME type, or return a generic fallback if not found
     return EXTENSION_TO_MIME_MAP[cleanExtension] || 'application/octet-stream';
   };
+  // const fetchGoogleDrivePDFs = async () => {
+  //   try {
+  //     // 1. Ensure the device supports Google Play Services (Android)
+  //     await GoogleSignin.hasPlayServices();
+  //     // 2. Prompt the user to log in and authorize wesign
+  //     const userInfo = await GoogleSignin.signIn();
+  //     // 3. Get the access token to use with the Drive API
+  //     const tokens = await GoogleSignin.getTokens();
+  //     const accessToken = tokens.accessToken;
+  //     if (!accessToken) {
+  //       throw new Error('No access token received');
+  //     }
+  //     setGoogleAccessToken(accessToken);
+  //     const mimeTypes = [...new Set(validTypes.map(t => t.toLowerCase()))];
+
+  //     const mimeQuery = mimeTypes
+  //       .map(type => `mimeType='${type}'`)
+  //       .join(' or ');
+  //     const q = `(${mimeQuery}) and trashed=false`;
+  //     // const mimeTypes = Object.keys(FILE_TYPE_MAP);
+  //     // const queryConditions = mimeTypes
+  //     //   .map(type => `mimeType="${type}"`)
+  //     //   .join(' or ');
+
+  //     // // Remember to encode the query string so the URL remains valid
+  //     // const queryString = `q=${encodeURIComponent(
+  //     //   queryConditions,
+  //     // )}&fields=files(id,name,mimeType)`;
+  //     const response = await fetch(
+  //       // `https://www.googleapis.com/drive/v3/files?q=${queryString}`,
+  //       `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
+  //         q,
+  //       )}&fields=files(id,name,mimeType)`,
+  //       {
+  //         method: 'GET',
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //           Accept: 'application/json',
+  //         },
+  //       },
+  //     );
+  //     const data = await response.json();
+  //     if (data.files && data.files.length > 0) {
+  //       console.log('Found PDFs:', data.files);
+  //       const filesWithTypes = data.files.map(file => {
+  //         const isGoogleNative = file.mimeType?.startsWith(
+  //           'application/vnd.google-apps.',
+  //         );
+
+  //         let fileName = file.name;
+
+  //         if (isGoogleNative) {
+  //           const exportInfo = GOOGLE_EXPORT_MAP[file.mimeType];
+
+  //           if (exportInfo && !file.name.endsWith(`.${exportInfo.extension}`)) {
+  //             fileName = `${file.name}.${exportInfo.extension}`;
+  //           }
+  //         }
+
+  //         return {
+  //           ...file,
+  //           name: fileName,
+  //           fileTypeLabel: FILE_TYPE_MAP[file.mimeType] || 'UNKNOWN',
+  //         };
+  //       });
+  //       console.log('295', filesWithTypes);
+  //       return filesWithTypes;
+  //       // return data.files;
+  //     } else {
+  //       console.log('No PDFs found in this Drive.');
+  //       GoogleSignin.signOut();
+  //       return [];
+  //     }
+  //   } catch (error) {
+  //     if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+  //       console.log('User cancelled the login flow');
+  //     } else if (error.code === statusCodes.IN_PROGRESS) {
+  //       console.log('Sign in is already in progress');
+  //     } else {
+  //       console.error('Error fetching from Google Drive:', error);
+  //     }
+  //   }
+  // };
+
+
+
   const fetchGoogleDrivePDFs = async () => {
     try {
-      // 1. Ensure the device supports Google Play Services (Android)
+
       await GoogleSignin.hasPlayServices();
-      // 2. Prompt the user to log in and authorize wesign
       const userInfo = await GoogleSignin.signIn();
-      // 3. Get the access token to use with the Drive API
       const tokens = await GoogleSignin.getTokens();
       const accessToken = tokens.accessToken;
+
       if (!accessToken) {
         throw new Error('No access token received');
       }
       setGoogleAccessToken(accessToken);
-      const mimeTypes = [...new Set(validTypes.map(t => t.toLowerCase()))];
 
+      const mimeTypes = [...new Set(validTypes.map(t => t.toLowerCase()))];
       const mimeQuery = mimeTypes
         .map(type => `mimeType='${type}'`)
         .join(' or ');
       const q = `(${mimeQuery}) and trashed=false`;
-      // const mimeTypes = Object.keys(FILE_TYPE_MAP);
-      // const queryConditions = mimeTypes
-      //   .map(type => `mimeType="${type}"`)
-      //   .join(' or ');
 
-      // // Remember to encode the query string so the URL remains valid
-      // const queryString = `q=${encodeURIComponent(
-      //   queryConditions,
-      // )}&fields=files(id,name,mimeType)`;
-      const response = await fetch(
-        // `https://www.googleapis.com/drive/v3/files?q=${queryString}`,
-        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
+      let allFiles = [];
+      let pageToken = null;
+      let hasMorePages = true;
+
+      // Loop to fetch all pages of files
+      while (hasMorePages) {
+        // 1. Add pageSize=1000 to get max files per request
+        // 2. Add nextPageToken to fields so the API actually returns it
+        let queryUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
           q,
-        )}&fields=files(id,name,mimeType)`,
-        {
+        )}&pageSize=1000&fields=nextPageToken,files(id,name,mimeType)`;
+
+        // 3. Append the pageToken if we are on page 2 or later
+        if (pageToken) {
+          queryUrl += `&pageToken=${pageToken}`;
+        }
+
+        const response = await fetch(queryUrl, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: 'application/json',
           },
-        },
-      );
-      const data = await response.json();
-      if (data.files && data.files.length > 0) {
-        console.log('Found PDFs:', data.files);
-        const filesWithTypes = data.files.map(file => {
+        });
+
+        const data = await response.json();
+
+        if (data.files && data.files.length > 0) {
+          allFiles = [...allFiles, ...data.files];
+        }
+
+        // Check if there is another page of results
+        if (data.nextPageToken) {
+          pageToken = data.nextPageToken;
+        } else {
+          hasMorePages = false;
+        }
+      }
+
+      if (allFiles.length > 0) {
+        console.log('Found total files:', allFiles.length);
+        const filesWithTypes = allFiles.map(file => {
           const isGoogleNative = file.mimeType?.startsWith(
             'application/vnd.google-apps.',
           );
@@ -299,43 +402,66 @@ const UploadScreen = () => {
             fileTypeLabel: FILE_TYPE_MAP[file.mimeType] || 'UNKNOWN',
           };
         });
-        console.log('295', filesWithTypes);
+
         return filesWithTypes;
-        // return data.files;
       } else {
-        console.log('No PDFs found in this Drive.');
+        console.log('No files found in this Drive.');
         GoogleSignin.signOut();
         return [];
       }
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('User cancelled the login flow');
+
       } else if (error.code === statusCodes.IN_PROGRESS) {
         console.log('Sign in is already in progress');
       } else {
+        Toast.show({
+          type: 'error',
+          text1: error?.message || error,
+        });
         console.error('Error fetching from Google Drive:', error);
       }
+      return [];
     }
   };
+
 
 
   const handleDriveLogin = async () => {
+    // 1. Close the current sheet
     sheetRef?.current?.close();
-    try {
-      // if (googleDriveFiles?.length === 0 && !googleAccessToken) {
 
-      const driveFiles = await fetchGoogleDrivePDFs();
-      setGoogleDriveFiles(driveFiles);
+    // 2. Wait for the closing animation
+    setTimeout(async () => {
+      dispatch(showLoader('Loading Drive Files'));
 
-      // }
+      try {
+        const driveFiles = await fetchGoogleDrivePDFs();
+        setGoogleDriveFiles(driveFiles);
 
-      googleDriveRef?.current?.snapToIndex(0);
-    } catch (err) {
-      console.error(err);
-    }
+        if (driveFiles && driveFiles.length > 0) {
+
+          dispatch(hideLoader());
+          requestAnimationFrame(() => {
+            InteractionManager.runAfterInteractions(() => {
+              googleDriveRef?.current?.snapToIndex(0);
+            });
+          });
+        }
+      } catch (err) {
+        Toast.show({
+          type: 'error',
+          text1: err?.message,
+        });
+        console.error('Error in handleDriveLogin:', err);
+      } finally {
+        dispatch(hideLoader());
+      }
+    }, 300);
   };
 
-  // Map Google-native mime types to a real exportable format + matching extension
+
   const GOOGLE_EXPORT_MAP: Record<
     string,
     { mimeType: string; extension: string }

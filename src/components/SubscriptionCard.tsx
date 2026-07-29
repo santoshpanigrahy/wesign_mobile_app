@@ -23,12 +23,13 @@ const SubscriptionCard = ({ data }) => {
         end_date,
         total_amount = 0,
         payment_method = 'unknown',
+        pay_later,
         currency = 'USD',
         free_trial = true,
 
     } = data || {};
 
-    const isWebPurchase = payment_method === 'Card';
+    const isWebPurchase = payment_method === 'Card' && !pay_later;
 
 
 
@@ -198,21 +199,24 @@ const SubscriptionCard = ({ data }) => {
                 <Crown color="#FFFFFF" size={wp(4.5)} />
                 <Text style={styles.renewButtonText}>Upgrade Plan</Text>
             </TouchableOpacity>}
+            {
+                !pay_later && <Pressable
+                    style={[styles.ctaButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: Colors.primary }]}
+                    onPress={() => {
+                        if (isWebPurchase) {
 
-            <Pressable
-                style={[styles.ctaButton, { backgroundColor: '#ffffff', borderWidth: 1, borderColor: Colors.primary }]}
-                onPress={() => {
-                    if (isWebPurchase) {
+                            openWebPricing()
+                        } else {
 
-                        openWebPricing()
-                    } else {
+                            handleCancelSubscription();
+                        }
+                    }}
+                >
+                    <Text style={[styles.ctaText, { color: Colors.primary }]}>Cancel Subscription</Text>
+                </Pressable>
+            }
 
-                        handleCancelSubscription();
-                    }
-                }}
-            >
-                <Text style={[styles.ctaText, { color: Colors.primary }]}>Cancel Subscription</Text>
-            </Pressable>
+
         </LinearGradient>
     );
 };

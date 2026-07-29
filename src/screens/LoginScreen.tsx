@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   BackHandler,
   InteractionManager,
   Platform,
+  Linking,
+  Alert,
 } from 'react-native';
 import DeviceInfo from "react-native-device-info";
 
@@ -45,6 +47,57 @@ const LoginScreen = () => {
   const dispatch = useDispatch();
   const { error } = useAppSelector(state => state.auth);
   const { control, handleSubmit } = useForm();
+
+  const appVersion = DeviceInfo.getVersion();
+
+
+  useEffect(() => {
+    getNewVersion();
+  }, []);
+
+  const getNewVersion = async () => {
+    dispatch(showLoader('Loading'));
+    try {
+      const res = await api.get('/info/get/conf?key=app_version_android');
+      console.log('App Version Response:', res?.data);
+      if (res?.data?.status) {
+
+        if (parseFloat(res.data.value) > parseFloat(appVersion)) {
+          dispatch(hideLoader());
+          Alert.alert(
+            'App Update Available',
+            'Kindly update the app to get latest features',
+            [
+              {
+                text: 'Cancel',
+                onPress: () => {
+                  dispatch(hideLoader());
+                },
+                style: 'cancel',
+              },
+              {
+                text: 'Update',
+                onPress: () => {
+                  Linking.openURL(
+                    'https://play.google.com/store/apps/details?id=com.wesign',
+                  );
+                },
+              },
+            ],
+            { cancelable: false },
+          );
+        } else {
+          dispatch(hideLoader());
+        }
+      }
+    } catch (error) {
+      dispatch(hideLoader());
+      Toast.show({ type: 'error', text1: error?.message });
+    } finally {
+      dispatch(hideLoader());
+
+    }
+  };
 
   useFocusEffect(
     React.useCallback(() => {

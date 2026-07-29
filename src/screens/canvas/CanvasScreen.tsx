@@ -220,6 +220,14 @@ const CanvasScreen = ({ navigation }) => {
     }
   }, [selectedField?.id]);
 
+  const onSelectFieldType = (type) => {
+
+    setSelectedField(null);
+    setShowToolbar(false);
+    setSelectedFieldType(type);
+
+  }
+
   // useFocusEffect(
   //   useCallback(() => {
   //     // Screen focused → load redux data into local state
@@ -745,7 +753,10 @@ const CanvasScreen = ({ navigation }) => {
     console.log("Neww Fields ============> ", newField)
     setFields(prev => [...prev, newField]);
     setSelectedFieldType(null);
+    setSelectedField(newField)
+    setShowToolbar(true);
   };
+
 
   const handleNext = () => {
     dispatch(showLoader('Loading'));
@@ -1129,21 +1140,21 @@ const CanvasScreen = ({ navigation }) => {
           {!im_signer && !enablePrefilled && !enableResize && (
             <CanvasBottomFieldsBar
               selectedType={selectedFieldType}
-              onSelect={setSelectedFieldType}
+              onSelect={onSelectFieldType}
               selectedRecipient={selectedRecipient}
             />
           )}
           {!im_signer && enablePrefilled && (
             <CanvasPrefilledFields
               selectedType={selectedFieldType}
-              onSelect={setSelectedFieldType}
+              onSelect={onSelectFieldType}
               selectedRecipient={selectedRecipient}
             />
           )}
           {im_signer && !enableResize && (
             <CanvasIamSignerFields
               selectedType={selectedFieldType}
-              onSelect={setSelectedFieldType}
+              onSelect={onSelectFieldType}
               selectedRecipient={selectedRecipient}
             />
           )}

@@ -28,10 +28,13 @@ import {
 import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { logout } from '@redux/slices/authSlice';
 import { navigate } from '@utils/NavigationUtils';
+import DeviceInfo from 'react-native-device-info';
 
 const CustomDrawer = (props: any) => {
   const { state, navigation } = props;
   const dispatch = useAppDispatch();
+
+  const appVersion = DeviceInfo.getVersion();
 
   const isPrimaryUser = useAppSelector((state) => state?.auth?.user?.primary_user);
 
@@ -191,6 +194,14 @@ const CustomDrawer = (props: any) => {
           <Pressable style={styles.policyBtn} onPress={() => handleOpenPolicy('privacy')}>
             <Text style={styles.policyBtnText}>Privacy Policy</Text>
           </Pressable>
+        </View>
+
+        <View style={styles.policyWrapper}>
+          <View style={styles.policyBtn}>
+            <Text style={styles.policyBtnText}>
+              Version - {appVersion}
+            </Text>
+          </View>
         </View>
 
       </View>

@@ -592,7 +592,8 @@ const RecipientFormModal = forwardRef(
           <View style={{ paddingTop: hp(1), backgroundColor: Colors.white }}>
             <AppButton
               onPress={handleSubmit(saveAndReset)}
-              title="Save & Add New Recipient"
+              // title="Save & Add New Recipient"
+              title="Save"
             />
           </View>
         )}
@@ -1035,7 +1036,7 @@ const AddRecipientScreen = ({ navigation }) => {
           ref={formModalRef}
           onClose={() => setModalVisible(false)}
           onSave={handleSaveToRedux}
-          onSaveAndReset={handleSaveToReduxAndReset}
+          onSaveAndReset={handleSaveToRedux}
           recipientsList={recipientsList}
           openAddressBook={() => recipientRef.current?.snapToIndex(0)}
         />

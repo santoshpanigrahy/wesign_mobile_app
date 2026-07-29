@@ -58,6 +58,7 @@ const AppBottomSheet = forwardRef<any, Props>(
         enableDynamicSizing={false}
         topInset={inset.top}
         bottomInset={inset.bottom}
+        animateOnMount={true}
         backdropComponent={renderBackdrop}
         keyboardBehavior="extend" // "extend" or "fillParent" prevents the hovering bug
         keyboardBlurBehavior="none" // Change this from "restore" to "none"

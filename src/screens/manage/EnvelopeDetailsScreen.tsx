@@ -15,7 +15,9 @@ import {
     OctagonX,
     CircleAlert,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    ShareIcon,
+    Share2
 } from 'lucide-react-native';
 import { Buffer } from 'buffer';
 import Share from 'react-native-share';
@@ -391,6 +393,43 @@ const EnvelopeDetailsScreen = ({ route }) => {
     const [links, setLinks] = useState([]);
     const [qrCode, setQrCode] = useState(null);
 
+
+    const shareBase64File = async (base64String, textMessage) => {
+        try {
+            const rawBase64 = base64String.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, '');
+
+            const cleanBase64 = rawBase64.replace(/[\r\n\s]+/gm, '');
+
+            const fileName = `shared_document_${Date.now()}.png`;
+            const filePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+            await RNFS.writeFile(filePath, cleanBase64, 'base64');
+
+            const shareOptions = {
+                title: 'Share File',
+                message: textMessage,
+                url: Platform.OS === 'android' ? `file://${filePath}` : filePath,
+                type: 'image/png', // Change to 'application/pdf' if it is a PDF
+            };
+
+            const shareResponse = await Share.open(shareOptions);
+            console.log('Share successful:', shareResponse);
+
+        } catch (error) {
+            if (error.message !== 'User did not share') {
+                console.log('Error sharing:', error);
+
+                Toast.show({
+                    type: 'error',
+                    text1: 'Share Failed',
+                    text2: 'Could not share the file. Please try again.',
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+            }
+        }
+    };
+
     const handleCopyEnvelopeLink = (link) => {
         Clipboard.setString(link);
 
@@ -398,6 +437,36 @@ const EnvelopeDetailsScreen = ({ route }) => {
             type: 'success',
             text1: 'Envelope Link Copied to Clipboard!',
         });
+
+        shareWesignLink(link, "Hello! Please review and sign this document on WESIGNDOC.")
+    };
+
+    const shareWesignLink = async (linkUrl, textMessage) => {
+        try {
+            const shareOptions = {
+                title: 'Share Link',
+                message: textMessage, // e.g., "Please sign this document:"
+                url: linkUrl,         // e.g., "https://wesign.com/document/12345"
+            };
+
+            // Open the native share dialog
+            const shareResponse = await Share.open(shareOptions);
+            console.log('Share successful:', shareResponse);
+
+        } catch (error) {
+            // Handle errors and dismissals
+            if (error.message !== 'User did not share') {
+                console.log('Error sharing link:', error);
+
+                Toast.show({
+                    type: 'error',
+                    text1: 'Share Failed',
+                    text2: 'Could not share the link. Please try again.',
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+            }
+        }
     };
 
     const getHistory = async () => {
@@ -1039,6 +1108,10 @@ const EnvelopeDetailsScreen = ({ route }) => {
                         uri: `data:image/png;base64,${qrCode}`,
                     }} alt='qr' style={{ height: '90%', width: '90%', }} />
 
+                    <TouchableOpacity onPress={() => shareBase64File(qrCode, "Check out this envelope from WESIGNDOC!")} style={[styles.linkButton, { width: '80%', marginTop: hp(1) }]} activeOpacity={0.7}>
+                        <Share2 size={wp(4.5)} color={Colors.blue} />
+                        <Text style={styles.linkBtnText}>Share Qr Code</Text>
+                    </TouchableOpacity>
                 </View>
 
             </AppBottomSheet>

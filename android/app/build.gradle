@@ -83,7 +83,7 @@ android {
         applicationId "com.wesign"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 33
+        versionCode 34
         versionName "5.2" 
 
         manifestPlaceholders = [appAuthRedirectScheme: "com.wesign"]

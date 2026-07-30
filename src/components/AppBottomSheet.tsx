@@ -1,9 +1,9 @@
 import React, { forwardRef, useMemo, useCallback } from 'react';
-import { StyleSheet, TouchableOpacity, View, Text, Keyboard } from 'react-native';
+import { StyleSheet, View, Text, Keyboard } from 'react-native';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
-  BottomSheetScrollView,
+  TouchableOpacity,
 } from '@gorhom/bottom-sheet';
 
 import { X } from 'lucide-react-native';
@@ -17,6 +17,7 @@ type Props = {
   enableScroll?: boolean;
   title?: String;
   withCloseBtn?: boolean;
+  containerStyle?: any;
 };
 
 const AppBottomSheet = forwardRef<any, Props>(
@@ -32,8 +33,8 @@ const AppBottomSheet = forwardRef<any, Props>(
     ref,
   ) => {
     const isKeyboardOpen = useKeyboard();
-
     const memoSnapPoints = useMemo(() => snapPoints, [snapPoints]);
+    const inset = useSafeAreaInsets();
 
     const renderBackdrop = useCallback(
       (props: any) => (
@@ -41,14 +42,13 @@ const AppBottomSheet = forwardRef<any, Props>(
           {...props}
           appearsOnIndex={0}
           disappearsOnIndex={-1}
-
-          pressBehavior="close" // ✅ close on outside click
-          opacity={0.3} // ✅ rgba(0,0,0,0.3)
+          pressBehavior="close"
+          opacity={0.3}
         />
       ),
       [],
     );
-    const inset = useSafeAreaInsets();
+
     return (
       <BottomSheet
         ref={ref}
@@ -60,29 +60,14 @@ const AppBottomSheet = forwardRef<any, Props>(
         bottomInset={inset.bottom}
         animateOnMount={true}
         backdropComponent={renderBackdrop}
-        keyboardBehavior="extend" // "extend" or "fillParent" prevents the hovering bug
-        keyboardBlurBehavior="none" // Change this from "restore" to "none"
-        // enableContentPanningGesture={false}
+
+        keyboardBehavior="interactive"
+        android_keyboardInputMode="adjustResize"
+        keyboardBlurBehavior="restore"
+
         handleIndicatorStyle={styles.handle}
         backgroundStyle={styles.sheetBg}
         style={{ zIndex: 99 }}>
-        {/* {enableScroll ? (
-          <BottomSheetScrollView
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-          >
-
-             <View style={styles.bottomSheetHeader}>
-                                <Text style={styles.bottomSheetHeaderText}>{title}</Text>
-
-                               {withCloseBtn &&  <TouchableOpacity onPress={() => ref?.current?.close()}>
-          <X color={Colors.text_primary} strokeWidth={1.4} />
-        </TouchableOpacity>} 
-                            </View>
-            {children}
-          </BottomSheetScrollView>
-        ) : ( */}
-        {/* <BottomSheetView style={styles.content}> */}
 
         <View
           style={[
@@ -97,14 +82,8 @@ const AppBottomSheet = forwardRef<any, Props>(
               {withCloseBtn && (
                 <TouchableOpacity
                   onPress={() => {
-                    Keyboard.dismiss(); // 👈 Dismiss the keyboard first
-                    if (isKeyboardOpen) {
-                      setTimeout(() => {
-                        ref?.current?.close();
-                      }, 250);
-                    } else {
-                      ref?.current?.close();
-                    }
+                    Keyboard.dismiss();
+                    ref?.current?.close();
                   }}>
                   <X color={Colors.text_primary} strokeWidth={1.4} />
                 </TouchableOpacity>
@@ -114,9 +93,6 @@ const AppBottomSheet = forwardRef<any, Props>(
 
           <View style={{ flex: 1 }}>{children}</View>
         </View>
-
-        {/* </BottomSheetView> */}
-        {/* )} */}
       </BottomSheet>
     );
   },
@@ -127,8 +103,6 @@ export default AppBottomSheet;
 const styles = StyleSheet.create({
   sheetBg: {
     backgroundColor: '#fff',
-    // borderTopLeftRadius: 20,
-    // borderTopRightRadius: 20,
   },
   content: {
     flex: 1,
@@ -146,6 +120,7 @@ const styles = StyleSheet.create({
   bottomSheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 10,
   },
   bottomSheetHeaderText: {
     fontFamily: Fonts.Regular,

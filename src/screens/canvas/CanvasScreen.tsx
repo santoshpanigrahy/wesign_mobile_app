@@ -82,6 +82,14 @@ const CanvasScreen = ({ navigation }) => {
 
   const [showHint, setShowHint] = useState(false);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        dispatch(hideLoader());
+      };
+    }, [])
+  );
+
   const checkFirstVisit = async () => {
     try {
       const alreadyShown = await AsyncStorage.getItem('pager_swipe_hint');

@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Colors, Fonts, fp, hp, wp} from '@utils/Constants';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
+import { useFocusEffect } from '@react-navigation/native';
+
 import {
   ArrowLeft,
   CalendarDays,
@@ -17,33 +19,33 @@ import {
 } from 'lucide-react-native';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import AppInput from '@components/AppInput';
-import {Controller, useForm} from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import AppToggleButton from '@components/AppToggleButton';
 import AppButton from '@components/AppButton';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AppBottomSheet from '@components/AppBottomSheet';
-import {Calendar} from 'react-native-calendars';
+import { Calendar } from 'react-native-calendars';
 import api from '@utils/api';
 import Toast from 'react-native-toast-message';
-import {useAppDispatch, useAppSelector} from '@redux/hooks';
-import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
-import {BottomSheetFlatList} from '@gorhom/bottom-sheet';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import moment from 'moment';
-import {goBack, navigate, resetAndNavigate} from '@utils/NavigationUtils';
+import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import EnvelopeSentModal from '@components/EnvelopeSentModal';
-import {resetEnvelope} from '@redux/slices/envelopeSlice';
+import { resetEnvelope } from '@redux/slices/envelopeSlice';
 
 // --- Static Data ---
 const reminders = [
-  {label: 'Every Day', value: 1},
-  {label: 'Every 2 Days', value: 2},
-  {label: 'Every 3 Days', value: 3},
-  {label: 'Every 4 Days', value: 4},
-  {label: 'Every 5 Days', value: 5},
-  {label: 'Every 6 Days', value: 6},
-  {label: 'Every 7 Days', value: 7},
-  {label: 'Every 8 Days', value: 8},
-  {label: 'Every 9 Days', value: 9},
+  { label: 'Every Day', value: 1 },
+  { label: 'Every 2 Days', value: 2 },
+  { label: 'Every 3 Days', value: 3 },
+  { label: 'Every 4 Days', value: 4 },
+  { label: 'Every 5 Days', value: 5 },
+  { label: 'Every 6 Days', value: 6 },
+  { label: 'Every 7 Days', value: 7 },
+  { label: 'Every 8 Days', value: 8 },
+  { label: 'Every 9 Days', value: 9 },
 ];
 
 const noOfReminders = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -59,10 +61,10 @@ const formatLanguages = languages =>
     const label = lang
       .replace(/_/g, ' ')
       .replace(/\b\w/g, char => char.toUpperCase());
-    return {value: lang, label};
+    return { value: lang, label };
   });
 
-const FinishScreen = ({navigation}) => {
+const FinishScreen = ({ navigation }) => {
   const user = useAppSelector(state => state?.auth?.user);
   const recipients = useAppSelector(state => state?.envelope?.addRecipientsBox);
   const envelopeDocuments = useAppSelector(
@@ -75,7 +77,15 @@ const FinishScreen = ({navigation}) => {
     state => state?.envelope?.enable_writing_id,
   );
 
-  const {id, first_name, last_name, email} = user;
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        dispatch(hideLoader());
+      };
+    }, [])
+  );
+
+  const { id, first_name, last_name, email } = user;
   const fullName = first_name + ' ' + last_name;
 
   const fields = useAppSelector(state => state?.envelope?.allFields);
@@ -90,12 +100,12 @@ const FinishScreen = ({navigation}) => {
   const reminderRef = useRef(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const {control, handleSubmit, setValue, watch} = useForm({
+  const { control, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
       automatic_reminders: false,
       number_of_reminders: 1,
-      envelope_language: {label: 'English', value: 'english'},
-      auto_reminder: {label: 'Every Day', value: 1},
+      envelope_language: { label: 'English', value: 'english' },
+      auto_reminder: { label: 'Every Day', value: 1 },
       expiry_days: 120,
       expiry_date: '',
     },
@@ -115,7 +125,7 @@ const FinishScreen = ({navigation}) => {
         setLanguageList(formatLanguages(JSON.parse(res?.data?.value)));
       }
     } catch (error) {
-      Toast.show({type: 'error', text1: error?.message});
+      Toast.show({ type: 'error', text1: error?.message });
     } finally {
       dispatch(hideLoader());
     }
@@ -199,14 +209,14 @@ const FinishScreen = ({navigation}) => {
 
       const updatedRecipients = enableSigningOrder
         ? recipientsWithMeta.map((item, index) => ({
-            ...item,
-            host_email: item.host_email ? item.host_email : null,
-            order: index + 1,
-          }))
+          ...item,
+          host_email: item.host_email ? item.host_email : null,
+          order: index + 1,
+        }))
         : recipientsWithMeta.map(item => ({
-            ...item,
-            host_email: item.host_email ? item.host_email : null,
-          }));
+          ...item,
+          host_email: item.host_email ? item.host_email : null,
+        }));
 
       const request_data = {
         subject: subject.substring(0, 240),
@@ -214,7 +224,7 @@ const FinishScreen = ({navigation}) => {
         sent_by: id ?? null,
         envelope_recepients: updatedRecipients,
         envelope_documents,
-        email_content: {subject: subject.substring(0, 240), content: message},
+        email_content: { subject: subject.substring(0, 240), content: message },
         expiry_date: moment(expiry_date, 'MM/DD/YYYY').format('YYYY-MM-DD'),
         envelope_language: envelope_language?.value,
         im_signer: false,
@@ -240,7 +250,7 @@ const FinishScreen = ({navigation}) => {
       // Toast.show({ type: 'success', text1: "Done" });
     } catch (error) {
       console.log(error.response.data);
-      Toast.show({type: 'error', text1: error?.message});
+      Toast.show({ type: 'error', text1: error?.message });
     } finally {
       dispatch(hideLoader());
     }
@@ -307,7 +317,7 @@ const FinishScreen = ({navigation}) => {
 
   // --- Memoized Render Items ---
   const renderLanguageItem = useCallback(
-    ({item}) => (
+    ({ item }) => (
       <Pressable
         onPress={() => handleLanguageSelect(item)}
         style={styles.sheetItemRow}>
@@ -321,7 +331,7 @@ const FinishScreen = ({navigation}) => {
   );
 
   const renderReminderDayItem = useCallback(
-    ({item}) => (
+    ({ item }) => (
       <Pressable
         onPress={() => handleReminderDaySelect(item)}
         style={styles.sheetItemRow}>
@@ -335,7 +345,7 @@ const FinishScreen = ({navigation}) => {
   );
 
   const renderReminderCountItem = useCallback(
-    ({item}) => (
+    ({ item }) => (
       <Pressable
         onPress={() => handleReminderCountSelect(item)}
         style={styles.sheetItemRow}>
@@ -378,8 +388,8 @@ const FinishScreen = ({navigation}) => {
           <Controller
             control={control}
             name="subject"
-            rules={{required: 'Email subject is required'}}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
+            rules={{ required: 'Email subject is required' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
               <AppInput
                 label="Email Subject"
                 placeholder="Enter subject"
@@ -393,8 +403,8 @@ const FinishScreen = ({navigation}) => {
           <Controller
             control={control}
             name="message"
-            rules={{required: 'Email message is required'}}
-            render={({field: {onChange, value}, fieldState: {error}}) => (
+            rules={{ required: 'Email message is required' }}
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
               <View>
                 <Text style={styles.label}>
                   Email Message<Text style={styles.asterisk}>*</Text>
@@ -405,8 +415,8 @@ const FinishScreen = ({navigation}) => {
                     error?.message
                       ? styles.inputError
                       : isFocused
-                      ? styles.inputFocus
-                      : styles.inputDefault,
+                        ? styles.inputFocus
+                        : styles.inputDefault,
                   ]}
                   multiline
                   textAlignVertical="top"
@@ -427,9 +437,9 @@ const FinishScreen = ({navigation}) => {
           <Controller
             control={control}
             name="automatic_reminders"
-            render={({field: {onChange, value}}) => (
+            render={({ field: { onChange, value } }) => (
               <AppToggleButton
-                containerStyle={{height: hp(5)}}
+                containerStyle={{ height: hp(5) }}
                 label={'Send automatic reminders'}
                 value={value}
                 onToggle={onChange}
@@ -472,7 +482,7 @@ const FinishScreen = ({navigation}) => {
               <Controller
                 control={control}
                 name="expiry_days"
-                render={({field: {onChange, value}}) => (
+                render={({ field: { onChange, value } }) => (
                   <TextInput
                     keyboardType="numeric"
                     style={styles.numericInput}

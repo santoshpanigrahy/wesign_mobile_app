@@ -165,6 +165,14 @@ const UploadScreen = () => {
     configureGoogleDrive();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        dispatch(hideLoader());
+      };
+    }, [])
+  );
+
   const insets = useSafeAreaInsets();
 
   const [googleAccessToken, setGoogleAccessToken] = useState(null);

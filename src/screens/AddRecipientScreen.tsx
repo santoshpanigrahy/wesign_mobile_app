@@ -20,6 +20,8 @@ import React, {
 } from 'react';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+
 import {
   ArrowLeft,
   BookUser,
@@ -606,6 +608,14 @@ const RecipientFormModal = forwardRef(
 const AddRecipientScreen = ({ navigation }) => {
   const envelopeDocuments = useAppSelector(
     state => state.envelope.envelopeDocuments,
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        dispatch(hideLoader());
+      };
+    }, [])
   );
 
   const insets = useSafeAreaInsets();

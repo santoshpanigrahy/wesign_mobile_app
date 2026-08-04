@@ -1,4 +1,5 @@
 import {
+  FlatList,
   Image,
   Keyboard,
   ScrollView,
@@ -76,7 +77,6 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 import { useKeyboard } from '@utils/documentService';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import RecipientEmailField from '@components/RecipientEmailField';
 import RecipientNameField from '@components/RecipientNameField';
 
@@ -610,13 +610,13 @@ const AddRecipientScreen = ({ navigation }) => {
     state => state.envelope.envelopeDocuments,
   );
 
-  useFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        dispatch(hideLoader());
-      };
-    }, [])
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     return () => {
+  //       dispatch(hideLoader());
+  //     };
+  //   }, [])
+  // );
 
   const insets = useSafeAreaInsets();
   const userId = useAppSelector(state => state.auth.user);
@@ -1072,7 +1072,7 @@ const AddRecipientScreen = ({ navigation }) => {
         />
       </AppBottomSheet>
 
-      <AppBottomSheet ref={editRef} withCloseBtn={false} snapPoints={['10%']}>
+      <AppBottomSheet ref={editRef} withCloseBtn={false} >
         <View style={styles.sheetActions}>
           <TouchableOpacity
             style={styles.sheetActionRow}
@@ -1086,9 +1086,9 @@ const AddRecipientScreen = ({ navigation }) => {
       <AppBottomSheet
         ref={invalidEmailsRef}
         withCloseBtn={false}
-        containerStyle={{ paddingBottom: wp(4) }}
+        containerStyle={{ paddingVertical: wp(4) }}
         snapPoints={['50%']}>
-        <View style={{ flex: 1 }}>
+        <View >
           <Text
             style={{
               fontFamily: Fonts.Medium,
@@ -1110,9 +1110,9 @@ const AddRecipientScreen = ({ navigation }) => {
             before proceeding.
           </Text>
 
-          <BottomSheetFlatList
+          <FlatList
             data={invalidEmails}
-            contentContainerStyle={{ flex: 1 }}
+            // contentContainerStyle={{ flex: 1 }}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderErrorItem}
             keyboardShouldPersistTaps="handled"
@@ -1125,9 +1125,9 @@ const AddRecipientScreen = ({ navigation }) => {
       <AppBottomSheet
         ref={duplicateWarningRef}
         withCloseBtn={false}
-        containerStyle={{ paddingBottom: wp(4) }}
+        containerStyle={{ paddingVertical: wp(4) }}
         snapPoints={['30%']}>
-        <View style={{ flex: 1 }}>
+        <View >
           <Text
             style={{
               fontFamily: Fonts.SemiBold,
@@ -1437,7 +1437,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: wp(3),
     alignItems: 'center',
-    height: hp(6),
+    height: hp(8),
   },
   providerText: {
     fontFamily: Fonts.Regular,

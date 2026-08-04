@@ -22,7 +22,6 @@ import { ArrowLeft, CheckCircle2, Info, Link } from 'lucide-react-native';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import { pricingData } from '@utils/pricingData';
 import AppBottomSheet from '@components/AppBottomSheet';
-import AppNewBottomSheet from '@components/AppNewBottomSheet';
 import { goBack, navigate } from '@utils/NavigationUtils';
 import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
@@ -688,7 +687,7 @@ const PricingScreen = () => {
                 </PagerView>
             </LinearGradient>
 
-            <AppNewBottomSheet ref={infoRef} autoHeight={false} withCloseBtn={false} snapPoints={['20%']} containerStyle={{ paddingBottom: wp(7) }}>
+            <AppBottomSheet ref={infoRef} withCloseBtn={false} >
                 <View style={styles.infoWrapper}>
                     <View style={styles.infoBadge}>
                         <Info size={fp(2.5)} color={"#222"} />
@@ -698,7 +697,7 @@ const PricingScreen = () => {
 
                     <Text style={styles.InfoText}>{infoText}</Text>
                 </View>
-            </AppNewBottomSheet>
+            </AppBottomSheet>
 
             <SubscriptionSuccessModal
                 visible={showSuccessModal}
@@ -941,7 +940,8 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
     infoWrapper: {
-        gap: hp(2)
+        gap: hp(2),
+        paddingVertical: hp(2)
     },
     infoBadge: {
         flexDirection: 'row',

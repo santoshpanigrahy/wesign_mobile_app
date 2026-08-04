@@ -17,16 +17,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  FlatList,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import FastImage from 'react-native-fast-image';
-import {useForm, Controller} from 'react-hook-form';
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetTextInput,
-  BottomSheetFlatList,
-} from '@gorhom/bottom-sheet';
-import {Country, State} from 'country-state-city';
+import { useForm, Controller } from 'react-hook-form';
+
+import { Country, State } from 'country-state-city';
 import {
   User,
   Mail,
@@ -54,18 +51,18 @@ import {
 } from 'lucide-react-native';
 
 // Custom Imports from your project structure
-import {Colors, fp, hp, wp} from '@utils/Constants';
-import {Fonts} from '@utils/Constants';
-import {useAppDispatch, useAppSelector} from '@redux/hooks';
+import { Colors, fp, hp, wp } from '@utils/Constants';
+import { Fonts } from '@utils/Constants';
+import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import api from '@utils/api';
-import {hideLoader, showLoader} from '@redux/slices/loaderSlice';
+import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
 import Toast from 'react-native-toast-message';
 import SignaturePad from './canvas/components/SignaturePad';
 import InitialPad from './canvas/components/InitialPad';
 import StampPad from './canvas/components/StampPad';
-import {launchImageLibrary} from 'react-native-image-picker';
-import {updateUser} from '@redux/slices/authSlice';
-import {goBack} from '@utils/NavigationUtils';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { updateUser } from '@redux/slices/authSlice';
+import { goBack } from '@utils/NavigationUtils';
 import AppBottomSheet from '@components/AppBottomSheet';
 import DrawerHeader from '@components/DrawerHeader';
 
@@ -87,14 +84,14 @@ const InputField = memo(
         control={control}
         name={name}
         rules={rules}
-        render={({field: {onChange, onBlur, value}, fieldState: {error}}) => (
+        render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>{label}</Text>
             <View
               style={[
                 styles.inputWrapper,
                 error && styles.inputError,
-                secureTextEntry && {paddingRight: 0},
+                secureTextEntry && { paddingRight: 0 },
               ]}>
               {Icon && (
                 <Icon size={fp(2.2)} color="#94a3b8" style={styles.inputIcon} />
@@ -133,7 +130,7 @@ const InputField = memo(
 );
 
 // --- Individual Asset Card Component ---
-const AssetCard = memo(({title, icon: Icon, imageUrl, onEdit, onDelete}) => (
+const AssetCard = memo(({ title, icon: Icon, imageUrl, onEdit, onDelete }) => (
   <View style={styles.assetCard}>
     <View style={styles.assetHeader}>
       <View style={styles.assetTitleRow}>
@@ -143,7 +140,7 @@ const AssetCard = memo(({title, icon: Icon, imageUrl, onEdit, onDelete}) => (
       {imageUrl && (
         <TouchableOpacity
           onPress={onDelete}
-          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Trash2 size={fp(2)} color="#ef4444" />
         </TouchableOpacity>
       )}
@@ -152,7 +149,7 @@ const AssetCard = memo(({title, icon: Icon, imageUrl, onEdit, onDelete}) => (
       {imageUrl ? (
         <FastImage
           style={styles.assetImage}
-          source={{uri: imageUrl, priority: FastImage.priority.high}}
+          source={{ uri: imageUrl, priority: FastImage.priority.high }}
           resizeMode={FastImage.resizeMode.contain}
         />
       ) : (
@@ -170,7 +167,7 @@ const AssetCard = memo(({title, icon: Icon, imageUrl, onEdit, onDelete}) => (
   </View>
 ));
 
-const ProfilePagerScreen = ({navigation}) => {
+const ProfilePagerScreen = ({ navigation }) => {
   const user = useAppSelector(state => state?.auth?.user);
 
   const dispatch = useAppDispatch();
@@ -216,7 +213,7 @@ const ProfilePagerScreen = ({navigation}) => {
     useState(false);
   const [showPrefilledStampModal, setShowPrefilledStampModal] = useState(false);
 
-  const {control, handleSubmit, watch, setValue, reset} = useForm({
+  const { control, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
       first_name: '',
       last_name: '',
@@ -312,7 +309,7 @@ const ProfilePagerScreen = ({navigation}) => {
         setTimezones(timezoneRes.value.data.time_zone) || [];
       }
     } catch (e) {
-      Toast.show({type: 'error', text1: e?.message});
+      Toast.show({ type: 'error', text1: e?.message });
 
       console.log('Fetch error', e);
     } finally {
@@ -327,11 +324,11 @@ const ProfilePagerScreen = ({navigation}) => {
       type === 'stamp'
         ? '/api/stamp'
         : type === 'banner'
-        ? '/auth/banner'
-        : type === 'logo'
-        ? '/auth/logo'
-        : `/api/${type}`;
-    const body = type === 'stamp' ? {id: stampIntId} : {user: id};
+          ? '/auth/banner'
+          : type === 'logo'
+            ? '/auth/logo'
+            : `/api/${type}`;
+    const body = type === 'stamp' ? { id: stampIntId } : { user: id };
 
     try {
       const res = await api.delete(`${endpoint}`, {
@@ -339,18 +336,18 @@ const ProfilePagerScreen = ({navigation}) => {
       });
 
       if (res.data.status_code === 200) {
-        Toast.show({type: 'success', text1: res.data.message});
+        Toast.show({ type: 'success', text1: res.data.message });
         // Alert.alert("Success", res.data.message);
         if (type === 'signature') setSigBase64('');
         if (type === 'initial') setInitBase64('');
         if (type === 'stamp') setStampBase64('');
-        if (type === 'banner') dispatch(updateUser({banner_link: null}));
-        if (type === 'logo') dispatch(updateUser({logo_link: null}));
+        if (type === 'banner') dispatch(updateUser({ banner_link: null }));
+        if (type === 'logo') dispatch(updateUser({ logo_link: null }));
       } else {
-        Toast.show({type: 'error', text1: res.data.message});
+        Toast.show({ type: 'error', text1: res.data.message });
       }
     } catch (e) {
-      Toast.show({type: 'error', text1: e?.message});
+      Toast.show({ type: 'error', text1: e?.message });
     } finally {
       dispatch(hideLoader());
     }
@@ -551,7 +548,7 @@ const ProfilePagerScreen = ({navigation}) => {
         if (data.status_code === 200) {
           // Update Local State/Store
 
-          dispatch(updateUser({banner_link: data?.image}));
+          dispatch(updateUser({ banner_link: data?.image }));
 
           Toast.show({
             type: 'success',
@@ -635,7 +632,7 @@ const ProfilePagerScreen = ({navigation}) => {
         dispatch(hideLoader());
 
         if (data.status_code === 200) {
-          dispatch(updateUser({logo_link: data?.image}));
+          dispatch(updateUser({ logo_link: data?.image }));
 
           Toast.show({
             type: 'success',
@@ -661,17 +658,7 @@ const ProfilePagerScreen = ({navigation}) => {
     });
   };
 
-  const renderBackdrop = useCallback(
-    props => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
-    ),
-    [],
-  );
+
 
   if (!user) {
     return null;
@@ -688,7 +675,7 @@ const ProfilePagerScreen = ({navigation}) => {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}>
+        style={{ flex: 1 }}>
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
@@ -703,9 +690,9 @@ const ProfilePagerScreen = ({navigation}) => {
         {/* Tab Bar Navigation */}
         <View style={styles.tabBar}>
           {[
-            {id: 0, label: 'Profile', icon: User},
-            {id: 1, label: 'Assets', icon: FileSignature},
-            {id: 2, label: 'Security', icon: ShieldCheck},
+            { id: 0, label: 'Profile', icon: User },
+            { id: 1, label: 'Assets', icon: FileSignature },
+            { id: 2, label: 'Security', icon: ShieldCheck },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -735,21 +722,21 @@ const ProfilePagerScreen = ({navigation}) => {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollContent}>
               <View style={styles.row}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField
                     control={control}
                     name="first_name"
                     label="First Name*"
-                    rules={{required: 'Required'}}
+                    rules={{ required: 'Required' }}
                   />
                 </View>
-                <View style={{width: wp(4)}} />
-                <View style={{flex: 1}}>
+                <View style={{ width: wp(4) }} />
+                <View style={{ flex: 1 }}>
                   <InputField
                     control={control}
                     name="last_name"
                     label="Last Name*"
-                    rules={{required: 'Required'}}
+                    rules={{ required: 'Required' }}
                   />
                 </View>
               </View>
@@ -766,7 +753,7 @@ const ProfilePagerScreen = ({navigation}) => {
                 name="job_title"
                 label="Job Title*"
                 icon={Briefcase}
-                rules={{required: 'Required'}}
+                rules={{ required: 'Required' }}
               />
               <InputField
                 control={control}
@@ -775,7 +762,7 @@ const ProfilePagerScreen = ({navigation}) => {
                 icon={Building}
               />
               <View style={styles.row}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.inputLabel}>Country</Text>
                   <TouchableOpacity
                     style={styles.inputWrapper}
@@ -787,8 +774,8 @@ const ProfilePagerScreen = ({navigation}) => {
                     <ChevronDown size={fp(2)} color="#94a3b8" />
                   </TouchableOpacity>
                 </View>
-                <View style={{width: wp(4)}} />
-                <View style={{flex: 1}}>
+                <View style={{ width: wp(4) }} />
+                <View style={{ flex: 1 }}>
                   <Text style={styles.inputLabel}>State</Text>
                   <TouchableOpacity
                     style={styles.inputWrapper}
@@ -806,21 +793,21 @@ const ProfilePagerScreen = ({navigation}) => {
                 name="city"
                 label="City*"
                 icon={Briefcase}
-                rules={{required: 'Required'}}
+                rules={{ required: 'Required' }}
               />
               <InputField
                 control={control}
                 name="address"
                 label="Address*"
                 icon={MapPinHouse}
-                rules={{required: 'Required'}}
+                rules={{ required: 'Required' }}
               />
               <InputField
                 control={control}
                 name="zip"
                 label="Postal Code / Zip*"
                 icon={Briefcase}
-                rules={{required: 'Required'}}
+                rules={{ required: 'Required' }}
               />
 
               <InputField
@@ -903,7 +890,7 @@ const ProfilePagerScreen = ({navigation}) => {
                 control={passwordControl}
                 name="old_password"
                 label="Current Password"
-                rules={{required: 'Required'}}
+                rules={{ required: 'Required' }}
                 icon={Lock}
                 secureTextEntry
               />
@@ -911,7 +898,7 @@ const ProfilePagerScreen = ({navigation}) => {
                 control={passwordControl}
                 name="password"
                 label="New Password"
-                rules={{required: 'Required'}}
+                rules={{ required: 'Required' }}
                 icon={Lock}
                 secureTextEntry
               />
@@ -978,7 +965,7 @@ const ProfilePagerScreen = ({navigation}) => {
       <AppBottomSheet ref={bottomSheetRef} snapPoints={['100%']} title={''}>
         <View style={styles.sheetContainer}>
           <View style={styles.searchWrapper}>
-            <Search size={fp(2)} color="#94a3b8" style={{marginRight: wp(2)}} />
+            <Search size={fp(2)} color="#94a3b8" style={{ marginRight: wp(2) }} />
             <TextInput
               style={styles.sheetSearchInput}
               placeholder="Search..."
@@ -987,11 +974,11 @@ const ProfilePagerScreen = ({navigation}) => {
               onChangeText={setSearchQuery}
             />
           </View>
-          <BottomSheetFlatList
+          <FlatList
             data={filteredData}
             keyExtractor={item => item.isoCode + item.name}
             initialNumToRender={20}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.sheetItem}
                 onPress={() => onSelectLocation(item)}>
@@ -999,7 +986,7 @@ const ProfilePagerScreen = ({navigation}) => {
                 <Text style={styles.isoCodeText}>{item.isoCode}</Text>
               </TouchableOpacity>
             )}
-            contentContainerStyle={{paddingBottom: hp(5)}}
+            contentContainerStyle={{ paddingBottom: hp(5) }}
           />
         </View>
       </AppBottomSheet>
@@ -1019,11 +1006,11 @@ const ProfilePagerScreen = ({navigation}) => {
                             onChangeText={setSearchQuery}
                         />
                     </View> */}
-          <BottomSheetFlatList
+          <FlatList
             data={timezones}
             keyExtractor={item => item?.id}
             initialNumToRender={20}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.sheetItem}
                 onPress={() => onSelectTimezone(item)}>
@@ -1031,7 +1018,7 @@ const ProfilePagerScreen = ({navigation}) => {
                 {/* <Text style={styles.isoCodeText}></Text> */}
               </TouchableOpacity>
             )}
-            contentContainerStyle={{paddingBottom: hp(5)}}
+            contentContainerStyle={{ paddingBottom: hp(5) }}
           />
         </View>
       </AppBottomSheet>
@@ -1040,8 +1027,8 @@ const ProfilePagerScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#f8fafc'},
-  header: {flexDirection: 'row', padding: wp(6), alignItems: 'center'},
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  header: { flexDirection: 'row', padding: wp(6), alignItems: 'center' },
   avatarContainer: {
     width: wp(14),
     height: wp(14),
@@ -1050,9 +1037,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarText: {color: 'white', fontSize: fp(2.2), fontFamily: Fonts.Bold},
-  headerInfo: {marginLeft: wp(4)},
-  userNameText: {fontSize: fp(2.2), fontFamily: Fonts.Bold, color: '#0f172a'},
+  avatarText: { color: 'white', fontSize: fp(2.2), fontFamily: Fonts.Bold },
+  headerInfo: { marginLeft: wp(4) },
+  userNameText: { fontSize: fp(2.2), fontFamily: Fonts.Bold, color: '#0f172a' },
   userRoleText: {
     fontSize: fp(1.5),
     fontFamily: Fonts.Regular,
@@ -1077,14 +1064,14 @@ const styles = StyleSheet.create({
     gap: wp(1),
   },
 
-  activeTabItem: {backgroundColor: 'white', elevation: 2, shadowOpacity: 0.1},
+  activeTabItem: { backgroundColor: 'white', elevation: 2, shadowOpacity: 0.1 },
 
-  tabLabel: {fontSize: fp(1.5), fontFamily: Fonts.SemiBold, color: '#64748b'},
-  activeTabLabel: {color: '#0f172a'},
+  tabLabel: { fontSize: fp(1.5), fontFamily: Fonts.SemiBold, color: '#64748b' },
+  activeTabLabel: { color: '#0f172a' },
 
-  pagerView: {flex: 1},
-  scrollContent: {padding: wp(5)},
-  row: {flexDirection: 'row', marginBottom: hp(1)},
+  pagerView: { flex: 1 },
+  scrollContent: { padding: wp(5) },
+  row: { flexDirection: 'row', marginBottom: hp(1) },
   tabTitle: {
     fontSize: fp(2),
     fontFamily: Fonts.Bold,
@@ -1092,7 +1079,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
 
-  inputContainer: {marginBottom: hp(2)},
+  inputContainer: { marginBottom: hp(2) },
   inputLabel: {
     fontSize: fp(1.5),
     fontFamily: Fonts.Medium,
@@ -1109,7 +1096,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3),
     height: hp(6.2),
   },
-  inputIcon: {marginRight: wp(2)},
+  inputIcon: { marginRight: wp(2) },
   textInput: {
     flex: 1,
     color: '#0f172a',
@@ -1123,7 +1110,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Regular,
     marginLeft: wp(1),
   },
-  inputError: {borderColor: '#ef4444'},
+  inputError: { borderColor: '#ef4444' },
   errorText: {
     color: '#ef4444',
     fontSize: fp(1.3),
@@ -1146,7 +1133,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
-  assetTitleRow: {flexDirection: 'row', alignItems: 'center'},
+  assetTitleRow: { flexDirection: 'row', alignItems: 'center' },
   assetTitleText: {
     marginLeft: wp(2),
     fontSize: fp(1.7),
@@ -1159,9 +1146,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fcfcfc',
   },
-  assetImage: {width: '85%', height: '85%'},
-  emptyAsset: {padding: wp(5)},
-  emptyText: {color: '#cbd5e1', fontSize: fp(1.6), fontFamily: Fonts.Regular},
+  assetImage: { width: '85%', height: '85%' },
+  emptyAsset: { padding: wp(5) },
+  emptyText: { color: '#cbd5e1', fontSize: fp(1.6), fontFamily: Fonts.Regular },
   assetFooterBtn: {
     paddingVertical: hp(1.5),
     flexDirection: 'row',
@@ -1192,7 +1179,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Bold,
   },
 
-  sheetContainer: {flex: 1, marginTop: hp(2)},
+  sheetContainer: {},
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1221,7 +1208,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Regular,
     color: '#1e293b',
   },
-  isoCodeText: {fontSize: fp(1.4), color: '#94a3b8', fontFamily: Fonts.Medium},
+  isoCodeText: { fontSize: fp(1.4), color: '#94a3b8', fontFamily: Fonts.Medium },
   overlay: {
     position: 'absolute',
     top: 0,

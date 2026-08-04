@@ -1,21 +1,17 @@
-import React, { forwardRef, useMemo, useCallback } from 'react';
-import { StyleSheet, View, Text, Keyboard } from 'react-native';
-import BottomSheet, {
-  BottomSheetView,
-  BottomSheetBackdrop,
-  TouchableOpacity,
-} from '@gorhom/bottom-sheet';
-
+import React, { forwardRef, useImperativeHandle, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View, Text, Keyboard, Dimensions } from 'react-native';
+import Modal from 'react-native-modal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
+
 import { Colors, Fonts, fp, wp } from '@utils/Constants';
 import { useKeyboard } from '@utils/documentService';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   children: React.ReactNode;
   snapPoints?: (string | number)[];
   enableScroll?: boolean;
-  title?: String;
+  title?: string;
   withCloseBtn?: boolean;
   containerStyle?: any;
 };
@@ -24,76 +20,100 @@ const AppBottomSheet = forwardRef<any, Props>(
   (
     {
       children,
-      snapPoints = ['25%', '50%', '90%'],
-      enableScroll = false,
-      title = null,
+      snapPoints,
+      title = '',
       withCloseBtn = true,
       containerStyle = {},
     },
     ref,
   ) => {
-    const isKeyboardOpen = useKeyboard();
-    const memoSnapPoints = useMemo(() => snapPoints, [snapPoints]);
+    const [visible, setVisible] = useState(false);
     const inset = useSafeAreaInsets();
+    const isKeyboardOpen = useKeyboard();
 
-    const renderBackdrop = useCallback(
-      (props: any) => (
-        <BottomSheetBackdrop
-          {...props}
-          appearsOnIndex={0}
-          disappearsOnIndex={-1}
-          pressBehavior="close"
-          opacity={0.3}
-        />
-      ),
-      [],
-    );
+    useImperativeHandle(ref, () => ({
+      present: () => setVisible(true),
+      open: () => setVisible(true),
+      expand: () => setVisible(true),
+      close: () => setVisible(false),
+      dismiss: () => setVisible(false),
+      snapToIndex: () => setVisible(true),
+    }));
+
+    const closeSheet = () => {
+      Keyboard.dismiss();
+
+      if (isKeyboardOpen) {
+        setTimeout(() => {
+          setVisible(false);
+        }, 250);
+      } else {
+        setVisible(false);
+      }
+    };
+
+
+    // 👈 2. Check if a snapPoint was actually provided
+    const firstSnapPoint = snapPoints?.[0];
+    const hasFixedSnapPoint = firstSnapPoint !== undefined;
+
+    const height = typeof firstSnapPoint === 'string'
+      ? firstSnapPoint
+      : `${firstSnapPoint}%`;
+
+
 
     return (
-      <BottomSheet
-        ref={ref}
-        index={-1}
-        snapPoints={memoSnapPoints}
-        enablePanDownToClose
-        enableDynamicSizing={false}
-        topInset={inset.top}
-        bottomInset={inset.bottom}
-        animateOnMount={true}
-        backdropComponent={renderBackdrop}
+      <View pointerEvents='box-none'>
+        <Modal
+          isVisible={visible}
+          onBackdropPress={closeSheet}
+          onBackButtonPress={closeSheet}
+          style={styles.modal}
+          hideModalContentWhileAnimating
+          backdropOpacity={0.3}
+          avoidKeyboard
+          propagateSwipe={true}
+          // Smooth slide-up bottom sheet animation defaults
+          animationIn="slideInUp"
+          animationOut="slideOutDown"
+          useNativeDriverForBackdrop
+        >
+          <View
+            style={[
+              styles.container,
+              {
+                paddingBottom: inset.bottom,
+              },
+              // 👈 3. Only apply fixed height if snapPoints are passed
+              hasFixedSnapPoint && { height: height as any },
+              containerStyle,
+            ]}
+          >
+            {(title || withCloseBtn) && (
+              <View style={styles.bottomSheetHeader}>
+                <Text style={styles.bottomSheetHeaderText}>{title}</Text>
 
-        keyboardBehavior="interactive"
-        android_keyboardInputMode="adjustResize"
-        keyboardBlurBehavior="restore"
+                {withCloseBtn && (
+                  <TouchableOpacity onPress={closeSheet} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <X color={Colors.text_primary} strokeWidth={1.4} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
 
-        handleIndicatorStyle={styles.handle}
-        backgroundStyle={styles.sheetBg}
-        style={{ zIndex: 99 }}>
-
-        <View
-          style={[
-            styles.content,
-            containerStyle,
-            { paddingTop: snapPoints[0] === '100%' ? inset.top : 0 },
-          ]}>
-          {(title || withCloseBtn) && (
-            <View style={styles.bottomSheetHeader}>
-              <Text style={styles.bottomSheetHeaderText}>{title}</Text>
-
-              {withCloseBtn && (
-                <TouchableOpacity
-                  onPress={() => {
-                    Keyboard.dismiss();
-                    ref?.current?.close();
-                  }}>
-                  <X color={Colors.text_primary} strokeWidth={1.4} />
-                </TouchableOpacity>
-              )}
+            {/* 🌟 THIS WRAPPER FIXES THE CHILD LAYOUT ISSUE AUTOMATICALLY */}
+            <View style={[
+              styles.contentBody,
+              // 👈 4. Remove flex: 1 if auto-height, otherwise content collapses
+              !hasFixedSnapPoint && { flex: undefined }
+            ]}>
+              {children}
             </View>
-          )}
+          </View>
+        </Modal>
+      </View>
 
-          <View style={{ flex: 1 }}>{children}</View>
-        </View>
-      </BottomSheet>
     );
   },
 );
@@ -101,30 +121,33 @@ const AppBottomSheet = forwardRef<any, Props>(
 export default AppBottomSheet;
 
 const styles = StyleSheet.create({
-  sheetBg: {
+  modal: {
+    // flex: 1,
+    justifyContent: 'flex-end',
+    margin: 0,
+
+  },
+  container: {
     backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     paddingHorizontal: wp(5),
-    paddingBottom: 40,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#ccc',
-    alignSelf: 'center',
-    borderRadius: 2,
-    display: 'none',
+    width: '100%',
   },
   bottomSheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   bottomSheetHeaderText: {
     fontFamily: Fonts.Regular,
     fontSize: fp(2),
     color: Colors.text_primary,
+  },
+  contentBody: {
+    // flex: 1, // 👈 Ensures children scale properly without screen-level View wrappers
+    width: '100%',
   },
 });

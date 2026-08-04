@@ -23,7 +23,10 @@ const CustomSafeAreaView: FC<CustomSafeAreaViewProps> = ({ children, style }) =>
     <View style={[styles.container, style]}>
       <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
       <SafeAreaView style={{ flex: 1, paddingTop: insets.top }}>
+
+
         {children}
+
       </SafeAreaView>
     </View>
   );

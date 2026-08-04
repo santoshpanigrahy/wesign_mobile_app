@@ -4,13 +4,13 @@ import {
   Text,
   TouchableOpacity,
   View,
-  TextInput
+  TextInput,
+  FlatList
 } from 'react-native';
 import React, { useCallback, useEffect, useState, memo } from 'react';
 import { Colors, Fonts, fp, hp, wp } from '@utils/Constants';
 import { useAppSelector } from '@redux/hooks';
 import api from '@utils/api';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { Mail, Phone, Search } from 'lucide-react-native';
 
 // 1. Memoized item and removed inline styles
@@ -105,7 +105,7 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
         />
       </View>
 
-      <BottomSheetFlatList
+      <FlatList
         data={filteredData}
         // 3. Unique IDs instead of indexes
         keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
@@ -130,7 +130,7 @@ const AddressBook = ({ onSelectRecipient, setRecipientsList }) => {
 export default AddressBook;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: hp(2) },
+  container: {},
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

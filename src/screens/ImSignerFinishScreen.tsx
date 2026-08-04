@@ -14,7 +14,6 @@ import api from '@utils/api'
 import Toast from 'react-native-toast-message'
 import { useAppDispatch, useAppSelector } from '@redux/hooks'
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice'
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import moment from 'moment'
 import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils'
 import EnvelopeSentModal from '@components/EnvelopeSentModal'
@@ -345,7 +344,7 @@ const IamSignerFinishScreen = ({ navigation }) => {
 
             <IamSignerRecipientModal editData={editData} visible={showRecipientModal} onClose={() => setShowRecipientModal(false)} onSave={onSaveRecipient} />
 
-            <AppBottomSheet ref={editRef} withCloseBtn={false} snapPoints={["10%"]}>
+            <AppBottomSheet ref={editRef} withCloseBtn={false} >
                 <View style={styles.sheetActions}>
                     <TouchableOpacity style={styles.sheetActionRow} onPress={handleDeleteRecipient}>
                         <Trash size={fp(2.5)} color={Colors.error} />
@@ -526,7 +525,7 @@ const styles = StyleSheet.create({
     contactRow: { flexDirection: 'row', alignItems: 'center', gap: wp(1) },
     mailIcon: { marginTop: 1 },
     sheetActions: { paddingHorizontal: wp(4) },
-    sheetActionRow: { flexDirection: 'row', gap: wp(3), alignItems: 'center', height: hp(6) },
+    sheetActionRow: { flexDirection: 'row', gap: wp(3), alignItems: 'center', height: hp(8) },
     providerText: { fontFamily: Fonts.Regular, fontSize: fp(2), color: Colors.text_primary },
 
 

@@ -1,4 +1,5 @@
 import {
+  FlatList,
   Pressable,
   StyleSheet,
   Text,
@@ -29,7 +30,6 @@ import api from '@utils/api';
 import Toast from 'react-native-toast-message';
 import { useAppDispatch, useAppSelector } from '@redux/hooks';
 import { hideLoader, showLoader } from '@redux/slices/loaderSlice';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import moment from 'moment';
 import { goBack, navigate, resetAndNavigate } from '@utils/NavigationUtils';
 import EnvelopeSentModal from '@components/EnvelopeSentModal';
@@ -531,7 +531,7 @@ const FinishScreen = ({ navigation }) => {
         ref={languageRef}
         title={'Select language'}
         snapPoints={['50%']}>
-        <BottomSheetFlatList
+        <FlatList
           data={languageList}
           contentContainerStyle={styles.sheetListContent}
           keyExtractor={(item, index) => index.toString()}
@@ -541,7 +541,7 @@ const FinishScreen = ({ navigation }) => {
       </AppBottomSheet>
 
       <AppBottomSheet ref={dayRef} title={'Select'} snapPoints={['50%']}>
-        <BottomSheetFlatList
+        <FlatList
           data={reminders}
           contentContainerStyle={styles.sheetListContent}
           keyExtractor={(item, index) => index.toString()}
@@ -551,7 +551,7 @@ const FinishScreen = ({ navigation }) => {
       </AppBottomSheet>
 
       <AppBottomSheet ref={reminderRef} title={'Select'} snapPoints={['50%']}>
-        <BottomSheetFlatList
+        <FlatList
           data={noOfReminders}
           contentContainerStyle={styles.sheetListContent}
           keyExtractor={(item, index) => index.toString()}
@@ -715,8 +715,8 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   sheetListContent: {
-    marginTop: hp(2),
-    paddingBottom: hp(4),
+    // marginTop: hp(2),
+    paddingBottom: hp(8),
   },
   sheetItemRow: {
     height: hp(4.5),

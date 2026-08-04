@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: hp(2 ),
+    marginTop: hp(2),
 
     shadowColor: '#000',
     shadowOpacity: 0.2,

@@ -772,9 +772,9 @@ const InboxScreen = ({ navigation }) => {
                 )}
             </View>
 
-            <AppBottomSheet ref={actionRef} snapPoints={['21%']} withCloseBtn={false}>
+            <AppBottomSheet ref={actionRef} withCloseBtn={false}>
 
-                <View style={{ flex: 1 }}>
+                <View style={{ paddingVertical: hp(1) }}>
                     <AppActionButton btnText='Download' icon={Download} onPress={() => { actionRef?.current?.close(); setModalVisible(true) }} />
                     <AppActionButton btnText='Email Download' icon={MailOpen} onPress={emailDownload} />
                     <AppActionButton btnText='Delete' icon={Trash} onPress={() => { actionRef?.current?.close(); setDeleteModalVisible(true) }} />

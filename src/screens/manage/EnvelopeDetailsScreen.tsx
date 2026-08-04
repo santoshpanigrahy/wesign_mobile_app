@@ -34,7 +34,6 @@ import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import AppBottomSheet from '@components/AppBottomSheet';
 import EnvelopeHistorySheet from '@screens/canvas/components/EnvelopeHistorySheet';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { getSnapshots } from '@utils/documentService';
 import CONFIG from '@utils/Config';
 import CustomSafeAreaView from '@components/CustomSafeAreaView';
@@ -1118,10 +1117,10 @@ const EnvelopeDetailsScreen = ({ route }) => {
 
             <AppBottomSheet ref={historyRef} title={'Envelope History'} snapPoints={['90%']}>
 
-                <BottomSheetScrollView>
+                <ScrollView contentContainerStyle={{ paddingBottom: hp(10) }}>
 
                     <EnvelopeHistorySheet onDownloadCertificate={onDownloadCertificate} onExportActivity={onExportActivity} details={historyDetails} historyList={historyList} />
-                </BottomSheetScrollView>
+                </ScrollView>
 
             </AppBottomSheet>
 

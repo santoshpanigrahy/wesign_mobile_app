@@ -127,7 +127,6 @@ import {
   updateDocumentByIndex,
 } from '@redux/slices/envelopeSlice';
 import AppToggleButton from '@components/AppToggleButton';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useFocusEffect } from '@react-navigation/native';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
@@ -136,7 +135,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 const configureGoogleDrive = () => {
   GoogleSignin.configure({
     // Updated to the non-sensitive scope approved by Google
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
+    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
 
     // You get this ID from the Google Cloud Console
     webClientId:
@@ -331,36 +330,34 @@ const UploadScreen = () => {
 
   const fetchGoogleDrivePDFs = async () => {
     try {
-
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       const tokens = await GoogleSignin.getTokens();
-      const accessToken = tokens.accessToken;
+      const accessToken = tokens?.accessToken;
 
       if (!accessToken) {
-        throw new Error('No access token received');
+        throw new Error('Could not retrieve access token from Google');
       }
       setGoogleAccessToken(accessToken);
 
       const mimeTypes = [...new Set(validTypes.map(t => t.toLowerCase()))];
-      const mimeQuery = mimeTypes
-        .map(type => `mimeType='${type}'`)
-        .join(' or ');
+      const mimeQuery = mimeTypes.map(type => `mimeType='${type}'`).join(' or ');
       const q = `(${mimeQuery}) and trashed=false`;
 
-      let allFiles = [];
-      let pageToken = null;
+      let allFiles: any[] = [];
+      let pageToken: string | null = null;
       let hasMorePages = true;
 
-      // Loop to fetch all pages of files
       while (hasMorePages) {
-        // 1. Add pageSize=1000 to get max files per request
-        // 2. Add nextPageToken to fields so the API actually returns it
         let queryUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
           q,
         )}&pageSize=1000&fields=nextPageToken,files(id,name,mimeType)`;
 
-        // 3. Append the pageToken if we are on page 2 or later
+        // let queryUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(
+        //   q,
+        // )}&pageSize=1000&fields=nextPageToken,files(id,name,mimeType)&includeItemsFromAllDrives=true&supportsAllDrives=true`;
+
+
         if (pageToken) {
           queryUrl += `&pageToken=${pageToken}`;
         }
@@ -375,11 +372,14 @@ const UploadScreen = () => {
 
         const data = await response.json();
 
+        if (data.error) {
+          throw new Error(data.error?.message || 'Google Drive API error');
+        }
+
         if (data.files && data.files.length > 0) {
           allFiles = [...allFiles, ...data.files];
         }
 
-        // Check if there is another page of results
         if (data.nextPageToken) {
           pageToken = data.nextPageToken;
         } else {
@@ -388,17 +388,14 @@ const UploadScreen = () => {
       }
 
       if (allFiles.length > 0) {
-        console.log('Found total files:', allFiles.length);
         const filesWithTypes = allFiles.map(file => {
           const isGoogleNative = file.mimeType?.startsWith(
             'application/vnd.google-apps.',
           );
-
           let fileName = file.name;
 
           if (isGoogleNative) {
             const exportInfo = GOOGLE_EXPORT_MAP[file.mimeType];
-
             if (exportInfo && !file.name.endsWith(`.${exportInfo.extension}`)) {
               fileName = `${file.name}.${exportInfo.extension}`;
             }
@@ -413,58 +410,74 @@ const UploadScreen = () => {
 
         return filesWithTypes;
       } else {
-        console.log('No files found in this Drive.');
-        GoogleSignin.signOut();
-        return [];
+        return []; // Returns empty array -> triggers "No matching files" toast in handler
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('User cancelled the login flow');
-
+        Toast.show({
+          type: 'info',
+          text1: 'Google Sign-In was cancelled',
+        });
+        return null; // Return null so handler knows it was user-cancelled
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('Sign in is already in progress');
+        Toast.show({
+          type: 'info',
+          text1: 'Sign in is already in progress',
+        });
+        return null;
       } else {
         Toast.show({
           type: 'error',
-          text1: error?.message || error,
+          text1: 'Google Drive Error',
+          text2: error?.message || 'Failed to connect to Google Drive',
         });
         console.error('Error fetching from Google Drive:', error);
+        return null;
       }
-      return [];
     }
   };
 
 
 
   const handleDriveLogin = async () => {
-    // 1. Close the current sheet
+    // 1. Close current sheet
     sheetRef?.current?.close();
 
-    // 2. Wait for the closing animation
+    // 2. Wait for close animation
     setTimeout(async () => {
       dispatch(showLoader('Loading Drive Files'));
 
       try {
         const driveFiles = await fetchGoogleDrivePDFs();
-        setGoogleDriveFiles(driveFiles);
 
         if (driveFiles && driveFiles.length > 0) {
+          setGoogleDriveFiles(driveFiles);
 
+          // Hide loader FIRST, then open sheet on next frame
           dispatch(hideLoader());
-          requestAnimationFrame(() => {
-            InteractionManager.runAfterInteractions(() => {
-              googleDriveRef?.current?.snapToIndex(0);
-            });
+
+          setTimeout(() => {
+            googleDriveRef?.current?.open(); // or .present()
+          }, 150);
+        } else if (driveFiles !== null) {
+          // Handled empty results (user logged in, but 0 files found)
+          dispatch(hideLoader());
+          Toast.show({
+            type: 'info',
+            text1: 'No matching files found in your Google Drive',
           });
         }
-      } catch (err) {
+      } catch (err: any) {
+        dispatch(hideLoader());
         Toast.show({
           type: 'error',
-          text1: err?.message,
+          text1: 'Error',
+          text2: err?.message || 'Failed to fetch Google Drive files',
         });
         console.error('Error in handleDriveLogin:', err);
       } finally {
         dispatch(hideLoader());
+        GoogleSignin.signOut()
       }
     }, 300);
   };
@@ -763,7 +776,7 @@ const UploadScreen = () => {
 
   const openSheet = () => {
 
-    sheetRef.current?.snapToIndex(0);
+    sheetRef.current?.expand();
   };
   const [documentId, setDocumentId] = useState(null);
   const openFileSheet = index => {
@@ -1192,7 +1205,6 @@ const UploadScreen = () => {
     );
   };
 
-  console.log("first")
 
   return (
     <CustomSafeAreaView>
@@ -1327,10 +1339,116 @@ const UploadScreen = () => {
         </View>
       )}
 
+
+
+      <AppBottomSheet ref={fileRef} withCloseBtn={false}>
+        <View>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              gap: wp(2),
+              alignItems: 'center',
+              height: hp(8),
+
+            }}
+            onPress={() => handleDeleteDocument()}>
+            <Trash size={fp(2.5)} color={Colors.error} />
+            <Text style={[styles.providerText, { fontSize: fp(2) }]}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </AppBottomSheet>
+
+      <AppBottomSheet
+        ref={errorFileRef}
+        withCloseBtn={false}
+        containerStyle={{ paddingVertical: wp(4) }}
+        snapPoints={['50%']}>
+        <View >
+          <Text
+            style={{
+              fontFamily: Fonts.Medium,
+              color: Colors.text_primary,
+              fontSize: fp(1.9),
+              marginBottom: hp(2),
+            }}>
+            {errorFiles.length === 1
+              ? '1 file needs attention. Please remove it.'
+              : `${errorFiles.length} files need attention. Please remove them.`}
+          </Text>
+          {/* <Text style={{ fontFamily: Fonts.Medium, color: Colors.error, fontSize: fp(2), textAlign: 'center' }}>
+            {errorFiles.length} {errorFiles.length > 1 ? "files" : "file"} need attention
+          </Text> */}
+
+          <FlatList
+            data={errorFiles}
+            // contentContainerStyle={{ flex: 1 }}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderErrorItem}
+            keyboardShouldPersistTaps="handled"
+          />
+
+          <AppButton
+            title="Remove All"
+            onPress={() => clearAllErrorFiles()}
+            style={{ backgroundColor: Colors.error }}
+          />
+        </View>
+      </AppBottomSheet>
+
+      <AppBottomSheet
+        ref={googleDriveRef}
+        title={'Google Drive Files'}
+        containerStyle={{ paddingBottom: wp(4) }}
+        snapPoints={['90%']}>
+
+        <FlatList
+          data={googleDriveFiles}
+          contentContainerStyle={{ paddingBottom: hp(10) }}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderGoogleDriveFileItem}
+          keyboardShouldPersistTaps="handled"
+        />
+
+      </AppBottomSheet>
+
+      <AppBottomSheet
+        ref={dropboxRef}
+        title={'Dropbox Files'}
+        containerStyle={{ paddingBottom: wp(4) }}
+        snapPoints={['90%']}>
+
+        <FlatList
+          data={dropboxFiles}
+          contentContainerStyle={{ paddingBottom: wp(4) }}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderDropboxFileItem}
+          keyboardShouldPersistTaps="handled"
+        />
+
+      </AppBottomSheet>
+
+      <Portal>
+        <ConfirmExitModal
+          visible={showExitModal}
+          onCancel={() => setShowExitModal(false)}
+          onConfirm={() => {
+            setShowExitModal(false);
+            handleDiscard();
+          }}
+          onSave={() => {
+            setShowExitModal(false);
+            handleSave();
+          }}
+        />
+      </Portal>
+
+
+
       <AppBottomSheet
         ref={sheetRef}
         title={'Add Documents'}
-        snapPoints={['35%']}>
+        snapPoints={['35%']}
+      >
         <View style={styles.providerWrapper}>
           {/* <TouchableOpacity style={styles.provider} >
             <Image source={require('@assets/icons/scan.png')} alt='scan' style={styles.providerIcon} />
@@ -1391,105 +1509,8 @@ const UploadScreen = () => {
         </View>
       </AppBottomSheet>
 
-      <AppBottomSheet ref={fileRef} withCloseBtn={false} snapPoints={['10%']}>
-        <View>
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              gap: wp(2),
-              alignItems: 'center',
-              height: hp(5),
-            }}
-            onPress={() => handleDeleteDocument()}>
-            <Trash size={fp(2.5)} color={Colors.error} />
-            <Text style={[styles.providerText, { fontSize: fp(2) }]}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </AppBottomSheet>
 
-      <AppBottomSheet
-        ref={errorFileRef}
-        withCloseBtn={false}
-        containerStyle={{ paddingBottom: wp(4) }}
-        snapPoints={['50%']}>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontFamily: Fonts.Medium,
-              color: Colors.text_primary,
-              fontSize: fp(1.9),
-              marginBottom: hp(2),
-            }}>
-            {errorFiles.length === 1
-              ? '1 file needs attention. Please remove it.'
-              : `${errorFiles.length} files need attention. Please remove them.`}
-          </Text>
-          {/* <Text style={{ fontFamily: Fonts.Medium, color: Colors.error, fontSize: fp(2), textAlign: 'center' }}>
-            {errorFiles.length} {errorFiles.length > 1 ? "files" : "file"} need attention
-          </Text> */}
 
-          <BottomSheetFlatList
-            data={errorFiles}
-            contentContainerStyle={{ flex: 1 }}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderErrorItem}
-            keyboardShouldPersistTaps="handled"
-          />
-
-          <AppButton
-            title="Remove All"
-            onPress={() => clearAllErrorFiles()}
-            style={{ backgroundColor: Colors.error }}
-          />
-        </View>
-      </AppBottomSheet>
-
-      <AppBottomSheet
-        ref={googleDriveRef}
-        title={'Google Drive Files'}
-        containerStyle={{ paddingBottom: wp(4) }}
-        snapPoints={['90%']}>
-        <View style={{ flex: 1, paddingTop: hp(2) }}>
-          <BottomSheetFlatList
-            data={googleDriveFiles}
-            // contentContainerStyle={{ flex: 1 }}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderGoogleDriveFileItem}
-            keyboardShouldPersistTaps="handled"
-          />
-        </View>
-      </AppBottomSheet>
-
-      <AppBottomSheet
-        ref={dropboxRef}
-        title={'Dropbox Files'}
-        containerStyle={{ paddingBottom: wp(4) }}
-        snapPoints={['90%']}>
-        <View style={{ flex: 1, paddingTop: hp(2) }}>
-          <BottomSheetFlatList
-            data={dropboxFiles}
-            // contentContainerStyle={{ flex: 1 }}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={renderDropboxFileItem}
-            keyboardShouldPersistTaps="handled"
-          />
-        </View>
-      </AppBottomSheet>
-
-      <Portal>
-        <ConfirmExitModal
-          visible={showExitModal}
-          onCancel={() => setShowExitModal(false)}
-          onConfirm={() => {
-            setShowExitModal(false);
-            handleDiscard();
-          }}
-          onSave={() => {
-            setShowExitModal(false);
-            handleSave();
-          }}
-        />
-      </Portal>
     </CustomSafeAreaView>
   );
 };
@@ -1603,6 +1624,7 @@ const styles = StyleSheet.create({
   providerWrapper: {
     gap: wp(6),
     marginTop: hp(3),
+
   },
   fileIcon: {
     width: 45,

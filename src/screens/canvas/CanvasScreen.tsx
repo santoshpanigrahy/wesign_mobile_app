@@ -48,7 +48,6 @@ import { Slider } from 'react-native-awesome-slider';
 import CanvasPrefilledFields from './components/CanvasPrefilledFields';
 import CanvasRecipients from './components/CanvasRecipients';
 import AppBottomSheet from '@components/AppBottomSheet';
-import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import AppButton from '@components/AppButton';
 import TextStyleMeta from './components/fieldMeta/TextStyleMeta';
 import api from '@utils/api';
@@ -81,14 +80,9 @@ const CanvasScreen = ({ navigation }) => {
   const im_signer = useAppSelector(state => state?.envelope?.im_signer);
 
   const [showHint, setShowHint] = useState(false);
+  const isActive = useRef(false);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        dispatch(hideLoader());
-      };
-    }, [])
-  );
+
 
   const checkFirstVisit = async () => {
     try {
@@ -219,6 +213,20 @@ const CanvasScreen = ({ navigation }) => {
     return () => clearTimeout(timer);
   }, []);
 
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      isActive.current = true;
+
+      return () => {
+        isActive.current = false;
+        dispatch(hideLoader());
+
+      };
+    }, [])
+  );
+
   useEffect(() => {
     if (selectedField) {
       widthProgress.value = Number(selectedField.width);
@@ -298,7 +306,7 @@ const CanvasScreen = ({ navigation }) => {
       }
     };
 
-    while (attempts < maxRetries) {
+    while (attempts < maxRetries && isActive.current) {
       const urls = await getDocumentUrl(document_key);
 
       // Check if signed_urls is empty
@@ -335,12 +343,22 @@ const CanvasScreen = ({ navigation }) => {
       console.log('Document Listing asdfasdf', docs);
       let allPages = [];
       for (let i = 0; i < docs.length; i++) {
+
+        if (!isActive.current) {
+          return;
+        }
         const doc = docs[i];
         const urls = await getDocumentUrlWithRetry(doc.document_key);
         console.log('Document URLs', urls);
+
+        if (!isActive.current || !urls) {
+          return;
+        }
         const pages = await mapUrlsToPages(urls, doc, i + 1);
         allPages = [...allPages, ...pages];
       }
+
+      if (!isActive.current) return;
       const documentsWithIndex = addGlobalIndex(allPages);
       setGroupedDocuments(groupDocuments(documentsWithIndex));
       setDocuments(documentsWithIndex);
@@ -1304,7 +1322,7 @@ const CanvasScreen = ({ navigation }) => {
         ref={recipientRef}
         title={'Choose Recipient'}
         snapPoints={['60%']}>
-        <BottomSheetFlatList
+        <FlatList
           data={allNonRecipients}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderRecipientItem}
@@ -1367,7 +1385,7 @@ const CanvasScreen = ({ navigation }) => {
 
         <View style={styles.colorSection}>
           <Text style={styles.colorTitleMore}>More Colors</Text>
-          <BottomSheetFlatList
+          <FlatList
             data={ALL_COLORS}
             keyExtractor={item => item}
             numColumns={7}

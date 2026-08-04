@@ -558,9 +558,9 @@ const DraftScreen = ({ navigation }) => {
                 )}
             </View>
 
-            <AppBottomSheet ref={actionRef} snapPoints={['20%']} withCloseBtn={false}>
+            <AppBottomSheet ref={actionRef} withCloseBtn={false}>
 
-                <View style={{ flex: 1 }}>
+                <View style={{ paddingVertical: hp(1) }}>
                     {/* <AppActionButton btnText='Edit / Continue' icon={SquarePen} onPress={() => console.log('Copy Pressed')} /> */}
                     {/* <AppActionButton btnText='Download' icon={Download} onPress={() => { actionRef?.current?.close(); setModalVisible(true); }} /> */}
                     <AppActionButton btnText='Email Download' icon={MailOpen} onPress={emailDownload} />
